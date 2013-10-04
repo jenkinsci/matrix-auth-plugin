@@ -38,6 +38,7 @@ import hudson.util.VersionNumber;
 import hudson.util.RobustReflectionConverter;
 import hudson.Functions;
 import hudson.Extension;
+import hudson.model.User;
 import net.sf.json.JSONObject;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.userdetails.UsernameNotFoundException;
@@ -343,6 +344,19 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         private String makeImg(String gif) {
             return String.format("<img src='%s%s/images/16x16/%s' style='margin-right:0.2em'>", Stapler.getCurrentRequest().getContextPath(), Jenkins.RESOURCE_PATH, gif);
         }
+    }
+
+    @Extension public static final class PermissionAdderImpl extends PermissionAdder {
+
+        @Override public boolean add(AuthorizationStrategy strategy, User user, Permission perm) {
+            if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
+                ((GlobalMatrixAuthorizationStrategy) strategy).add(perm, user.getId());
+                return true;
+            } else {
+                return false;
+            }
+        }
+
     }
 
     private static final Logger LOGGER = Logger.getLogger(GlobalMatrixAuthorizationStrategy.class.getName());
