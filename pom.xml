@@ -6,7 +6,7 @@
         <version>1.535</version>
     </parent>
     <artifactId>matrix-auth</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
     <packaging>hpi</packaging>
     <name>Matrix Authorization Strategy Plugin</name>
     <description>Offers matrix-based security authorization strategies (global and per-project).</description>
