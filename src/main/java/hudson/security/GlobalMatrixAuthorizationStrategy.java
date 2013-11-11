@@ -260,10 +260,18 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         @Override
         public AuthorizationStrategy newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             GlobalMatrixAuthorizationStrategy gmas = create();
-            for(Map.Entry<String,JSONObject> r : (Set<Map.Entry<String,JSONObject>>)formData.getJSONObject("data").entrySet()) {
+            Map<String,Object> data = formData.getJSONObject("data");
+            for(Map.Entry<String,Object> r : data.entrySet()) {
                 String sid = r.getKey();
-                for(Map.Entry<String,Boolean> e : (Set<Map.Entry<String,Boolean>>)r.getValue().entrySet()) {
-                    if(e.getValue()) {
+                if (!(r.getValue() instanceof JSONObject)) {
+                    throw new FormException("not an object: " + formData, "data");
+                }
+                Map<String,Object> value = (JSONObject) r.getValue();
+                for (Map.Entry<String,Object> e : value.entrySet()) {
+                    if (!(e.getValue() instanceof Boolean)) {
+                        throw new FormException("not an boolean: " + formData, "data");
+                    }
+                    if ((Boolean) e.getValue()) {
                         Permission p = Permission.fromId(e.getKey());
                         gmas.add(p,sid);
                     }
