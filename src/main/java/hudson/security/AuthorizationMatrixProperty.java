@@ -148,15 +148,20 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
             // Disable inheritance, if so configured
             amp.setBlocksInheritance(!formData.getJSONObject("blocksInheritance").isNullObject());
 
-            for (Map.Entry<String, Object> r : (Set<Map.Entry<String, Object>>) formData.getJSONObject("data").entrySet()) {
+            Map<String,Object> data = formData.getJSONObject("data");
+            for (Map.Entry<String, Object> r : data.entrySet()) {
                 String sid = r.getKey();
-                if (r.getValue() instanceof JSONObject) {
-                    for (Map.Entry<String, Boolean> e : (Set<Map.Entry<String, Boolean>>) ((JSONObject) r
-                            .getValue()).entrySet()) {
-                        if (e.getValue()) {
-                            Permission p = Permission.fromId(e.getKey());
-                            amp.add(p, sid);
-                        }
+                if (!(r.getValue() instanceof JSONObject)) {
+                    throw new FormException("not an object: " + formData, "data");
+                }
+                Map<String,Object> value = (JSONObject) r.getValue();
+                for (Map.Entry<String,Object> e : value.entrySet()) {
+                    if (!(e.getValue() instanceof Boolean)) {
+                        throw new FormException("not a boolean: " + formData, "data");
+                    }
+                    if ((Boolean) e.getValue()) {
+                        Permission p = Permission.fromId(e.getKey());
+                        amp.add(p, sid);
                     }
                 }
             }
