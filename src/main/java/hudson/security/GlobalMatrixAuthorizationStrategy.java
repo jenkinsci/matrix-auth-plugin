@@ -276,9 +276,10 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                     if ((Boolean) e.getValue()) {
                         Permission p = Permission.fromId(e.getKey());
                         if (p == null) {
-                            throw new IllegalArgumentException("Unknown permission:\"" + e.getKey() + "\" set to \"" + e.getValue() +"\" for sid \"" + sid + "\"");
+                            LOGGER.log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\"", new Object[]{e.getKey(), sid});
+                        } else {
+                            gmas.add(p, sid);
                         }
-                        gmas.add(p,sid);
                     }
                 }
             }
