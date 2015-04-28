@@ -91,7 +91,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      */
     public void add(Permission p, String sid) {
         if (p==null)
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Permission can not be null for sid:" + sid);
+
+        LOGGER.log(Level.FINE, "Grant permission \"{0}\" to \"{1}\")", new Object[]{p, sid});
         Set<String> set = grantedPermissions.get(p);
         if(set==null)
             grantedPermissions.put(p,set = new HashSet<String>());
@@ -273,7 +275,11 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                     }
                     if ((Boolean) e.getValue()) {
                         Permission p = Permission.fromId(e.getKey());
-                        gmas.add(p,sid);
+                        if (p == null) {
+                            LOGGER.log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\"", new Object[]{e.getKey(), sid});
+                        } else {
+                            gmas.add(p, sid);
+                        }
                     }
                 }
             }
