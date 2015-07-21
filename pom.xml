@@ -11,6 +11,10 @@
     <name>Matrix Authorization Strategy Plugin</name>
     <description>Offers matrix-based security authorization strategies (global and per-project).</description>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Matrix+Authorization+Strategy+Plugin</url>
+    <properties>
+      <findbugs-maven-plugin.version>3.0.1</findbugs-maven-plugin.version>
+      <findbugs.failOnError>false</findbugs.failOnError>
+    </properties>
     <licenses>
         <license>
             <name>MIT</name>
@@ -22,6 +26,37 @@
         <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     </scm>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>3.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs-maven-plugin.version}</version>
+                <configuration>
+                    <xmlOutput>true</xmlOutput>
+                    <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+                    <failOnError>${findbugs.failOnError}</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>run-findbugs</id>
+                        <phase>verify</phase> 
+                        <goals>
+                            <goal>check</goal> 
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
