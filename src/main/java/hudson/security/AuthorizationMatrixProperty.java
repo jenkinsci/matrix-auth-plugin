@@ -58,6 +58,8 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.CheckForNull;
 
 import javax.servlet.ServletException;
 
@@ -198,9 +200,13 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
     }
 
 	private final class AclImpl extends SidACL {
+                @CheckForNull
+                @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL", 
+                        justification = "As designed, implements a third state for the ternary logic")
 		protected Boolean hasPermission(Sid sid, Permission p) {
-			if (AuthorizationMatrixProperty.this.hasPermission(toString(sid),p))
+			if (AuthorizationMatrixProperty.this.hasPermission(toString(sid),p)) {
 				return true;
+                        }
 			return null;
 		}
 	}
