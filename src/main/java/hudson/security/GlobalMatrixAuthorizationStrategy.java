@@ -28,6 +28,7 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Descriptor;
 import jenkins.model.Jenkins;
@@ -64,6 +65,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * Role-based authorization via a matrix.
@@ -183,6 +186,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     private final class AclImpl extends SidACL {
+        @CheckForNull
+        @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL", 
+                        justification = "As designed, implements a third state for the ternary logic")
         protected Boolean hasPermission(Sid p, Permission permission) {
             if(GlobalMatrixAuthorizationStrategy.this.hasPermission(toString(p),permission))
                 return true;
@@ -301,14 +307,24 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public FormValidation doCheckName(@QueryParameter String value ) throws IOException, ServletException {
+            final Jenkins jenkins = Jenkins.getInstance();
+            if (jenkins == null) { // Should never happen
+                return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
+            }
             return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
         }
 
-        public FormValidation doCheckName_(String value, AccessControlled subject, Permission permission) throws IOException, ServletException {
+        public FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, 
+                @Nonnull Permission permission) throws IOException, ServletException {
             if(!subject.hasPermission(permission))  return FormValidation.ok(); // can't check
 
             final String v = value.substring(1,value.length()-1);
-            SecurityRealm sr = Jenkins.getInstance().getSecurityRealm();
+            
+            final Jenkins jenkins = Jenkins.getInstance();
+            if (jenkins == null) { // Should never happen
+                return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
+            }
+            SecurityRealm sr = jenkins.getSecurityRealm();
             String ev = Functions.escape(v);
 
             if(v.equals("authenticated"))
