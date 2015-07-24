@@ -306,9 +306,9 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 				reader.moveDown();
 				reader.getValue(); // we used to use this but not any more.
 				reader.moveUp();
-				prop = reader.peekNextChild();
+				prop = reader.peekNextChild(); // We check the next field
 			}
-			else if ("blocksInheritance".equals(prop)) {
+			if ("blocksInheritance".equals(prop)) {
 			    reader.moveDown();
 			    as.setBlocksInheritance("true".equals(reader.getValue()));
 			    reader.moveUp();
