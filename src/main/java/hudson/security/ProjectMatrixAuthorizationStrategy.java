@@ -35,6 +35,8 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.core.JVM;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.acls.sid.Sid;
 import org.jenkinsci.plugins.matrixauth.Messages;
 
 import java.util.HashSet;
@@ -56,16 +58,29 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
             SidACL projectAcl = amp.getACL();
 
             if (!amp.isBlocksInheritance()) {
-                projectAcl = projectAcl.newInheritingACL(getACL(project.getParent()));
+                final ACL parentAcl = getACL(project.getParent());
+                return inheritingACL(parentAcl, projectAcl);
+            } else {
+                return projectAcl;
             }
-
-            return projectAcl;
         } else {
             return getACL(project.getParent());
         }
     }
 
-    public SidACL getACL(ItemGroup g) {
+    private static ACL inheritingACL(final ACL parent, final ACL child) {
+        if (parent instanceof SidACL && child instanceof SidACL) {
+            return ((SidACL) parent).newInheritingACL((SidACL) child);
+        }
+        return new ACL() {
+            @Override
+            public boolean hasPermission(Authentication a, Permission permission) {
+                return child.hasPermission(a, permission) || parent.hasPermission(a, permission);
+            }
+        };
+    }
+
+    public ACL getACL(ItemGroup g) {
         if (g instanceof Item) {
             Item item = (Item) g;
             return (SidACL)item.getACL();
@@ -74,7 +89,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     }
 
     @Override
-    public SidACL getACL(AbstractItem item) {
+    public ACL getACL(AbstractItem item) {
         return getACL(item.getParent());
     }
 
