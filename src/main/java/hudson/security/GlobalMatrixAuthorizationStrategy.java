@@ -117,7 +117,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     @Override
-    public SidACL getRootACL() {
+    public ACL getRootACL() {
         return acl;
     }
 
