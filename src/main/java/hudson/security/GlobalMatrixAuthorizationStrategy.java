@@ -132,7 +132,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      */
     /*package*/ static boolean migrateHudson2324(Map<Permission,Set<String>> grantedPermissions) {
         boolean result = false;
-        if(Jenkins.getInstance().isUpgradedFromBefore(new VersionNumber("1.300.*"))) {
+        if(Jenkins.getActiveInstance().isUpgradedFromBefore(new VersionNumber("1.300.*"))) {
             Set<String> f = grantedPermissions.get(Jenkins.READ);
             if (f!=null) {
                 Set<String> t = grantedPermissions.get(Item.READ);
@@ -311,7 +311,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             if (jenkins == null) { // Should never happen
                 return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
             }
-            return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
+            return doCheckName_(value, Jenkins.getActiveInstance(), Jenkins.ADMINISTER);
         }
 
         public FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, 
