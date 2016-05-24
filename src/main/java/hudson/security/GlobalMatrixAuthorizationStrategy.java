@@ -329,12 +329,12 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
             if(v.equals("authenticated"))
                 // system reserved group
-                return FormValidation.respond(Kind.OK, makeImg("user.png") +ev);
+                return FormValidation.respond(Kind.OK, makeImg("user.png", "Group", false) +ev);
 
             try {
                 try {
                     sr.loadUserByUsername(v);
-                    return FormValidation.respond(Kind.OK, makeImg("person.png")+ev);
+                    return FormValidation.respond(Kind.OK, makeImg("person.png", "User", false)+ev);
                 } catch (UserMayOrMayNotExistException e) {
                     // undecidable, meaning the user may exist
                     return FormValidation.respond(Kind.OK, ev);
@@ -349,7 +349,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
                 try {
                     sr.loadGroupByGroupname(v);
-                    return FormValidation.respond(Kind.OK, makeImg("user.png") +ev);
+                    return FormValidation.respond(Kind.OK, makeImg("user.png", "Group", false) +ev);
                 } catch (UserMayOrMayNotExistException e) {
                     // undecidable, meaning the group may exist
                     return FormValidation.respond(Kind.OK, ev);
@@ -363,7 +363,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 }
 
                 // couldn't find it. it doesn't exist
-                return FormValidation.respond(Kind.ERROR, makeImg("error.png") +ev);
+                return FormValidation.respond(Kind.ERROR, makeImg("user-disabled.png", "User or group not found", true) + formatNonexistentUser(ev));
             } catch (Exception e) {
                 // if the check fails miserably, we still want the user to be able to see the name of the user,
                 // so use 'ev' as the message
@@ -371,8 +371,16 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             }
         }
 
-        private String makeImg(String gif) {
-            return String.format("<img src='%s%s/images/16x16/%s' style='margin-right:0.2em'>", Stapler.getCurrentRequest().getContextPath(), Jenkins.RESOURCE_PATH, gif);
+        private String formatNonexistentUser(String username) {
+            return "<span style='text-decoration: line-through; color: grey;'>" + username + "</span>";
+        }
+
+        private String makeImg(String img, String tooltip, boolean inPlugin) {
+            if (inPlugin) {
+                return String.format("<img src='%s/plugin/matrix-auth/images/%s' title='%s' style='margin-right:0.2em'>", Stapler.getCurrentRequest().getContextPath(), img, tooltip);
+            } else {
+                return String.format("<img src='%s%s/images/16x16/%s' title='%s' style='margin-right:0.2em'>", Stapler.getCurrentRequest().getContextPath(), Jenkins.RESOURCE_PATH, img, tooltip);
+            }
         }
     }
 
