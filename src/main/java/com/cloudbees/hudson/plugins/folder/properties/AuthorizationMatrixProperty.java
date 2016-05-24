@@ -132,7 +132,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         sids.add(sid);
     }
 
-    @Extension
+    @Extension(optional = true)
     public static class DescriptorImpl extends AbstractFolderPropertyDescriptor {
         @Override
         public AbstractFolderProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
