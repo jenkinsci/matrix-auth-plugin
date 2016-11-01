@@ -40,6 +40,9 @@
   font-weight: lighter;
   writing-mode: tb-rl; /* works in IE, not FF */
   padding: 0;
+  background-color: #eee;
+  border: 1px solid #D3D7CF;
+  color: #3b3b3b!important;
 }
 
 .global-matrix-authorization-strategy-table TD {
