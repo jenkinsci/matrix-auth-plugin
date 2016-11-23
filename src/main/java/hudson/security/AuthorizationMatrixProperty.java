@@ -194,7 +194,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
             return p.getEnabled() && p.isContainedBy(PermissionScope.ITEM);
         }
 
-        public FormValidation doCheckName(@AncestorInPath Job project, @QueryParameter String value) throws IOException, ServletException {
+        public FormValidation doCheckName(@AncestorInPath Item project, @QueryParameter String value) throws IOException, ServletException {
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value, project, Item.CONFIGURE);
         }
     }
