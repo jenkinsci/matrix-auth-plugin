@@ -49,6 +49,7 @@ import java.io.IOException;
 import net.sf.json.JSONObject;
 
 import org.acegisecurity.acls.sid.Sid;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.AncestorInPath;
@@ -86,6 +87,13 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
     private boolean blocksInheritance = false;
 
     private AuthorizationMatrixProperty() {
+    }
+
+    @DataBoundConstructor
+    public AuthorizationMatrixProperty(List<String> permissions) {
+        for(String permission : permissions) {
+            this.add(permission);
+        }
     }
 
     public AuthorizationMatrixProperty(Map<Permission, Set<String>> grantedPermissions) {
