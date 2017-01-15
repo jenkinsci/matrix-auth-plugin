@@ -29,6 +29,8 @@ THE SOFTWARE.
       <table style="width:100%">
         <f:optionalBlock field="blocksInheritance"
                          title="${%Block inheritance of global authorization matrix}" />
+        <f:optionalBlock field="blocksParentInheritance"
+                         title="${%Block inheritance of parent authorization matrix}" />
         <st:include class="hudson.security.GlobalMatrixAuthorizationStrategy" page="config.jelly"/>
       </table>
     </f:nested>

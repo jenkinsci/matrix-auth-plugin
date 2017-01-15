@@ -85,4 +85,78 @@ public class AuthorizationMatrixPropertyTest {
             }
         });
     }
+    
+    /**
+     * Tests if folders can be configured not to inherit from their parent folder
+     * so that users can be granted read access to a folder, without getting access
+     * to all subfolders
+     * 
+     * @throws Exception 
+     */
+    @Test public void blocksInheritParent1() throws Exception {
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        realm.createAccount("alice","alice");
+        realm.createAccount("bob","bob");
+        r.jenkins.setSecurityRealm(realm);
+
+        ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
+        r.jenkins.setAuthorizationStrategy(as);
+        as.add(Hudson.READ,"authenticated");
+
+        Folder f = r.jenkins.createProject(Folder.class, "a");
+        AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
+        amp.add(Item.READ,"alice");
+        amp.add(Item.READ,"bob");
+        amp.add(Item.BUILD,"alice");
+        f.getProperties().add(amp);
+        
+        Folder fb1 = f.createProject(Folder.class, "b1");
+        AuthorizationMatrixProperty ampb1 = new AuthorizationMatrixProperty();
+        ampb1.setBlocksParentInheritance(true);
+        ampb1.add(Item.READ,"alice");
+        ampb1.add(Item.BUILD,"alice");
+        fb1.getProperties().add(ampb1);
+        
+        Folder fb2 = f.createProject(Folder.class, "b2");
+        AuthorizationMatrixProperty ampb2 = new AuthorizationMatrixProperty();
+        fb1.getProperties().add(ampb2);
+
+        final FreeStyleProject foo1 = fb1.createProject(FreeStyleProject.class, "foo1");
+        final FreeStyleProject foo2 = fb2.createProject(FreeStyleProject.class, "foo2");
+
+        JenkinsRule.WebClient wc = r.createWebClient().login("bob");
+        try {
+            wc.getPage(foo1);
+            fail();
+        } catch (FailingHttpStatusCodeException e) {
+            assertEquals(404, e.getStatusCode());
+        }
+        
+        wc.getPage(foo2);    // this should succeed
+
+        wc = r.createWebClient().login("alice");
+        wc.getPage(foo1);    // this should succeed
+        wc.getPage(foo2);    // this should succeed
+
+        // and build permission should be set, too
+        wc.executeOnServer(new Callable<Object>() {
+            public Object call() throws Exception {
+                foo1.checkPermission(Item.BUILD);
+                foo2.checkPermission(Item.BUILD);
+                try {
+                    foo1.checkPermission(Item.DELETE);
+                    fail("acecss should be denied");
+                } catch (AccessDeniedException e) {
+                    // expected
+                }
+                try {
+                    foo2.checkPermission(Item.DELETE);
+                    fail("acecss should be denied");
+                } catch (AccessDeniedException e) {
+                    // expected
+                }
+                return null;
+            }
+        });
+    }
 }

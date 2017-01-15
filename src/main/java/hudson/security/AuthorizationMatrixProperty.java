@@ -84,6 +84,8 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 	private Set<String> sids = new HashSet<String>();
 
     private boolean blocksInheritance = false;
+    
+    private boolean blocksParentInheritance = false;
 
     private AuthorizationMatrixProperty() {
     }
@@ -149,6 +151,9 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 
             // Disable inheritance, if so configured
             amp.setBlocksInheritance(!formData.getJSONObject("blocksInheritance").isNullObject());
+            
+            // Disable parent inheritance, if so configured
+            amp.setBlocksParentInheritance(!formData.getJSONObject("blocksParentInheritance").isNullObject());
 
             Map<String,Object> data = formData.getJSONObject("data");
             for (Map.Entry<String, Object> r : data.entrySet()) {
@@ -216,7 +221,27 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 	}
 
 	/**
-	 * Sets the flag to block inheritance
+	 * Sets the flag to block parent inheritance
+	 *
+	 * @param blocksParentInheritance
+	 *            true if the parent inheritance should be blocked
+	 */
+	protected void setBlocksParentInheritance(boolean blocksParentInheritance) {
+		this.blocksParentInheritance = blocksParentInheritance;
+	}
+
+	/**
+	 * Returns true if the authorization matrix is configured to block
+	 * inheritance from the parent.
+	 *
+	 * @return true if the parent inheritance is blocked
+	 */
+	public boolean isBlocksParentInheritance() {
+		return this.blocksParentInheritance;
+	}
+
+	/**
+	 * Sets the flag to block global authorization matrix inheritance
 	 *
 	 * @param blocksInheritance
 	 */
@@ -284,6 +309,12 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
                 writer.setValue("true");
                 writer.endNode();
             }
+            
+            if(amp.isBlocksParentInheritance()) {
+                writer.startNode("blocksParentInheritance");
+                writer.setValue("true");
+                writer.endNode();
+            }
 
             for (Entry<Permission, Set<String>> e : amp.grantedPermissions
 					.entrySet()) {
@@ -312,6 +343,13 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 			    reader.moveDown();
 			    as.setBlocksInheritance("true".equals(reader.getValue()));
 			    reader.moveUp();
+                            prop = reader.peekNextChild(); // We check the next field
+			}
+
+			if("blocksParentInheritance".equals(prop)) {
+				reader.moveDown();
+				as.setBlocksParentInheritance("true".equals(reader.getValue()));
+				reader.moveUp();
 			}
 
 			while (reader.hasMoreChildren()) {
