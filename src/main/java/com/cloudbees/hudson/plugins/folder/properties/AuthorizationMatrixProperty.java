@@ -80,6 +80,8 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     private Set<String> sids = new HashSet<String>();
 
+    private boolean blocksInheritance = false;
+
     protected AuthorizationMatrixProperty() {
     }
 
@@ -141,6 +143,10 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                 return null;
 
             AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
+
+            // Disable inheritance, if so configured
+            amp.setBlocksInheritance(!formData.getJSONObject("blocksInheritance").isNullObject());
+
             for (Map.Entry<String, Object> r : (Set<Map.Entry<String, Object>>) formData.getJSONObject("data").entrySet()) {
                 String sid = r.getKey();
                 if (r.getValue() instanceof JSONObject) {
@@ -206,6 +212,25 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     /**
+     * Sets the flag to block inheritance
+     *
+     * @param blocksInheritance
+     */
+    public void setBlocksInheritance(boolean blocksInheritance) {
+        this.blocksInheritance = blocksInheritance;
+    }
+
+    /**
+     * Returns true if the authorization matrix is configured to block
+     * inheritance from the parent.
+     *
+     * @return
+     */
+    public boolean isBlocksInheritance() {
+        return this.blocksInheritance;
+    }
+
+    /**
      * Checks if the given SID has the given permission.
      */
     public boolean hasPermission(String sid, Permission p) {
@@ -250,6 +275,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                 MarshallingContext context) {
             AuthorizationMatrixProperty amp = (AuthorizationMatrixProperty) source;
 
+            if (amp.isBlocksInheritance()) {
+                writer.startNode("blocksInheritance");
+                writer.setValue("true");
+                writer.endNode();
+            }
+
             for (Entry<Permission, Set<String>> e : amp.grantedPermissions
                     .entrySet()) {
                 String p = e.getKey().getId();
@@ -264,6 +295,20 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         public Object unmarshal(HierarchicalStreamReader reader,
                 final UnmarshallingContext context) {
             AuthorizationMatrixProperty as = new AuthorizationMatrixProperty();
+
+            String prop = reader.peekNextChild();
+
+            if (prop!=null && prop.equals("useProjectSecurity")) {
+                reader.moveDown();
+                reader.getValue(); // we used to use this but not any more.
+                reader.moveUp();
+                prop = reader.peekNextChild(); // We check the next field
+            }
+            if ("blocksInheritance".equals(prop)) {
+                reader.moveDown();
+                as.setBlocksInheritance("true".equals(reader.getValue()));
+                reader.moveUp();
+            }
 
             while (reader.hasMoreChildren()) {
                 reader.moveDown();
