@@ -54,6 +54,9 @@ public class AuthorizationMatrixPropertyTest {
 
         Folder f = r.jenkins.createProject(Folder.class, "d");
         AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
+
+        assertEquals(amp.isBlocksInheritance(), false); // inherit permissions by default
+
         amp.add(Item.READ,"alice");
         amp.add(Item.BUILD,"alice");
         f.getProperties().add(amp);
@@ -84,5 +87,35 @@ public class AuthorizationMatrixPropertyTest {
                 return null;
             }
         });
+    }
+
+    @Test public void disabling_permission_inheritance_removes_global_permissions() throws Exception {
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        realm.createAccount("alice","alice");
+        realm.createAccount("bob","bob");
+        r.jenkins.setSecurityRealm(realm);
+
+        ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
+        r.jenkins.setAuthorizationStrategy(as);
+        as.add(Hudson.READ,"authenticated");
+
+        Folder f = r.jenkins.createProject(Folder.class, "d");
+        AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
+        amp.setBlocksInheritance(true);
+        amp.add(Item.READ,"alice");
+        f.getProperties().add(amp);
+
+        final FreeStyleProject foo = f.createProject(FreeStyleProject.class, "foo");
+
+        JenkinsRule.WebClient wc = r.createWebClient().login("bob");
+        try {
+            wc.getPage(foo);
+            fail();
+        } catch (FailingHttpStatusCodeException e) {
+            assertEquals(404, e.getStatusCode());
+        }
+
+        wc = r.createWebClient().login("alice");
+        wc.getPage(foo);    // this should succeed
     }
 }
