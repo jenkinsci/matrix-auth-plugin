@@ -32,6 +32,7 @@ import hudson.model.Item;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import java.util.concurrent.Callable;
+
 import org.acegisecurity.AccessDeniedException;
 import static org.junit.Assert.*;
 import org.junit.Rule;
