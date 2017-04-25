@@ -29,6 +29,7 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.PluginManager;
 import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Descriptor;
 import jenkins.model.Jenkins;
@@ -45,6 +46,8 @@ import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.acegisecurity.acls.sid.Sid;
 import org.jenkinsci.plugins.matrixauth.Messages;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
@@ -84,6 +87,16 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * which is not distinguished.
      */
     private final Map<Permission,Set<String>> grantedPermissions = new HashMap<Permission, Set<String>>();
+
+    /**
+     * List of permissions considered dangerous to grant to non-admin users
+     */
+    @Restricted(NoExternalUse.class)
+    static final List<Permission> DANGEROUS_PERMISSIONS = Arrays.asList(
+            Jenkins.RUN_SCRIPTS,
+            PluginManager.CONFIGURE_UPDATECENTER,
+            PluginManager.UPLOAD_PLUGINS
+    );
 
     private final Set<String> sids = new HashSet<String>();
 
@@ -152,6 +165,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * Checks if the given SID has the given permission.
      */
     public boolean hasPermission(String sid, Permission p) {
+        if (!ENABLE_DANGEROUS_PERMISSIONS && DANGEROUS_PERMISSIONS.contains(p)) {
+            return hasPermission(sid, Jenkins.ADMINISTER);
+        }
         for(; p!=null; p=p.impliedBy) {
             Set<String> set = grantedPermissions.get(p);
             if(set!=null && set.contains(sid) && p.getEnabled())
@@ -166,6 +182,27 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     public boolean hasExplicitPermission(String sid, Permission p) {
         Set<String> set = grantedPermissions.get(p);
         return set != null && set.contains(sid) && p.getEnabled();
+    }
+
+    boolean isAnyRelevantDangerousPermissionExplicitlyGranted() {
+        for (String sid : getAllSIDs()) {
+            if (isAnyRelevantDangerousPermissionExplicitlyGranted(sid)) {
+                return true;
+            }
+        }
+        if (isAnyRelevantDangerousPermissionExplicitlyGranted("anonymous")) {
+            return true;
+        }
+        return false;
+    }
+
+    boolean isAnyRelevantDangerousPermissionExplicitlyGranted(String sid) {
+        for (Permission p : DANGEROUS_PERMISSIONS) {
+            if (!hasPermission(sid, Jenkins.ADMINISTER) && hasExplicitPermission(sid, p)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -303,7 +340,25 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public boolean showPermission(Permission p) {
-            return p.getEnabled();
+            if (!p.getEnabled()) {
+                // Permission is disabled, so don't show it
+                return false;
+            }
+
+            if (ENABLE_DANGEROUS_PERMISSIONS || !DANGEROUS_PERMISSIONS.contains(p)) {
+                // we allow assignment of dangerous permissions, or it's a safe permission, so show it
+                return true;
+            }
+
+            // if we grant any dangerous permission, show them all
+            AuthorizationStrategy strategy = Jenkins.getActiveInstance().getAuthorizationStrategy();
+            if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
+                GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = (GlobalMatrixAuthorizationStrategy) strategy;
+                return globalMatrixAuthorizationStrategy.isAnyRelevantDangerousPermissionExplicitlyGranted();
+            }
+
+            // don't show by default, i.e. when initially configuring the authorization strategy
+            return false;
         }
 
         public FormValidation doCheckName(@QueryParameter String value ) throws IOException, ServletException {
@@ -398,5 +453,14 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     private static final Logger LOGGER = Logger.getLogger(GlobalMatrixAuthorizationStrategy.class.getName());
+
+    /**
+     * Backwards compatibility: Enable granting dangerous permissions independently of Administer access.
+     *
+     * @since TODO
+     */
+    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
+    @Restricted(NoExternalUse.class)
+    public static /* allow script access */ boolean ENABLE_DANGEROUS_PERMISSIONS = Boolean.getBoolean(GlobalMatrixAuthorizationStrategy.class.getName() + ".dangerousPermissions");
 }
 
