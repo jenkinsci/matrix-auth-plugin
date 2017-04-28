@@ -24,6 +24,12 @@ THE SOFTWARE.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:optionalBlock name="useProjectSecurity" title="${%Enable project-based security}" checked="${instance!=null}">
-    <st:include class="hudson.security.GlobalMatrixAuthorizationStrategy" page="config.jelly"/>
+    <f:nested>
+      <table style="width:100%">
+        <f:optionalBlock field="blocksParentInheritance"
+                         title="${%Block inheritance of parent authorization matrix}" />
+        <st:include class="hudson.security.GlobalMatrixAuthorizationStrategy" page="config.jelly"/>
+      </table>
+    </f:nested>
   </f:optionalBlock>
 </j:jelly>

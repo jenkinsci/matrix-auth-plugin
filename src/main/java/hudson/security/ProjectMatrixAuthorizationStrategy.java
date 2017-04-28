@@ -58,11 +58,13 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         if (amp != null) {
             SidACL projectAcl = amp.getACL();
 
-            if (!amp.isBlocksInheritance()) {
+            if (amp.isBlocksInheritance()) {
+                return projectAcl;
+            } else if (amp.isBlocksParentInheritance()) {
+                return inheritingACL(getRootACL(), projectAcl);
+            } else {
                 final ACL parentAcl = getACL(project.getParent());
                 return inheritingACL(parentAcl, projectAcl);
-            } else {
-                return projectAcl;
             }
         } else {
             return getACL(project.getParent());
@@ -95,7 +97,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
             if (item instanceof AbstractFolder) {
                 com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = (com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty) ((AbstractFolder) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
                 if (p != null) {
-                    return inheritingACL(getACL(item.getParent()), p.getACL());
+                    return inheritingACL(p.isBlocksParentInheritance() ? getRootACL() : getACL(item.getParent()), p.getACL());
                 }
             }
         }
