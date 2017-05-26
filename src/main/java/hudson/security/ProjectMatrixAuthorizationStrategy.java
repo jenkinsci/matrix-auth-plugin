@@ -95,7 +95,14 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
             if (item instanceof AbstractFolder) {
                 com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = (com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty) ((AbstractFolder) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
                 if (p != null) {
-                    return inheritingACL(getACL(item.getParent()), p.getACL());
+                    SidACL folderAcl = p.getACL();
+
+                    if (!p.isBlocksInheritance()) {
+                        final ACL parentAcl = getACL(item.getParent());
+                        return inheritingACL(parentAcl, folderAcl);
+                    } else {
+                        return folderAcl;
+                    }
                 }
             }
         }
