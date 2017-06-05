@@ -90,6 +90,14 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
     }
 
     @DataBoundConstructor
+    public AuthorizationMatrixProperty(List<String> permissions, boolean blocksInheritance) {
+        for(String permission : permissions) {
+            this.add(permission);
+        }
+		this.setBlocksInheritance(blocksInheritance);
+    }
+	
+    @DataBoundConstructor
     public AuthorizationMatrixProperty(List<String> permissions) {
         for(String permission : permissions) {
             this.add(permission);
