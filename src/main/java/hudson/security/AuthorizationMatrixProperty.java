@@ -96,13 +96,6 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
         }
 		this.setBlocksInheritance(blocksInheritance);
     }
-	
-    @DataBoundConstructor
-    public AuthorizationMatrixProperty(List<String> permissions) {
-        for(String permission : permissions) {
-            this.add(permission);
-        }
-    }
 
     public AuthorizationMatrixProperty(Map<Permission, Set<String>> grantedPermissions) {
         // do a deep copy to be safe
