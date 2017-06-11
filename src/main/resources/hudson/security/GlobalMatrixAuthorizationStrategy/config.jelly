@@ -39,8 +39,11 @@ THE SOFTWARE.
           </j:forEach>
         </j:forEach>
         <td class="stop" style="text-align:left;">
-          <a href="#" class="toggleall">
-            <img alt="${%Toggle all}" src="${imagesURL}/16x16/edit-select-all.png" height="16" width="16"/>
+          <a href="#" class="selectall">
+            <img alt="${%Select all}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
+          </a>
+          <a href="#" class="unselectall">
+            <img alt="${%Unselect all}" src="${rootURL}/plugin/matrix-auth/images/16x16/unselect-all.png" height="16" width="16"/>
           </a>
           <j:if test="${attrs.sid!='anonymous'}">
             <a href="#" class="remove">
@@ -152,12 +155,23 @@ THE SOFTWARE.
           }
           e = null; <!-- avoid memory leak -->
         });
-      Behaviour.specify("#${strategyid} TD.stop A.toggleall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+      Behaviour.specify("#${strategyid} TD.stop A.selectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
           e.onclick = function() {
             var tr = findAncestor(this,"TR");
             var inputs = tr.getElementsByTagName("INPUT");
             for(var i=0; i&lt;inputs.length; i++){
-                if(inputs[i].type == "checkbox") inputs[i].checked = !inputs[i].checked;
+                if(inputs[i].type == "checkbox") inputs[i].checked = true;
+            }
+            return false;
+          };
+          e = null; <!-- avoid memory leak -->
+        });
+        Behaviour.specify("#${strategyid} TD.stop A.unselectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+          e.onclick = function() {
+            var tr = findAncestor(this,"TR");
+            var inputs = tr.getElementsByTagName("INPUT");
+            for(var i=0; i&lt;inputs.length; i++){
+                if(inputs[i].type == "checkbox") inputs[i].checked = false;
             }
             return false;
           };
