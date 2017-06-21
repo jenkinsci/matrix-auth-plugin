@@ -23,48 +23,43 @@
  */
 package hudson.security;
 
-import hudson.diagnosis.OldDataMonitor;
-import hudson.model.Item;
-import hudson.model.Job;
-import hudson.model.JobProperty;
-import hudson.model.JobPropertyDescriptor;
-import jenkins.model.IdStrategy;
-import jenkins.model.Jenkins;
-import hudson.Extension;
-import hudson.util.FormValidation;
-import hudson.util.RobustReflectionConverter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Collections;
-import java.util.Map.Entry;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.io.IOException;
-
-import net.sf.json.JSONObject;
-
-import org.acegisecurity.acls.sid.PrincipalSid;
-import org.acegisecurity.acls.sid.Sid;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.AncestorInPath;
-
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.Extension;
+import hudson.diagnosis.OldDataMonitor;
+import hudson.model.Item;
+import hudson.model.Job;
+import hudson.model.JobProperty;
+import hudson.model.JobPropertyDescriptor;
+import hudson.util.FormValidation;
+import hudson.util.RobustReflectionConverter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.CheckForNull;
-
 import javax.servlet.ServletException;
+import jenkins.model.IdStrategy;
+import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
+import org.acegisecurity.acls.sid.PrincipalSid;
+import org.acegisecurity.acls.sid.Sid;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * {@link JobProperty} to associate ACL for each project.
@@ -273,16 +268,18 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
                 continue;
             }
             Set<String> set = grantedPermissions.get(p);
-			if (set != null && set.contains(sid))
-				return true;
-            if (set != null) {
-                for (String s: set) {
-                    if (strategy.equals(s, sid)) {
-                        return true;
-                    }
+            if (set == null) {
+                continue;
+            }
+            if (set.contains(sid)) {
+                return true;
+            }
+            for (String s : set) {
+                if (strategy.equals(s, sid)) {
+                    return true;
                 }
             }
-		}
+        }
 		return false;
 	}
 

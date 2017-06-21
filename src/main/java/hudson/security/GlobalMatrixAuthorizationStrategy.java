@@ -182,14 +182,15 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 continue;
             }
             Set<String> set = grantedPermissions.get(p);
-            if (set != null && set.contains(sid)) {
+            if (set == null) {
+                continue;
+            }
+            if (set.contains(sid)) {
                 return true;
             }
-            if (set != null) {
-                for (String s : set) {
-                    if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
-                        return true;
-                    }
+            for (String s : set) {
+                if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
+                    return true;
                 }
             }
         }
