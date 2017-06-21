@@ -174,7 +174,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         if (!ENABLE_DANGEROUS_PERMISSIONS && DANGEROUS_PERMISSIONS.contains(p)) {
             return hasPermission(sid, Jenkins.ADMINISTER);
         }
-        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
         final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
         for (; p != null; p = p.impliedBy) {
@@ -201,7 +201,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * Checks if the given SID has the given permission.
      */
     public boolean hasPermission(String sid, Permission p, boolean principal) {
-        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
         final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
         for (; p != null; p = p.impliedBy) {
             if (!p.getEnabled()) {
@@ -231,7 +231,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             if (set.contains(sid)) {
                 return true;
             }
-            final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+            final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
             final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
             final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
             for (String s : set) {
@@ -282,7 +282,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     /*package*/ static class IdStrategyComparator implements Comparator<String> {
-        private final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+        private final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
         private final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         private final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
 

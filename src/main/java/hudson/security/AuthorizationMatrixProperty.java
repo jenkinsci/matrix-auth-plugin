@@ -236,7 +236,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 	 * Checks if the given SID has the given permission.
 	 */
 	public boolean hasPermission(String sid, Permission p) {
-        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
         final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
 		for (; p != null; p = p.impliedBy) {
@@ -261,7 +261,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 	 * Checks if the given SID has the given permission.
 	 */
 	public boolean hasPermission(String sid, Permission p, boolean principal) {
-        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
         final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
 		for (; p != null; p = p.impliedBy) {
             if (!p.getEnabled()) {
@@ -291,7 +291,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
         if (set != null && p.getEnabled()) {
             if (set.contains(sid))
                 return true;
-            final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+            final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
             final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
             final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
             for (String s: set) {
