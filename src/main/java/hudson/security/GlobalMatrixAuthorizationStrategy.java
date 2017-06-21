@@ -29,6 +29,7 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.PluginManager;
 import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Descriptor;
 import jenkins.model.IdStrategy;
@@ -47,6 +48,8 @@ import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.acegisecurity.acls.sid.Sid;
 import org.jenkinsci.plugins.matrixauth.Messages;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
@@ -89,6 +92,16 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      */
     private final Map<Permission,Set<String>> grantedPermissions = new HashMap<Permission, Set<String>>();
 
+    /**
+     * List of permissions considered dangerous to grant to non-admin users
+     */
+    @Restricted(NoExternalUse.class)
+    static final List<Permission> DANGEROUS_PERMISSIONS = Arrays.asList(
+            Jenkins.RUN_SCRIPTS,
+            PluginManager.CONFIGURE_UPDATECENTER,
+            PluginManager.UPLOAD_PLUGINS
+    );
+
     private final Set<String> sids = new HashSet<String>();
 
     /**
@@ -121,7 +134,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     @Override
-    public SidACL getRootACL() {
+    public ACL getRootACL() {
         return acl;
     }
 
@@ -138,7 +151,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      */
     /*package*/ static boolean migrateHudson2324(Map<Permission,Set<String>> grantedPermissions) {
         boolean result = false;
-        if(Jenkins.getInstance().isUpgradedFromBefore(new VersionNumber("1.300.*"))) {
+        if(Jenkins.getActiveInstance().isUpgradedFromBefore(new VersionNumber("1.300.*"))) {
             Set<String> f = grantedPermissions.get(Jenkins.READ);
             if (f!=null) {
                 Set<String> t = grantedPermissions.get(Item.READ);
@@ -158,6 +171,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * Checks if the given SID has the given permission.
      */
     public boolean hasPermission(String sid, Permission p) {
+        if (!ENABLE_DANGEROUS_PERMISSIONS && DANGEROUS_PERMISSIONS.contains(p)) {
+            return hasPermission(sid, Jenkins.ADMINISTER);
+        }
         final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
         final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
@@ -221,6 +237,27 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
                     return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    boolean isAnyRelevantDangerousPermissionExplicitlyGranted() {
+        for (String sid : getAllSIDs()) {
+            if (isAnyRelevantDangerousPermissionExplicitlyGranted(sid)) {
+                return true;
+            }
+        }
+        if (isAnyRelevantDangerousPermissionExplicitlyGranted("anonymous")) {
+            return true;
+        }
+        return false;
+    }
+
+    boolean isAnyRelevantDangerousPermissionExplicitlyGranted(String sid) {
+        for (Permission p : DANGEROUS_PERMISSIONS) {
+            if (!hasPermission(sid, Jenkins.ADMINISTER) && hasExplicitPermission(sid, p)) {
+                return true;
             }
         }
         return false;
@@ -376,7 +413,25 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public boolean showPermission(Permission p) {
-            return p.getEnabled();
+            if (!p.getEnabled()) {
+                // Permission is disabled, so don't show it
+                return false;
+            }
+
+            if (ENABLE_DANGEROUS_PERMISSIONS || !DANGEROUS_PERMISSIONS.contains(p)) {
+                // we allow assignment of dangerous permissions, or it's a safe permission, so show it
+                return true;
+            }
+
+            // if we grant any dangerous permission, show them all
+            AuthorizationStrategy strategy = Jenkins.getActiveInstance().getAuthorizationStrategy();
+            if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
+                GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = (GlobalMatrixAuthorizationStrategy) strategy;
+                return globalMatrixAuthorizationStrategy.isAnyRelevantDangerousPermissionExplicitlyGranted();
+            }
+
+            // don't show by default, i.e. when initially configuring the authorization strategy
+            return false;
         }
 
         public FormValidation doCheckName(@QueryParameter String value ) throws IOException, ServletException {
@@ -384,7 +439,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             if (jenkins == null) { // Should never happen
                 return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
             }
-            return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
+            return doCheckName_(value, Jenkins.getActiveInstance(), Jenkins.ADMINISTER);
         }
 
         public FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, 
@@ -402,12 +457,12 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
             if(v.equals("authenticated"))
                 // system reserved group
-                return FormValidation.respond(Kind.OK, makeImg("user.png") +ev);
+                return FormValidation.respond(Kind.OK, makeImg("user.png", "Group", false) +ev);
 
             try {
                 try {
                     sr.loadUserByUsername(v);
-                    return FormValidation.respond(Kind.OK, makeImg("person.png")+ev);
+                    return FormValidation.respond(Kind.OK, makeImg("person.png", "User", false)+ev);
                 } catch (UserMayOrMayNotExistException e) {
                     // undecidable, meaning the user may exist
                     return FormValidation.respond(Kind.OK, ev);
@@ -422,7 +477,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
                 try {
                     sr.loadGroupByGroupname(v);
-                    return FormValidation.respond(Kind.OK, makeImg("user.png") +ev);
+                    return FormValidation.respond(Kind.OK, makeImg("user.png", "Group", false) +ev);
                 } catch (UserMayOrMayNotExistException e) {
                     // undecidable, meaning the group may exist
                     return FormValidation.respond(Kind.OK, ev);
@@ -436,7 +491,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 }
 
                 // couldn't find it. it doesn't exist
-                return FormValidation.respond(Kind.ERROR, makeImg("error.png") +ev);
+                return FormValidation.respond(Kind.ERROR, makeImg("user-disabled.png", "User or group not found", true) + formatNonexistentUser(ev));
             } catch (Exception e) {
                 // if the check fails miserably, we still want the user to be able to see the name of the user,
                 // so use 'ev' as the message
@@ -444,8 +499,16 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             }
         }
 
-        private String makeImg(String gif) {
-            return String.format("<img src='%s%s/images/16x16/%s' style='margin-right:0.2em'>", Stapler.getCurrentRequest().getContextPath(), Jenkins.RESOURCE_PATH, gif);
+        private String formatNonexistentUser(String username) {
+            return "<span style='text-decoration: line-through; color: grey;'>" + username + "</span>";
+        }
+
+        private String makeImg(String img, String tooltip, boolean inPlugin) {
+            if (inPlugin) {
+                return String.format("<img src='%s/plugin/matrix-auth/images/%s' title='%s' style='margin-right:0.2em'>", Stapler.getCurrentRequest().getContextPath(), img, tooltip);
+            } else {
+                return String.format("<img src='%s%s/images/16x16/%s' title='%s' style='margin-right:0.2em'>", Stapler.getCurrentRequest().getContextPath(), Jenkins.RESOURCE_PATH, img, tooltip);
+            }
         }
     }
 
@@ -463,5 +526,14 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     private static final Logger LOGGER = Logger.getLogger(GlobalMatrixAuthorizationStrategy.class.getName());
+
+    /**
+     * Backwards compatibility: Enable granting dangerous permissions independently of Administer access.
+     *
+     * @since TODO
+     */
+    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
+    @Restricted(NoExternalUse.class)
+    public static /* allow script access */ boolean ENABLE_DANGEROUS_PERMISSIONS = Boolean.getBoolean(GlobalMatrixAuthorizationStrategy.class.getName() + ".dangerousPermissions");
 }
 

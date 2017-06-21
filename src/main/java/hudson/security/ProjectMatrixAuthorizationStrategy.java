@@ -23,6 +23,7 @@
  */
 package hudson.security;
 
+import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import hudson.model.AbstractItem;
 import hudson.model.Descriptor;
 import jenkins.model.Jenkins;
@@ -35,6 +36,8 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.core.JVM;
+import hudson.PluginManager;
+import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.Messages;
 
 import java.util.Set;
@@ -56,25 +59,53 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
             SidACL projectAcl = amp.getACL();
 
             if (!amp.isBlocksInheritance()) {
-                projectAcl = projectAcl.newInheritingACL(getACL(project.getParent()));
+                final ACL parentAcl = getACL(project.getParent());
+                return inheritingACL(parentAcl, projectAcl);
+            } else {
+                return projectAcl;
             }
-
-            return projectAcl;
         } else {
             return getACL(project.getParent());
         }
     }
 
-    public SidACL getACL(ItemGroup g) {
+    private static ACL inheritingACL(final ACL parent, final ACL child) {
+        if (parent instanceof SidACL && child instanceof SidACL) {
+            return ((SidACL) child).newInheritingACL((SidACL) parent);
+        }
+        return new ACL() {
+            @Override
+            public boolean hasPermission(Authentication a, Permission permission) {
+                return child.hasPermission(a, permission) || parent.hasPermission(a, permission);
+            }
+        };
+    }
+
+    public ACL getACL(ItemGroup g) {
         if (g instanceof Item) {
             Item item = (Item) g;
-            return (SidACL)item.getACL();
+            return item.getACL();
         }
         return getRootACL();
     }
 
     @Override
-    public SidACL getACL(AbstractItem item) {
+    public ACL getACL(AbstractItem item) {
+        if (Jenkins.getActiveInstance().getPlugin("cloudbees-folder") != null) { // optional dependency
+            if (item instanceof AbstractFolder) {
+                com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = (com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty) ((AbstractFolder) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
+                if (p != null) {
+                    SidACL folderAcl = p.getACL();
+
+                    if (!p.isBlocksInheritance()) {
+                        final ACL parentAcl = getACL(item.getParent());
+                        return inheritingACL(parentAcl, folderAcl);
+                    } else {
+                        return folderAcl;
+                    }
+                }
+            }
+        }
         return getACL(item.getParent());
     }
 
@@ -82,7 +113,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     public Set<String> getGroups() {
         Set<String> r = new TreeSet<String>(new IdStrategyComparator());
         r.addAll(super.getGroups());
-        for (Job<?,?> j : Jenkins.getInstance().getItems(Job.class)) {
+        for (Job<?,?> j : Jenkins.getActiveInstance().getItems(Job.class)) {
             AuthorizationMatrixProperty amp = j.getProperty(AuthorizationMatrixProperty.class);
             if (amp != null)
                 r.addAll(amp.getGroups());

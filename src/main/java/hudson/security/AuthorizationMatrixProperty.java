@@ -176,7 +176,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 		@Override
 		public boolean isApplicable(Class<? extends Job> jobType) {
             // only applicable when ProjectMatrixAuthorizationStrategy is in charge
-            return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
+            return Jenkins.getActiveInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
 		}
 
 		@Override
