@@ -40,8 +40,8 @@ import hudson.PluginManager;
 import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.Messages;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * {@link GlobalMatrixAuthorizationStrategy} plus per-project ACL.
@@ -111,7 +111,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
 
     @Override
     public Set<String> getGroups() {
-        Set<String> r = new HashSet<String>();
+        Set<String> r = new TreeSet<String>(new IdStrategyComparator());
         r.addAll(super.getGroups());
         for (Job<?,?> j : Jenkins.getActiveInstance().getItems(Job.class)) {
             AuthorizationMatrixProperty amp = j.getProperty(AuthorizationMatrixProperty.class);
@@ -138,7 +138,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         private RobustReflectionConverter ref;
 
         public ConverterImpl(Mapper m) {
-            ref = new RobustReflectionConverter(m,new JVM().bestReflectionProvider());
+            ref = new RobustReflectionConverter(m,JVM.newReflectionProvider());
         }
 
         @Override
