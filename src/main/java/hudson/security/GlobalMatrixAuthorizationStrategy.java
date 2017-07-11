@@ -32,6 +32,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.PluginManager;
 import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Descriptor;
+import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import hudson.model.Item;
 import hudson.util.FormValidation;
@@ -43,6 +44,7 @@ import hudson.Extension;
 import hudson.model.User;
 import net.sf.json.JSONObject;
 import org.acegisecurity.AuthenticationException;
+import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.acegisecurity.acls.sid.Sid;
 import org.jenkinsci.plugins.matrixauth.Messages;
@@ -56,12 +58,14 @@ import org.springframework.dao.DataAccessException;
 import javax.servlet.ServletException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -135,6 +139,8 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     public Set<String> getGroups() {
+        final TreeSet<String> sids = new TreeSet<String>(new IdStrategyComparator());
+        sids.addAll(this.sids);
         return sids;
     }
 
@@ -168,10 +174,50 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         if (!ENABLE_DANGEROUS_PERMISSIONS && DANGEROUS_PERMISSIONS.contains(p)) {
             return hasPermission(sid, Jenkins.ADMINISTER);
         }
-        for(; p!=null; p=p.impliedBy) {
+        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
+        final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
+        for (; p != null; p = p.impliedBy) {
+            if (!p.getEnabled()) {
+                continue;
+            }
             Set<String> set = grantedPermissions.get(p);
-            if(set!=null && set.contains(sid) && p.getEnabled())
+            if (set == null) {
+                continue;
+            }
+            if (set.contains(sid)) {
                 return true;
+            }
+            for (String s : set) {
+                if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the given SID has the given permission.
+     */
+    public boolean hasPermission(String sid, Permission p, boolean principal) {
+        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
+        for (; p != null; p = p.impliedBy) {
+            if (!p.getEnabled()) {
+                continue;
+            }
+            Set<String> set = grantedPermissions.get(p);
+            if (set != null && set.contains(sid)) {
+                return true;
+            }
+            if (set != null) {
+                for (String s : set) {
+                    if (strategy.equals(s, sid)) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     }
@@ -181,7 +227,20 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      */
     public boolean hasExplicitPermission(String sid, Permission p) {
         Set<String> set = grantedPermissions.get(p);
-        return set != null && set.contains(sid) && p.getEnabled();
+        if (set != null && p.getEnabled()) {
+            if (set.contains(sid)) {
+                return true;
+            }
+            final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+            final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
+            final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
+            for (String s : set) {
+                if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     boolean isAnyRelevantDangerousPermissionExplicitlyGranted() {
@@ -212,7 +271,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      *      Always non-null.
      */
     public List<String> getAllSIDs() {
-        Set<String> r = new HashSet<String>();
+        Set<String> r = new TreeSet<String>(new IdStrategyComparator());
         for (Set<String> set : grantedPermissions.values())
             r.addAll(set);
         r.remove("anonymous");
@@ -222,12 +281,26 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         return Arrays.asList(data);
     }
 
+    /*package*/ static class IdStrategyComparator implements Comparator<String> {
+        private final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        private final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
+        private final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
+
+        public int compare(String o1, String o2) {
+            int r = userIdStrategy.compare(o1, o2);
+            if (r == 0) {
+                r = groupIdStrategy.compare(o1, o2);
+            }
+            return r;
+        }
+    }
+
     private final class AclImpl extends SidACL {
         @CheckForNull
         @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL", 
                         justification = "As designed, implements a third state for the ternary logic")
         protected Boolean hasPermission(Sid p, Permission permission) {
-            if(GlobalMatrixAuthorizationStrategy.this.hasPermission(toString(p),permission))
+            if(GlobalMatrixAuthorizationStrategy.this.hasPermission(toString(p),permission, p instanceof PrincipalSid))
                 return true;
             return null;
         }
@@ -246,6 +319,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+            final IdStrategyComparator comparator = new IdStrategyComparator();
             GlobalMatrixAuthorizationStrategy strategy = (GlobalMatrixAuthorizationStrategy)source;
 
             // Output in alphabetical order for readability.
@@ -253,8 +327,8 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             sortedPermissions.putAll(strategy.grantedPermissions);
             for (Entry<Permission, Set<String>> e : sortedPermissions.entrySet()) {
                 String p = e.getKey().getId();
-                List<String> sids = new ArrayList<String>(e.getValue());
-                Collections.sort(sids);
+                Set<String> sids = new TreeSet<String>(comparator);
+                sids.addAll(e.getValue());
                 for (String sid : sids) {
                     writer.startNode("permission");
                     writer.setValue(p+':'+sid);
