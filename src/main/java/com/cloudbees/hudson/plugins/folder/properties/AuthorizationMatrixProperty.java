@@ -26,22 +26,17 @@ package com.cloudbees.hudson.plugins.folder.properties;
 import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderProperty;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderPropertyDescriptor;
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import hudson.Extension;
 import hudson.model.AbstractProject;
-import hudson.model.Descriptor.FormException;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.PermissionGroup;
 import hudson.security.PermissionScope;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import hudson.security.SidACL;
+import hudson.security.AbstractMatrixPropertyConverter;
+import hudson.security.AuthorizationProperty;
 import hudson.util.FormValidation;
-import hudson.util.RobustReflectionConverter;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.stapler.AncestorInPath;
@@ -51,7 +46,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,14 +53,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import jenkins.model.Jenkins;
 
 /**
  * Holds ACL for {@link ProjectMatrixAuthorizationStrategy}.
  */
-public class AuthorizationMatrixProperty extends AbstractFolderProperty<AbstractFolder<?>> {
+public class AuthorizationMatrixProperty extends AbstractFolderProperty<AbstractFolder<?>> implements AuthorizationProperty {
 
     private transient SidACL acl = new AclImpl();
 
@@ -96,22 +89,6 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     /**
-     * Returns all SIDs configured in this matrix, minus "anonymous"
-     *
-     * @return Always non-null.
-     */
-    public List<String> getAllSIDs() {
-        Set<String> r = new HashSet<String>();
-        for (Set<String> set : grantedPermissions.values())
-            r.addAll(set);
-        r.remove("anonymous");
-
-        String[] data = r.toArray(new String[r.size()]);
-        Arrays.sort(data);
-        return Arrays.asList(data);
-    }
-
-    /**
      * Returns all the (Permission,sid) pairs that are granted, in the multi-map form.
      *
      * @return
@@ -126,7 +103,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      * during construction, as this object itself is considered immutable once
      * populated.
      */
-    protected void add(Permission p, String sid) {
+    public void add(Permission p, String sid) {
         Set<String> set = grantedPermissions.get(p);
         if (set == null)
             grantedPermissions.put(p, set = new HashSet<String>());
@@ -231,98 +208,17 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     /**
-     * Checks if the given SID has the given permission.
-     */
-    public boolean hasPermission(String sid, Permission p) {
-        for (; p != null; p = p.impliedBy) {
-            Set<String> set = grantedPermissions.get(p);
-            if (set != null && set.contains(sid))
-                return true;
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the permission is explicitly given, instead of implied through {@link Permission#impliedBy}.
-     */
-    public boolean hasExplicitPermission(String sid, Permission p) {
-        Set<String> set = grantedPermissions.get(p);
-        return set != null && set.contains(sid);
-    }
-
-    /**
-     * Works like {@link #add(Permission, String)} but takes both parameters
-     * from a single string of the form <tt>PERMISSIONID:sid</tt>
-     */
-    private void add(String shortForm) {
-        int idx = shortForm.indexOf(':');
-        Permission p = Permission.fromId(shortForm.substring(0, idx));
-        if (p==null)
-            throw new IllegalArgumentException("Failed to parse '"+shortForm+"' --- no such permission");
-        add(p, shortForm.substring(idx + 1));
-    }
-
-    /**
      * Persist {@link ProjectMatrixAuthorizationStrategy} as a list of IDs that
      * represent {@link ProjectMatrixAuthorizationStrategy#grantedPermissions}.
      */
-    public static final class ConverterImpl implements Converter {
+    public static final class ConverterImpl extends AbstractMatrixPropertyConverter {
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }
 
-        public void marshal(Object source, HierarchicalStreamWriter writer,
-                MarshallingContext context) {
-            AuthorizationMatrixProperty amp = (AuthorizationMatrixProperty) source;
-
-            if (amp.isBlocksInheritance()) {
-                writer.startNode("blocksInheritance");
-                writer.setValue("true");
-                writer.endNode();
-            }
-
-            for (Entry<Permission, Set<String>> e : amp.grantedPermissions
-                    .entrySet()) {
-                String p = e.getKey().getId();
-                for (String sid : e.getValue()) {
-                    writer.startNode("permission");
-                    writer.setValue(p + ':' + sid);
-                    writer.endNode();
-                }
-            }
-        }
-
-        public Object unmarshal(HierarchicalStreamReader reader,
-                final UnmarshallingContext context) {
-            AuthorizationMatrixProperty as = new AuthorizationMatrixProperty();
-
-            String prop = reader.peekNextChild();
-
-            if (prop!=null && prop.equals("useProjectSecurity")) {
-                reader.moveDown();
-                reader.getValue(); // we used to use this but not any more.
-                reader.moveUp();
-                prop = reader.peekNextChild(); // We check the next field
-            }
-            if ("blocksInheritance".equals(prop)) {
-                reader.moveDown();
-                as.setBlocksInheritance("true".equals(reader.getValue()));
-                reader.moveUp();
-            }
-
-            while (reader.hasMoreChildren()) {
-                reader.moveDown();
-                try {
-                    as.add(reader.getValue());
-                } catch (IllegalArgumentException ex) {
-                     Logger.getLogger(AuthorizationMatrixProperty.class.getName())
-                           .log(Level.WARNING,"Skipping a non-existent permission",ex);
-                     RobustReflectionConverter.addErrorInContext(context, ex);
-                }
-                reader.moveUp();
-            }
-
-            return as;
+        @Override
+        public AuthorizationProperty createSubject() {
+            return new AuthorizationMatrixProperty();
         }
     }
 }

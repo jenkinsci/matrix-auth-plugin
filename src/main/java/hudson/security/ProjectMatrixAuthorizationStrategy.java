@@ -36,7 +36,6 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.core.JVM;
-import hudson.PluginManager;
 import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.Messages;
 

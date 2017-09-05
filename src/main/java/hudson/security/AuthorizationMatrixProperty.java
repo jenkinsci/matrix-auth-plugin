@@ -23,11 +23,8 @@
  */
 package hudson.security;
 
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.diagnosis.OldDataMonitor;
@@ -36,10 +33,9 @@ import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import hudson.util.FormValidation;
-import hudson.util.RobustReflectionConverter;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,12 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.CheckForNull;
 import javax.servlet.ServletException;
-import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.PrincipalSid;
@@ -67,7 +59,7 @@ import org.kohsuke.stapler.StaplerRequest;
  * <p>
  * Once created (and initialized), this object becomes immutable.
  */
-public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
+public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implements AuthorizationProperty {
 
 	private transient SidACL acl = new AclImpl();
 
@@ -96,22 +88,6 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 		return sids;
 	}
 
-	/**
-	 * Returns all SIDs configured in this matrix, minus "anonymous"
-	 * 
-	 * @return Always non-null.
-	 */
-	public List<String> getAllSIDs() {
-		Set<String> r = new TreeSet<String>(new GlobalMatrixAuthorizationStrategy.IdStrategyComparator());
-		for (Set<String> set : grantedPermissions.values())
-			r.addAll(set);
-		r.remove("anonymous");
-
-		String[] data = r.toArray(new String[r.size()]);
-		Arrays.sort(data);
-		return Arrays.asList(data);
-	}
-
     /**
      * Returns all the (Permission,sid) pairs that are granted, in the multi-map form.
      *
@@ -127,7 +103,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 	 * during construction, as this object itself is considered immutable once
 	 * populated.
 	 */
-	protected void add(Permission p, String sid) {
+	public void add(Permission p, String sid) {
 		Set<String> set = grantedPermissions.get(p);
 		if (set == null)
 			grantedPermissions.put(p, set = new HashSet<String>());
@@ -218,7 +194,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 	 *
 	 * @param blocksInheritance
 	 */
-	private void setBlocksInheritance(boolean blocksInheritance) {
+	public void setBlocksInheritance(boolean blocksInheritance) {
 		this.blocksInheritance = blocksInheritance;
 	}
 
@@ -233,152 +209,26 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
 	}
 
 	/**
-	 * Checks if the given SID has the given permission.
-	 */
-	public boolean hasPermission(String sid, Permission p) {
-        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
-        final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
-        final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
-		for (; p != null; p = p.impliedBy) {
-            if (!p.getEnabled()) {
-                continue;
-            }
-            Set<String> set = grantedPermissions.get(p);
-			if (set != null && set.contains(sid))
-				return true;
-            if (set != null) {
-                for (String s: set) {
-                    if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
-                        return true;
-                    }
-                }
-            }
-		}
-		return false;
-	}
-
-	/**
-	 * Checks if the given SID has the given permission.
-	 */
-	public boolean hasPermission(String sid, Permission p, boolean principal) {
-        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
-        final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
-		for (; p != null; p = p.impliedBy) {
-            if (!p.getEnabled()) {
-                continue;
-            }
-            Set<String> set = grantedPermissions.get(p);
-            if (set == null) {
-                continue;
-            }
-            if (set.contains(sid)) {
-                return true;
-            }
-            for (String s : set) {
-                if (strategy.equals(s, sid)) {
-                    return true;
-                }
-            }
-        }
-		return false;
-	}
-
-    /**
-     * Checks if the permission is explicitly given, instead of implied through {@link Permission#impliedBy}.
-     */
-    public boolean hasExplicitPermission(String sid, Permission p) {
-        Set<String> set = grantedPermissions.get(p);
-        if (set != null && p.getEnabled()) {
-            if (set.contains(sid))
-                return true;
-            final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
-            final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
-            final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
-            for (String s: set) {
-                if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Works like {@link #add(Permission, String)} but takes both parameters
-     * from a single string of the form <tt>PERMISSIONID:sid</tt>
-     */
-    private void add(String shortForm) {
-        int idx = shortForm.indexOf(':');
-        Permission p = Permission.fromId(shortForm.substring(0, idx));
-        if (p==null)
-            throw new IllegalArgumentException("Failed to parse '"+shortForm+"' --- no such permission");
-        add(p, shortForm.substring(idx + 1));
-    }
-
-	/**
 	 * Persist {@link ProjectMatrixAuthorizationStrategy} as a list of IDs that
 	 * represent {@link ProjectMatrixAuthorizationStrategy#grantedPermissions}.
 	 */
-	public static final class ConverterImpl implements Converter {
+	public static final class ConverterImpl extends AbstractMatrixPropertyConverter {
 		public boolean canConvert(Class type) {
 			return type == AuthorizationMatrixProperty.class;
 		}
 
-		public void marshal(Object source, HierarchicalStreamWriter writer,
-				MarshallingContext context) {
-			AuthorizationMatrixProperty amp = (AuthorizationMatrixProperty) source;
-
-            if (amp.isBlocksInheritance()) {
-                writer.startNode("blocksInheritance");
-                writer.setValue("true");
-                writer.endNode();
-            }
-
-            for (Entry<Permission, Set<String>> e : amp.grantedPermissions
-					.entrySet()) {
-				String p = e.getKey().getId();
-				for (String sid : e.getValue()) {
-					writer.startNode("permission");
-					writer.setValue(p + ':' + sid);
-					writer.endNode();
-				}
-			}
-		}
+		public AuthorizationProperty createSubject() {
+		    return new AuthorizationMatrixProperty();
+        }
 
 		public Object unmarshal(HierarchicalStreamReader reader,
 				final UnmarshallingContext context) {
-			AuthorizationMatrixProperty as = new AuthorizationMatrixProperty();
+			Object o = super.unmarshal(reader, context);
 
-			String prop = reader.peekNextChild();
-
-			if (prop!=null && prop.equals("useProjectSecurity")) {
-				reader.moveDown();
-				reader.getValue(); // we used to use this but not any more.
-				reader.moveUp();
-				prop = reader.peekNextChild(); // We check the next field
-			}
-			if ("blocksInheritance".equals(prop)) {
-			    reader.moveDown();
-			    as.setBlocksInheritance("true".equals(reader.getValue()));
-			    reader.moveUp();
-			}
-
-			while (reader.hasMoreChildren()) {
-                reader.moveDown();
-                try {
-                    as.add(reader.getValue());
-                } catch (IllegalArgumentException ex) {
-                     Logger.getLogger(AuthorizationMatrixProperty.class.getName())
-                           .log(Level.WARNING,"Skipping a non-existent permission",ex);
-                     RobustReflectionConverter.addErrorInContext(context, ex);
-                }
-                reader.moveUp();
-            }
-
-            if (GlobalMatrixAuthorizationStrategy.migrateHudson2324(as.grantedPermissions))
+            if (GlobalMatrixAuthorizationStrategy.migrateHudson2324(((AuthorizationMatrixProperty)o).grantedPermissions))
                 OldDataMonitor.report(context, "1.301");
 
-            return as;
+            return o;
         }
     }
 }
