@@ -123,7 +123,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         
 		@Override
 		public JobProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            return createNewInstance(req, formData);
+            return createNewInstance(req, formData, true);
 		}
 
 		@Override

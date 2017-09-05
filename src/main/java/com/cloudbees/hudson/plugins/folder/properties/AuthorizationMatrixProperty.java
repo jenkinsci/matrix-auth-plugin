@@ -122,7 +122,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
         @Override
         public AuthorizationMatrixProperty newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            return createNewInstance(req, formData);
+            return createNewInstance(req, formData, true);
         }
 
         @Override

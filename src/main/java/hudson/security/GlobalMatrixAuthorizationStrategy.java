@@ -445,16 +445,17 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
         public FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, 
                 @Nonnull Permission permission) throws IOException, ServletException {
-            if(!subject.hasPermission(permission))  return FormValidation.ok(); // can't check
 
             final String v = value.substring(1,value.length()-1);
-            
+            String ev = Functions.escape(v);
+
+            if(!subject.hasPermission(permission))  return FormValidation.ok(ev); // can't check
+
             final Jenkins jenkins = Jenkins.getInstance();
             if (jenkins == null) { // Should never happen
                 return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
             }
             SecurityRealm sr = jenkins.getSecurityRealm();
-            String ev = Functions.escape(v);
 
             if(v.equals("authenticated"))
                 // system reserved group
