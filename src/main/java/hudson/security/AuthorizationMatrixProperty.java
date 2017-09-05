@@ -35,17 +35,14 @@ import hudson.model.JobPropertyDescriptor;
 import hudson.util.FormValidation;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.servlet.ServletException;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
@@ -112,61 +109,32 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	}
 
     @Extension
-    public static class DescriptorImpl extends JobPropertyDescriptor {
+    public static class DescriptorImpl extends JobPropertyDescriptor implements AuthorizationMatrixPropertyDescriptor<AuthorizationMatrixProperty> {
+
+        @Override
+        public AuthorizationMatrixProperty createProperty() {
+            return new AuthorizationMatrixProperty();
+        }
+
+        @Override
+        public PermissionScope getPermissionScope() {
+            return PermissionScope.ITEM;
+        }
+        
 		@Override
 		public JobProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            formData = formData.getJSONObject("useProjectSecurity");
-            if (formData.isNullObject())
-                return null;
-
-            AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
-
-            // Disable inheritance, if so configured
-            amp.setBlocksInheritance(!formData.getJSONObject("blocksInheritance").isNullObject());
-
-            Map<String,Object> data = formData.getJSONObject("data");
-            for (Map.Entry<String, Object> r : data.entrySet()) {
-                String sid = r.getKey();
-                if (!(r.getValue() instanceof JSONObject)) {
-                    throw new FormException("not an object: " + formData, "data");
-                }
-                Map<String,Object> value = (JSONObject) r.getValue();
-                for (Map.Entry<String,Object> e : value.entrySet()) {
-                    if (!(e.getValue() instanceof Boolean)) {
-                        throw new FormException("not a boolean: " + formData, "data");
-                    }
-                    if ((Boolean) e.getValue()) {
-                        Permission p = Permission.fromId(e.getKey());
-                        amp.add(p, sid);
-                    }
-                }
-            }
-			return amp;
+            return createNewInstance(req, formData);
 		}
 
 		@Override
 		public boolean isApplicable(Class<? extends Job> jobType) {
-            // only applicable when ProjectMatrixAuthorizationStrategy is in charge
-            return Jenkins.getActiveInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
+            return isApplicable();
 		}
 
 		@Override
 		public String getDisplayName() {
 			return "Authorization Matrix";
 		}
-
-		public List<PermissionGroup> getAllGroups() {
-            List<PermissionGroup> r = new ArrayList<PermissionGroup>();
-            for (PermissionGroup pg : PermissionGroup.getAll()) {
-                if (pg.hasPermissionContainedBy(PermissionScope.ITEM))
-                    r.add(pg);
-            }
-            return r;
-		}
-
-        public boolean showPermission(Permission p) {
-            return p.getEnabled() && p.isContainedBy(PermissionScope.ITEM);
-        }
 
         public FormValidation doCheckName(@AncestorInPath Job project, @QueryParameter String value) throws IOException, ServletException {
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value, project, Item.CONFIGURE);

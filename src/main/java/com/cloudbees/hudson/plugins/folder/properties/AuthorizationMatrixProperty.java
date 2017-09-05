@@ -27,10 +27,10 @@ import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderProperty;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderPropertyDescriptor;
 import hudson.Extension;
-import hudson.model.AbstractProject;
+import hudson.model.Item;
+import hudson.security.AuthorizationMatrixPropertyDescriptor;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
-import hudson.security.PermissionGroup;
 import hudson.security.PermissionScope;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import hudson.security.SidACL;
@@ -45,16 +45,12 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import jenkins.model.Jenkins;
 
 /**
  * Holds ACL for {@link ProjectMatrixAuthorizationStrategy}.
@@ -112,42 +108,26 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     @Extension(optional = true)
-    public static class DescriptorImpl extends AbstractFolderPropertyDescriptor {
+    public static class DescriptorImpl extends AbstractFolderPropertyDescriptor implements AuthorizationMatrixPropertyDescriptor<AuthorizationMatrixProperty> {
+
         @Override
-        public AbstractFolderProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            formData = formData.getJSONObject("useProjectSecurity");
-            if (formData.isNullObject())
-                return null;
-
-            AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
-
-            // Disable inheritance, if so configured
-            amp.setBlocksInheritance(!formData.getJSONObject("blocksInheritance").isNullObject());
-
-            for (Map.Entry<String, Object> r : (Set<Map.Entry<String, Object>>) formData.getJSONObject("data").entrySet()) {
-                String sid = r.getKey();
-                if (r.getValue() instanceof JSONObject) {
-                    for (Map.Entry<String, Boolean> e : (Set<Map.Entry<String, Boolean>>) ((JSONObject) r
-                            .getValue()).entrySet()) {
-                        if (e.getValue()) {
-                            Permission p = Permission.fromId(e.getKey());
-                            amp.add(p, sid);
-                        }
-                    }
-                }
-            }
-            return amp;
+        public AuthorizationMatrixProperty createProperty() {
+            return new AuthorizationMatrixProperty();
         }
 
-        @SuppressWarnings("rawtypes") // erasure
         @Override
-        public boolean isApplicable(Class<? extends AbstractFolder> containerType) {
-            // only applicable when ProjectMatrixAuthorizationStrategy is in charge
-            try {
-                return Jenkins.getActiveInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
-            } catch (NoClassDefFoundError x) { // after matrix-auth split?
-                return false;
-            }
+        public PermissionScope getPermissionScope() {
+            return PermissionScope.ITEM_GROUP;
+        }
+
+        @Override
+        public AuthorizationMatrixProperty newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            return createNewInstance(req, formData);
+        }
+
+        @Override
+        public boolean isApplicable(Class<? extends AbstractFolder> folder) {
+            return isApplicable();
         }
 
         @Override
@@ -155,22 +135,8 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
             return "Authorization Matrix";
         }
 
-        public List<PermissionGroup> getAllGroups() {
-            List<PermissionGroup> groups = new ArrayList<PermissionGroup>();
-            for (PermissionGroup g : PermissionGroup.getAll()) {
-                if (g.hasPermissionContainedBy(PermissionScope.ITEM_GROUP)) {
-                    groups.add(g);
-                }
-            }
-            return groups;
-        }
-
-        public boolean showPermission(Permission p) {
-            return p.getEnabled() && p.isContainedBy(PermissionScope.ITEM_GROUP);
-        }
-
         public FormValidation doCheckName(@AncestorInPath AbstractFolder<?> folder, @QueryParameter String value) throws IOException, ServletException {
-            return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value, folder, AbstractProject.CONFIGURE);
+            return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value, folder, Item.CONFIGURE);
         }
     }
 
