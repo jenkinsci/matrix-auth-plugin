@@ -58,6 +58,7 @@ import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -84,6 +85,14 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
     private boolean blocksInheritance = false;
 
     private AuthorizationMatrixProperty() {
+    }
+
+    @DataBoundConstructor
+    public AuthorizationMatrixProperty(List<String> permissions, boolean blocksInheritance) {
+        for(String permission : permissions) {
+            this.add(permission);
+        }
+		this.setBlocksInheritance(blocksInheritance);
     }
 
     public AuthorizationMatrixProperty(Map<Permission, Set<String>> grantedPermissions) {
@@ -243,21 +252,21 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
             if (!p.getEnabled()) {
                 continue;
             }
-            Set<String> set = grantedPermissions.get(p);
+			Set<String> set = grantedPermissions.get(p);
 			if (set != null && set.contains(sid))
 				return true;
             if (set != null) {
                 for (String s: set) {
                     if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
                         return true;
-                    }
+		}
                 }
             }
 		}
 		return false;
 	}
 
-	/**
+    /**
 	 * Checks if the given SID has the given permission.
 	 */
 	public boolean hasPermission(String sid, Permission p, boolean principal) {
@@ -297,7 +306,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> {
             for (String s: set) {
                 if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
                     return true;
-                }
+    }
             }
         }
         return false;
