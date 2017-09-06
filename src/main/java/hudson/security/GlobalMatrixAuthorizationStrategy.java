@@ -226,6 +226,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * Checks if the permission is explicitly given, instead of implied through {@link Permission#impliedBy}.
      */
     public boolean hasExplicitPermission(String sid, Permission p) {
+        if (sid == null) { // used for template row in UI
+            return false;
+        }
         Set<String> set = grantedPermissions.get(p);
         if (set != null && p.getEnabled()) {
             if (set.contains(sid)) {
