@@ -281,7 +281,8 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         return Arrays.asList(data);
     }
 
-    /*package*/ static class IdStrategyComparator implements Comparator<String> {
+    @Restricted(NoExternalUse.class)
+    public static class IdStrategyComparator implements Comparator<String> {
         private final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
         private final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         private final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();

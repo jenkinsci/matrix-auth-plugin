@@ -21,8 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package hudson.security;
+package org.jenkinsci.plugins.matrixauth;
 
+import hudson.security.GlobalMatrixAuthorizationStrategy;
+import hudson.security.Permission;
+import hudson.security.SecurityRealm;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import org.kohsuke.accmod.Restricted;

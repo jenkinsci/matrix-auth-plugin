@@ -21,12 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package hudson.security;
+package org.jenkinsci.plugins.matrixauth;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.security.GlobalMatrixAuthorizationStrategy;
+import hudson.security.Permission;
+import hudson.security.PermissionScope;
+import hudson.security.ProjectMatrixAuthorizationStrategy;
+import hudson.security.SidACL;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.FormValidation;
