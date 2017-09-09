@@ -437,11 +437,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public FormValidation doCheckName(@QueryParameter String value ) throws IOException, ServletException {
-            final Jenkins jenkins = Jenkins.getInstance();
-            if (jenkins == null) { // Should never happen
-                return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
-            }
-            return doCheckName_(value, Jenkins.getActiveInstance(), Jenkins.ADMINISTER);
+            return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
         }
 
         public FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, 
@@ -452,11 +448,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
             if(!subject.hasPermission(permission))  return FormValidation.ok(ev); // can't check
 
-            final Jenkins jenkins = Jenkins.getInstance();
-            if (jenkins == null) { // Should never happen
-                return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
-            }
-            SecurityRealm sr = jenkins.getSecurityRealm();
+            SecurityRealm sr = Jenkins.getInstance().getSecurityRealm();
 
             if(v.equals("authenticated"))
                 // system reserved group
