@@ -21,19 +21,39 @@ public class IdStrategyTest {
     @Rule
     public JenkinsRule r = new JenkinsRule();
 
+    private static class CaseInsensitiveSecurityRealm extends HudsonPrivateSecurityRealm {
+        CaseInsensitiveSecurityRealm() {
+            super(false, false, null);
+        }
+        @Override
+        public IdStrategy getUserIdStrategy() {
+            return IdStrategy.CASE_INSENSITIVE;
+        }
+
+        @Override
+        public IdStrategy getGroupIdStrategy() {
+            return IdStrategy.CASE_INSENSITIVE;
+        }
+    }
+
+    private static class CaseSensitiveSecurityRealm extends HudsonPrivateSecurityRealm {
+        CaseSensitiveSecurityRealm() {
+            super(false, false, null);
+        }
+        @Override
+        public IdStrategy getUserIdStrategy() {
+            return CASE_SENSITIVE;
+        }
+
+        @Override
+        public IdStrategy getGroupIdStrategy() {
+            return CASE_SENSITIVE;
+        }
+    }
+
     @Test
     public void insensitive() throws Exception {
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null) {
-            @Override
-            public IdStrategy getUserIdStrategy() {
-                return IdStrategy.CASE_INSENSITIVE;
-            }
-
-            @Override
-            public IdStrategy getGroupIdStrategy() {
-                return IdStrategy.CASE_INSENSITIVE;
-            }
-        };
+        HudsonPrivateSecurityRealm realm = new CaseInsensitiveSecurityRealm();
         realm.createAccount("alice", "alice");
         r.jenkins.setSecurityRealm(realm);
 
@@ -90,17 +110,7 @@ public class IdStrategyTest {
 
     @Test
     public void sensitive() throws Exception {
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null) {
-            @Override
-            public IdStrategy getUserIdStrategy() {
-                return CASE_SENSITIVE;
-            }
-
-            @Override
-            public IdStrategy getGroupIdStrategy() {
-                return CASE_SENSITIVE;
-            }
-        };
+        HudsonPrivateSecurityRealm realm = new CaseSensitiveSecurityRealm();
         realm.createAccount("alice", "alice");
         r.jenkins.setSecurityRealm(realm);
 
