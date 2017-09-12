@@ -459,7 +459,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
         @Restricted(NoExternalUse.class)
         public String getDescription(Permission p) {
-            String description = p.description.toString();
+            String description = p.description == null ? "" : p.description.toString();
             Permission impliedBy = p.impliedBy;
             while (impliedBy != null && impliedBy.group == PermissionGroup.get(Permission.class)) {
                 if (impliedBy.impliedBy == null) {
@@ -468,6 +468,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 impliedBy = impliedBy.impliedBy;
             }
             if (impliedBy != null && impliedBy != Jenkins.ADMINISTER) {
+                if (description.length() > 0) {
+                    description += "<br/><br/>";
+                }
                 description += Messages.GlobalMatrixAuthorizationStrategy_PermissionImpliedBy(impliedBy.group.title, impliedBy.name);
             }
 
