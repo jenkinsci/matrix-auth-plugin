@@ -23,11 +23,14 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
+import hudson.ExtensionList;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.SecurityRealm;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategyDescriptor;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -41,7 +44,13 @@ public interface AuthorizationProperty {
     void add(Permission permission, String sid);
     Map<Permission, Set<String>> getGrantedPermissions();
 
+    void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy);
+    InheritanceStrategy getInheritanceStrategy();
+
+    @Deprecated
     boolean isBlocksInheritance();
+
+    @Deprecated
     void setBlocksInheritance(boolean blocksInheritance);
 
     /**
@@ -99,6 +108,9 @@ public interface AuthorizationProperty {
      * Checks if the permission is explicitly given, instead of implied through {@link Permission#impliedBy}.
      */
     default boolean hasExplicitPermission(String sid, Permission p) {
+        if (sid == null) { // used for template row in UI
+            return false;
+        }
         Set<String> set = getGrantedPermissions().get(p);
         if (set != null && p.getEnabled()) {
             if (set.contains(sid))
@@ -144,4 +156,8 @@ public interface AuthorizationProperty {
         return Arrays.asList(data);
     }
 
+    @Restricted(NoExternalUse.class)
+    default ExtensionList<InheritanceStrategyDescriptor> getInheritanceStrategies() {
+        return InheritanceStrategyDescriptor.all();
+    }
 }

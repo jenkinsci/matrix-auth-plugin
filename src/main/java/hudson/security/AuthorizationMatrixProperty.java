@@ -55,6 +55,8 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixPropertyDescriptor;
 import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -79,7 +81,13 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
 	private Set<String> sids = new HashSet<String>();
 
-    private boolean blocksInheritance = false;
+	@Deprecated
+    private transient Boolean blocksInheritance = false;
+
+	/**
+	 * @since TODO
+	 */
+	private InheritanceStrategy inheritanceStrategy = new InheritParentStrategy();
 
     private AuthorizationMatrixProperty() {
     }
@@ -171,6 +179,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	 *
 	 * @param blocksInheritance
 	 */
+	@Deprecated
 	public void setBlocksInheritance(boolean blocksInheritance) {
 		this.blocksInheritance = blocksInheritance;
 	}
@@ -181,8 +190,17 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	 *
 	 * @return
 	 */
+	@Deprecated
 	public boolean isBlocksInheritance() {
 		return this.blocksInheritance;
+	}
+
+	public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
+		this.inheritanceStrategy = inheritanceStrategy;
+	}
+
+	public InheritanceStrategy getInheritanceStrategy() {
+		return inheritanceStrategy;
 	}
 
 	/**

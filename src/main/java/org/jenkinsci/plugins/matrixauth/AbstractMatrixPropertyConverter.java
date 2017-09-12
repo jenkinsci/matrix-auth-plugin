@@ -31,6 +31,8 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.Permission;
 import hudson.util.RobustReflectionConverter;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 
 import java.util.Map;
 import java.util.Set;
@@ -46,12 +48,13 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
                         MarshallingContext context) {
         AuthorizationProperty authorizationProperty = (AuthorizationProperty) source;
 
-        if (authorizationProperty.isBlocksInheritance()) {
-            writer.startNode("blocksInheritance");
-            writer.setValue("true");
+        InheritanceStrategy strategy = authorizationProperty.getInheritanceStrategy();
+        if (strategy != null) {
+            writer.startNode("inheritanceStrategy");
+            writer.addAttribute("class", strategy.getClass().getCanonicalName());
             writer.endNode();
         }
-
+        
         for (Map.Entry<Permission, Set<String>> e : authorizationProperty.getGrantedPermissions()
                 .entrySet()) {
             String p = e.getKey().getId();
@@ -77,7 +80,21 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
         }
         if ("blocksInheritance".equals(prop)) {
             reader.moveDown();
-            authorizationProperty.setBlocksInheritance("true".equals(reader.getValue()));
+            boolean blocksInheritance = "true".equals(reader.getValue());
+            if (blocksInheritance) {
+                authorizationProperty.setInheritanceStrategy(new NonInheritingStrategy());
+            }
+            reader.moveUp();
+        }
+        
+        if ("inheritanceStrategy".equals(prop)) {
+            reader.moveDown();
+            String clazz = reader.getAttribute("class");
+            try {
+                authorizationProperty.setInheritanceStrategy((InheritanceStrategy) Class.forName(clazz).newInstance());
+            } catch (Exception e) {
+                // TODO logging
+            }
             reader.moveUp();
         }
 

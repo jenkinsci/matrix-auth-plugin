@@ -44,6 +44,8 @@ import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -66,7 +68,10 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     private Set<String> sids = new HashSet<String>();
 
-    private boolean blocksInheritance = false;
+    @Deprecated
+    private transient boolean blocksInheritance = false;
+
+    private InheritanceStrategy inheritanceStrategy = new InheritGlobalStrategy();
 
     private AuthorizationMatrixNodeProperty() {
     }
@@ -89,6 +94,14 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
      */
     public Map<Permission,Set<String>> getGrantedPermissions() {
         return Collections.unmodifiableMap(grantedPermissions);
+    }
+
+    public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
+        this.inheritanceStrategy = inheritanceStrategy;
+    }
+
+    public InheritanceStrategy getInheritanceStrategy() {
+        return inheritanceStrategy;
     }
 
     /**

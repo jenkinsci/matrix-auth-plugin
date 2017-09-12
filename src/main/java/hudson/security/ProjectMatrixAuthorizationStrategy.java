@@ -40,6 +40,8 @@ import com.thoughtworks.xstream.core.JVM;
 import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.Messages;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
@@ -58,20 +60,14 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     public ACL getACL(Job<?,?> project) {
         AuthorizationMatrixProperty amp = project.getProperty(AuthorizationMatrixProperty.class);
         if (amp != null) {
-            SidACL projectAcl = amp.getACL();
-
-            if (!amp.isBlocksInheritance()) {
-                final ACL parentAcl = getACL(project.getParent());
-                return inheritingACL(parentAcl, projectAcl);
-            } else {
-                return projectAcl;
-            }
+            return amp.getInheritanceStrategy().getEffectiveACL(amp.getACL(), project);
         } else {
             return getACL(project.getParent());
         }
     }
 
-    private static ACL inheritingACL(final ACL parent, final ACL child) {
+    @Restricted(NoExternalUse.class)
+    public static ACL inheritingACL(final ACL parent, final ACL child) {
         if (parent instanceof SidACL && child instanceof SidACL) {
             return ((SidACL) child).newInheritingACL((SidACL) parent);
         }
@@ -91,41 +87,27 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         return getRootACL();
     }
 
+    @Nonnull
+    @Override
+    public ACL getACL(@Nonnull Node node) {
+        AuthorizationMatrixNodeProperty property = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+        if (property != null) {
+            return property.getInheritanceStrategy().getEffectiveACL(property.getACL(), node);
+        }
+        return getRootACL();
+    }
+
     @Override
     public ACL getACL(AbstractItem item) {
         if (Jenkins.getActiveInstance().getPlugin("cloudbees-folder") != null) { // optional dependency
             if (item instanceof AbstractFolder) {
                 com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = (com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty) ((AbstractFolder) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
                 if (p != null) {
-                    SidACL folderAcl = p.getACL();
-
-                    if (!p.isBlocksInheritance()) {
-                        final ACL parentAcl = getACL(item.getParent());
-                        return inheritingACL(parentAcl, folderAcl);
-                    } else {
-                        return folderAcl;
-                    }
+                    return p.getInheritanceStrategy().getEffectiveACL(p.getACL(), item);
                 }
             }
         }
         return getACL(item.getParent());
-    }
-
-    @Nonnull
-    @Override
-    public ACL getACL(@Nonnull Node node) {
-        AuthorizationMatrixNodeProperty prop = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
-        if (prop == null) {
-            return getRootACL();
-        }
-
-        SidACL nodeACL = prop.getACL();
-        if (!prop.isBlocksInheritance()) {
-            final ACL parentAcl = getRootACL();
-            return inheritingACL(parentAcl, nodeACL);
-        } else {
-            return nodeACL;
-        }
     }
 
     @Override

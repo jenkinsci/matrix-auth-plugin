@@ -47,6 +47,8 @@ import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -77,9 +79,14 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     private Set<String> sids = new HashSet<String>();
 
+    @Deprecated
     private boolean blocksInheritance = false;
 
+    private transient InheritanceStrategy inheritanceStrategy;
+
+
     protected AuthorizationMatrixProperty() {
+        this.inheritanceStrategy = new InheritParentStrategy();
     }
 
     public AuthorizationMatrixProperty(Map<Permission,? extends Set<String>> grantedPermissions) {
@@ -179,6 +186,14 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      */
     public boolean isBlocksInheritance() {
         return this.blocksInheritance;
+    }
+
+    public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
+        this.inheritanceStrategy = inheritanceStrategy;
+    }
+
+    public InheritanceStrategy getInheritanceStrategy() {
+        return inheritanceStrategy;
     }
 
     /**

@@ -432,8 +432,18 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public List<PermissionGroup> getAllGroups() {
-            List<PermissionGroup> groups = new ArrayList<PermissionGroup>(PermissionGroup.getAll());
-            groups.remove(PermissionGroup.get(Permission.class));
+            List<PermissionGroup> groups = new ArrayList<PermissionGroup>();
+            for (PermissionGroup group : PermissionGroup.getAll()) {
+                if (group == PermissionGroup.get(Permission.class)) {
+                    continue;
+                }
+                for (Permission p : group.getPermissions()) {
+                    if (p.getEnabled()) {
+                        groups.add(group);
+                        break;
+                    }
+                }
+            }
             return groups;
         }
 
