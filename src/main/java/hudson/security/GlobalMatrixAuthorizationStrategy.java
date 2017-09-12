@@ -281,7 +281,8 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         return Arrays.asList(data);
     }
 
-    /*package*/ static class IdStrategyComparator implements Comparator<String> {
+    @Restricted(NoExternalUse.class)
+    public static class IdStrategyComparator implements Comparator<String> {
         private final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
         private final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         private final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
@@ -436,25 +437,18 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public FormValidation doCheckName(@QueryParameter String value ) throws IOException, ServletException {
-            final Jenkins jenkins = Jenkins.getInstance();
-            if (jenkins == null) { // Should never happen
-                return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
-            }
-            return doCheckName_(value, Jenkins.getActiveInstance(), Jenkins.ADMINISTER);
+            return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
         }
 
         public FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, 
                 @Nonnull Permission permission) throws IOException, ServletException {
-            if(!subject.hasPermission(permission))  return FormValidation.ok(); // can't check
 
             final String v = value.substring(1,value.length()-1);
-            
-            final Jenkins jenkins = Jenkins.getInstance();
-            if (jenkins == null) { // Should never happen
-                return FormValidation.error("Jenkins instance is not ready. Cannot validate the field");
-            }
-            SecurityRealm sr = jenkins.getSecurityRealm();
             String ev = Functions.escape(v);
+
+            if(!subject.hasPermission(permission))  return FormValidation.ok(ev); // can't check
+
+            SecurityRealm sr = Jenkins.getInstance().getSecurityRealm();
 
             if(v.equals("authenticated"))
                 // system reserved group
