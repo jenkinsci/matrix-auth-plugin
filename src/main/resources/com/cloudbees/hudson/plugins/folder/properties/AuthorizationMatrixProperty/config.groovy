@@ -9,7 +9,7 @@ def st = namespace("jelly:stapler")
 f.optionalBlock(name: 'useProjectSecurity', checked: instance != null, title: _("Enable project-based security")) {
     f.nested {
         table(style: "width: 100%") {
-            f.dropdownDescriptorSelector(title: _("Inheritance Strategy"), descriptors: InheritanceStrategyDescriptor.getApplicableDescriptors(Node.class), field: 'inheritanceStrategy')
+            f.dropdownDescriptorSelector(title: _("Inheritance Strategy"), descriptors: InheritanceStrategyDescriptor.getApplicableDescriptors(my.class), field: 'inheritanceStrategy')
             st.include(class: "hudson.security.GlobalMatrixAuthorizationStrategy", page: "config")
         }
     }
