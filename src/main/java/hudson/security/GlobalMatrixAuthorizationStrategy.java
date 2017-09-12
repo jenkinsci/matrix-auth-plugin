@@ -533,6 +533,11 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         @Override public boolean add(AuthorizationStrategy strategy, User user, Permission perm) {
             if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
                 ((GlobalMatrixAuthorizationStrategy) strategy).add(perm, user.getId());
+                try {
+                    Jenkins.getInstance().save();
+                } catch (IOException ioe) {
+                    LOGGER.log(Level.WARNING, "Failed to save Jenkins after adding permission for user: " + user.getId(), ioe);
+                }
                 return true;
             } else {
                 return false;
