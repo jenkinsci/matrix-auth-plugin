@@ -457,6 +457,23 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             return false;
         }
 
+        @Restricted(NoExternalUse.class)
+        public String getDescription(Permission p) {
+            String description = p.description.toString();
+            Permission impliedBy = p.impliedBy;
+            while (impliedBy != null && impliedBy.group == PermissionGroup.get(Permission.class)) {
+                if (impliedBy.impliedBy == null) {
+                    break;
+                }
+                impliedBy = impliedBy.impliedBy;
+            }
+            if (impliedBy != null && impliedBy != Jenkins.ADMINISTER) {
+                description += Messages.GlobalMatrixAuthorizationStrategy_PermissionImpliedBy(impliedBy.group.title, impliedBy.name);
+            }
+
+            return description;
+        }
+
         public FormValidation doCheckName(@QueryParameter String value ) throws IOException, ServletException {
             return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
         }
