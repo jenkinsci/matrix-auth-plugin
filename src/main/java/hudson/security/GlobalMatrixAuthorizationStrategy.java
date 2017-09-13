@@ -32,7 +32,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.PluginManager;
 import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Descriptor;
-import hudson.model.Failure;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import hudson.model.Item;
@@ -412,15 +411,17 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 }
             }
 
-            if (gmas.grantedPermissions.size() == 0) {
-                throw new Failure("Refusing to save authorization strategy that does not provide any permissions globally.");
+            if (!adminAdded) {
+                User current = User.current();
+                String id;
+                if (current == null) {
+                    id = "anonymous";
+                } else {
+                    id = current.getId();
+                }
+                gmas.add(Jenkins.ADMINISTER, id);
             }
 
-            // SecurityRealm is set before this is called by GlobalSecurityConfiguration in core, so this works.
-            SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
-            if (!adminAdded && !securityRealm.allowsSignup() && User.getAll().size() > 0) {
-                throw new Failure("Refusing to save authorization strategy without any administrators when the security realm doesn't allow signup and there are users.");
-            }
             return gmas;
         }
 
