@@ -32,6 +32,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.PluginManager;
 import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Descriptor;
+import hudson.model.Failure;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import hudson.model.Item;
@@ -384,6 +385,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         public AuthorizationStrategy newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             GlobalMatrixAuthorizationStrategy gmas = create();
             Map<String,Object> data = formData.getJSONObject("data");
+
+            boolean adminAdded = false;
+
             for(Map.Entry<String,Object> r : data.entrySet()) {
                 String sid = r.getKey();
                 if (!(r.getValue() instanceof JSONObject)) {
@@ -399,10 +403,23 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                         if (p == null) {
                             LOGGER.log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\"", new Object[]{e.getKey(), sid});
                         } else {
+                            if (p == Jenkins.ADMINISTER) {
+                                adminAdded = true;
+                            }
                             gmas.add(p, sid);
                         }
                     }
                 }
+            }
+
+            if (gmas.grantedPermissions.size() == 0) {
+                throw new Failure("Refusing to save authorization strategy that does not provide any permissions globally.");
+            }
+
+            // SecurityRealm is set before this is called by GlobalSecurityConfiguration in core, so this works.
+            SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+            if (!adminAdded && !securityRealm.allowsSignup() && User.getAll().size() > 0) {
+                throw new Failure("Refusing to save authorization strategy without any administrators when the security realm doesn't allow signup and there are users.");
             }
             return gmas;
         }
