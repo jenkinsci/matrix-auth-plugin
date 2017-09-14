@@ -155,9 +155,4 @@ public interface AuthorizationProperty {
         Arrays.sort(data);
         return Arrays.asList(data);
     }
-
-    @Restricted(NoExternalUse.class)
-    default ExtensionList<InheritanceStrategyDescriptor> getInheritanceStrategies() {
-        return InheritanceStrategyDescriptor.all();
-    }
 }
