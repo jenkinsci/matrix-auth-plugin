@@ -37,7 +37,8 @@ public class ProjectMatrixAuthorizationStrategyTest {
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
         // TODO this must be possible in a nicer way
-        HtmlElement label = form.getElementsByTagName("label").stream().filter(lbl -> lbl.asText().contains("Matrix-based security")).findAny().get();
+        HtmlElement label = form.getElementsByTagName("label").stream().filter(
+                lbl -> lbl.asText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny().get();
         ((HtmlLabel)label).click();
         r.submit(form);
 
@@ -63,7 +64,8 @@ public class ProjectMatrixAuthorizationStrategyTest {
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
         // TODO this must be possible in a nicer way
-        HtmlElement label = form.getElementsByTagName("label").stream().filter(lbl -> lbl.asText().contains("Matrix-based security")).findAny().get();
+        HtmlElement label = form.getElementsByTagName("label").stream().filter(
+                lbl -> lbl.asText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny().get();
         ((HtmlLabel)label).click();
         r.submit(form);
 
