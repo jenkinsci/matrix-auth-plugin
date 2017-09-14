@@ -38,17 +38,13 @@ public class PermissionAdderTest {
                 signup.enterFullName("Alice User");
                 HtmlPage success = signup.submit(r.j);
 
-                try (ACLContext _ = ACL.as(User.get("alice"))) {
-                    Assert.assertTrue(r.j.jenkins.getACL().hasPermission(Jenkins.ADMINISTER));
-                }
+                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice").impersonate(), Jenkins.ADMINISTER));
             }
         });
         r.addStep(new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                try (ACLContext _ = ACL.as(User.get("alice"))) {
-                    Assert.assertTrue(r.j.jenkins.getACL().hasPermission(Jenkins.ADMINISTER));
-                }
+                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice").impersonate(), Jenkins.ADMINISTER));
             }
         });
     }
