@@ -134,26 +134,10 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     };
 
     public static class ConverterImpl extends GlobalMatrixAuthorizationStrategy.ConverterImpl {
-        private RobustReflectionConverter ref;
-
-        public ConverterImpl(Mapper m) {
-            ref = new RobustReflectionConverter(m,JVM.newReflectionProvider());
-        }
 
         @Override
         protected GlobalMatrixAuthorizationStrategy create() {
             return new ProjectMatrixAuthorizationStrategy();
-        }
-
-        @Override
-        public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
-            String name = reader.peekNextChild();
-            if(name!=null && (name.equals("permission") || name.equals("useProjectSecurity")))
-                // the proper serialization form
-                return super.unmarshal(reader, context);
-            else
-                // remain compatible with earlier problem where we used reflection converter
-                return ref.unmarshal(reader,context);
         }
 
         @Override

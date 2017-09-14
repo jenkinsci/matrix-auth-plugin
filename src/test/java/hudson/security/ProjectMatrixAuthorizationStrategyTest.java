@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.recipes.LocalData;
 
 public class ProjectMatrixAuthorizationStrategyTest {
 
@@ -71,5 +72,24 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
         Assert.assertTrue("anon is admin", r.jenkins.getACL().hasPermission(Jenkins.ANONYMOUS, Jenkins.ADMINISTER));
         Assert.assertTrue(r.jenkins.getAuthorizationStrategy() instanceof GlobalMatrixAuthorizationStrategy);
+    }
+
+    @Test
+    @LocalData
+    public void loadEmptyAuthorizationStrategy() throws Exception {
+        Assert.assertTrue(r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
+        Assert.assertTrue(r.jenkins.getAuthorizationStrategy() instanceof GlobalMatrixAuthorizationStrategy);
+    }
+
+    @Test
+    @LocalData
+    public void loadFilledAuthorizationStrategy() throws Exception {
+        Assert.assertTrue(r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
+        Assert.assertTrue(r.jenkins.getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy);
+
+        ProjectMatrixAuthorizationStrategy authorizationStrategy = (ProjectMatrixAuthorizationStrategy) r.jenkins.getAuthorizationStrategy();
+        Assert.assertTrue(authorizationStrategy.hasExplicitPermission("alice", Jenkins.ADMINISTER));
+        Assert.assertFalse(authorizationStrategy.hasExplicitPermission("alice", Jenkins.READ));
+        Assert.assertFalse(authorizationStrategy.hasExplicitPermission("bob", Jenkins.ADMINISTER));
     }
 }
