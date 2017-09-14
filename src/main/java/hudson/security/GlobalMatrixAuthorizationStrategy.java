@@ -30,6 +30,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.PluginManager;
+import hudson.Util;
 import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Descriptor;
 import jenkins.model.IdStrategy;
@@ -47,6 +48,7 @@ import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.acegisecurity.acls.sid.Sid;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.matrixauth.Messages;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -482,7 +484,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                     if (ev.equals(u.getFullName())) {
                         return FormValidation.respond(Kind.OK, makeImg("person.png", ev, "User", false));
                     }
-                    return FormValidation.respond(Kind.OK, makeImg("person.png", u.getFullName(), "User " + ev, false));
+                    return FormValidation.respond(Kind.OK, makeImg("person.png", Util.escape(StringUtils.abbreviate(u.getFullName(), 50)), "User " + ev, false));
                 } catch (UserMayOrMayNotExistException e) {
                     // undecidable, meaning the user may exist
                     return FormValidation.respond(Kind.OK, ev);
