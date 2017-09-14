@@ -27,7 +27,13 @@ import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderProperty;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderPropertyDescriptor;
 import hudson.Extension;
+import hudson.model.AbstractItem;
 import hudson.model.Item;
+import hudson.model.Job;
+import hudson.model.User;
+import hudson.model.listeners.ItemListener;
+import hudson.security.AuthorizationStrategy;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixPropertyDescriptor;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
@@ -39,6 +45,8 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.Sid;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -185,6 +193,46 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         @Override
         public AuthorizationProperty createSubject() {
             return new AuthorizationMatrixProperty();
+        }
+    }
+
+    /**
+     * Ensure that the user creating a folder has Read and Configure permissions
+     */
+    @Extension
+    @Restricted(NoExternalUse.class)
+    public static class ItemListenerImpl extends ItemListener {
+        @Override
+        public void onCreated(Item item) {
+            AuthorizationStrategy authorizationStrategy = Jenkins.getInstance().getAuthorizationStrategy();
+            if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
+                ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
+
+                if (item instanceof AbstractFolder) {
+                    AbstractFolder<?> folder = (AbstractFolder<?>) item;
+                    AuthorizationMatrixProperty prop = folder.getProperties().get(AuthorizationMatrixProperty.class);
+                    if (prop == null) {
+                        prop = new AuthorizationMatrixProperty();
+                    }
+
+                    User current = User.current();
+                    String sid = current == null ? "anonymous" : current.getId();
+
+                    if (!strategy.getACL((AbstractItem) folder).hasPermission(Jenkins.getAuthentication(), Item.READ)) {
+                        prop.add(Item.READ, sid);
+                    }
+                    if (!strategy.getACL((AbstractItem) folder).hasPermission(Jenkins.getAuthentication(), Item.CONFIGURE)) {
+                        prop.add(Item.CONFIGURE, sid);
+                    }
+                    if (prop.getGrantedPermissions().size() > 0) {
+                        try {
+                            folder.addProperty(prop);
+                        } catch (IOException ex) {
+                            // TODO LOGGER
+                        }
+                    }
+                }
+            }
         }
     }
 }

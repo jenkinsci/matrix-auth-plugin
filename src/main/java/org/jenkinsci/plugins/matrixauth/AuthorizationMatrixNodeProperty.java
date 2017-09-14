@@ -27,6 +27,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.model.User;
+import hudson.security.AuthorizationStrategy;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
@@ -36,14 +38,18 @@ import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
+import jenkins.model.NodeListener;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Collections;
@@ -171,6 +177,41 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value,
                     computer == null ? Jenkins.getInstance() : computer,
                     computer == null ? Jenkins.ADMINISTER : Computer.CONFIGURE);
+        }
+    }
+
+
+    /**
+     * Ensure that the user creating a node has Read and Configure permissions
+     */
+    @Extension
+    @Restricted(NoExternalUse.class)
+    public static class NodeListenerImpl extends NodeListener {
+        @Override
+        protected void onCreated(@Nonnull Node node) {
+            AuthorizationStrategy authorizationStrategy = Jenkins.getInstance().getAuthorizationStrategy();
+            if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
+                ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
+
+                AuthorizationMatrixNodeProperty prop = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+                if (prop == null) {
+                    prop = new AuthorizationMatrixNodeProperty();
+                }
+
+                User current = User.current();
+                String sid = current == null ? "anonymous" : current.getId();
+
+                if (!strategy.getACL(node).hasPermission(Jenkins.getAuthentication(), Computer.CONFIGURE)) {
+                    prop.add(Computer.CONFIGURE, sid);
+                }
+                if (prop.getGrantedPermissions().size() > 0) {
+                    try {
+                        node.getNodeProperties().replace(prop);
+                    } catch (IOException ex) {
+                        // TODO LOGGER
+                    }
+                }
+            }
         }
     }
 }

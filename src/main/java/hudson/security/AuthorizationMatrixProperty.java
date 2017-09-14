@@ -32,6 +32,8 @@ import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
+import hudson.model.User;
+import hudson.model.listeners.ItemListener;
 import hudson.util.FormValidation;
 
 import java.io.IOException;
@@ -43,12 +45,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.servlet.ServletException;
+
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
 import org.jenkinsci.plugins.matrixauth.AbstractMatrixPropertyConverter;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixPropertyDescriptor;
 import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -202,4 +208,44 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
             return o;
         }
     }
+
+	/**
+	 * Ensure that the user creating a job has Read and Configure permissions
+	 */
+	@Extension
+	@Restricted(NoExternalUse.class)
+	public static class ItemListenerImpl extends ItemListener {
+		@Override
+		public void onCreated(Item item) {
+			AuthorizationStrategy authorizationStrategy = Jenkins.getInstance().getAuthorizationStrategy();
+			if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
+				ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
+
+				if (item instanceof Job) {
+					Job<?, ?> job = (Job<?, ?>) item;
+					AuthorizationMatrixProperty prop = job.getProperty(AuthorizationMatrixProperty.class);
+					if (prop == null) {
+						prop = new AuthorizationMatrixProperty();
+					}
+
+					User current = User.current();
+					String sid = current == null ? "anonymous" : current.getId();
+
+					if (!strategy.getACL(job).hasPermission(Jenkins.getAuthentication(), Item.READ)) {
+						prop.add(Item.READ, sid);
+					}
+					if (!strategy.getACL(job).hasPermission(Jenkins.getAuthentication(), Item.CONFIGURE)) {
+						prop.add(Item.CONFIGURE, sid);
+					}
+					if (prop.getGrantedPermissions().size() > 0) {
+						try {
+							job.addProperty(prop);
+						} catch (IOException ex) {
+							// TODO LOGGER
+						}
+					}
+				}
+			}
+		}
+	}
 }
