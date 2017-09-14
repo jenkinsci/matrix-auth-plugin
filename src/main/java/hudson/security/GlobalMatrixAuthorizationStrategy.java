@@ -384,6 +384,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         public AuthorizationStrategy newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             GlobalMatrixAuthorizationStrategy gmas = create();
             Map<String,Object> data = formData.getJSONObject("data");
+
+            boolean adminAdded = false;
+
             for(Map.Entry<String,Object> r : data.entrySet()) {
                 String sid = r.getKey();
                 if (!(r.getValue() instanceof JSONObject)) {
@@ -399,11 +402,26 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                         if (p == null) {
                             LOGGER.log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\"", new Object[]{e.getKey(), sid});
                         } else {
+                            if (p == Jenkins.ADMINISTER) {
+                                adminAdded = true;
+                            }
                             gmas.add(p, sid);
                         }
                     }
                 }
             }
+
+            if (!adminAdded) {
+                User current = User.current();
+                String id;
+                if (current == null) {
+                    id = "anonymous";
+                } else {
+                    id = current.getId();
+                }
+                gmas.add(Jenkins.ADMINISTER, id);
+            }
+
             return gmas;
         }
 
