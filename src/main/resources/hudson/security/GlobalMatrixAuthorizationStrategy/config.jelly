@@ -81,7 +81,7 @@ THE SOFTWARE.
         <j:forEach var="g" items="${groups}">
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
-              <th class="pane" tooltip="${p.description}">
+              <th class="pane" tooltip="${descriptor.getDescription(p)}">
                 ${p.name}
               </th>
             </j:if>
