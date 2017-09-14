@@ -69,7 +69,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     private Set<String> sids = new HashSet<String>();
 
     @Deprecated
-    private transient boolean blocksInheritance = false;
+    private transient Boolean blocksInheritance;
 
     private InheritanceStrategy inheritanceStrategy = new InheritGlobalStrategy();
 
@@ -118,7 +118,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     }
 
     @Override
-    public boolean isBlocksInheritance() {
+    public Boolean isBlocksInheritance() {
         return blocksInheritance;
     }
 

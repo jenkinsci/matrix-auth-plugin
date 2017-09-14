@@ -41,6 +41,8 @@ import org.acegisecurity.AccessDeniedException;
 import static org.junit.Assert.*;
 
 import org.junit.Assert;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -85,7 +87,7 @@ public class AuthorizationMatrixPropertyTest {
         Folder f = r.jenkins.createProject(Folder.class, "d");
         AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
 
-        assertEquals(amp.isBlocksInheritance(), false); // inherit permissions by default
+        assertTrue(amp.getInheritanceStrategy() instanceof InheritParentStrategy);
 
         amp.add(Item.READ,"alice");
         amp.add(Item.BUILD,"alice");
@@ -131,7 +133,7 @@ public class AuthorizationMatrixPropertyTest {
 
         Folder f = r.jenkins.createProject(Folder.class, "d");
         AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
-        amp.setBlocksInheritance(true);
+        amp.setInheritanceStrategy(new NonInheritingStrategy());
         amp.add(Item.READ,"alice");
         f.getProperties().add(amp);
 

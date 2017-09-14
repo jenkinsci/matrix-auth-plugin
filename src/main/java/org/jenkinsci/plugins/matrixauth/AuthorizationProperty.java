@@ -23,14 +23,12 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
-import hudson.ExtensionList;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.SecurityRealm;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
-import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategyDescriptor;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -48,7 +46,7 @@ public interface AuthorizationProperty {
     InheritanceStrategy getInheritanceStrategy();
 
     @Deprecated
-    boolean isBlocksInheritance();
+    Boolean isBlocksInheritance();
 
     @Deprecated
     void setBlocksInheritance(boolean blocksInheritance);

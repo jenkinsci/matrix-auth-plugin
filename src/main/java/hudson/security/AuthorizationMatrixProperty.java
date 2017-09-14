@@ -82,7 +82,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	private Set<String> sids = new HashSet<String>();
 
 	@Deprecated
-    private transient Boolean blocksInheritance = false;
+    private transient Boolean blocksInheritance;
 
 	/**
 	 * @since TODO
@@ -191,7 +191,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	 * @return
 	 */
 	@Deprecated
-	public boolean isBlocksInheritance() {
+	public Boolean isBlocksInheritance() {
 		return this.blocksInheritance;
 	}
 

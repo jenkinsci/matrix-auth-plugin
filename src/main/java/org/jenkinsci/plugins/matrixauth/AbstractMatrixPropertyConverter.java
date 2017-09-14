@@ -31,6 +31,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.Permission;
 import hudson.util.RobustReflectionConverter;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 

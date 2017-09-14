@@ -80,13 +80,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     private Set<String> sids = new HashSet<String>();
 
     @Deprecated
-    private boolean blocksInheritance = false;
+    private transient Boolean blocksInheritance;
 
-    private transient InheritanceStrategy inheritanceStrategy;
+    private InheritanceStrategy inheritanceStrategy = new InheritParentStrategy();
 
 
     protected AuthorizationMatrixProperty() {
-        this.inheritanceStrategy = new InheritParentStrategy();
     }
 
     public AuthorizationMatrixProperty(Map<Permission,? extends Set<String>> grantedPermissions) {
@@ -174,6 +173,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      *
      * @param blocksInheritance
      */
+    @Deprecated
     public void setBlocksInheritance(boolean blocksInheritance) {
         this.blocksInheritance = blocksInheritance;
     }
@@ -184,7 +184,8 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      *
      * @return
      */
-    public boolean isBlocksInheritance() {
+    @Deprecated
+    public Boolean isBlocksInheritance() {
         return this.blocksInheritance;
     }
 
