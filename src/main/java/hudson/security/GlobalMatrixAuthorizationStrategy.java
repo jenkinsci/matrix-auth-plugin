@@ -31,14 +31,11 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.PluginManager;
 import hudson.Util;
-import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Descriptor;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
-import hudson.model.Item;
 import hudson.util.FormValidation;
 import hudson.util.FormValidation.Kind;
-import hudson.util.VersionNumber;
 import hudson.util.RobustReflectionConverter;
 import hudson.Functions;
 import hudson.Extension;
@@ -57,7 +54,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
 import org.springframework.dao.DataAccessException;
 
-import javax.servlet.ServletException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -71,7 +67,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.annotation.CheckForNull;
@@ -84,7 +79,7 @@ import javax.annotation.Nonnull;
  */
 // TODO: think about the concurrency commitment of this class
 public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
-    private transient SidACL acl = new AclImpl();
+    private final transient SidACL acl = new AclImpl();
 
     /**
      * List up all permissions that are granted.
@@ -92,7 +87,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * Strings are either the granted authority or the principal,
      * which is not distinguished.
      */
-    private final Map<Permission,Set<String>> grantedPermissions = new HashMap<Permission, Set<String>>();
+    private final Map<Permission,Set<String>> grantedPermissions = new HashMap<>();
 
     /**
      * List of permissions considered dangerous to grant to non-admin users
@@ -104,7 +99,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             PluginManager.UPLOAD_PLUGINS
     );
 
-    private final Set<String> sids = new HashSet<String>();
+    private final Set<String> sids = new HashSet<>();
 
     /**
      * Adds to {@link #grantedPermissions}.
@@ -118,7 +113,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         LOGGER.log(Level.FINE, "Grant permission \"{0}\" to \"{1}\")", new Object[]{p, sid});
         Set<String> set = grantedPermissions.get(p);
         if(set==null)
-            grantedPermissions.put(p,set = new HashSet<String>());
+            grantedPermissions.put(p,set = new HashSet<>());
         set.add(sid);
         sids.add(sid);
     }
@@ -136,37 +131,16 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     @Override
+    @Nonnull
     public ACL getRootACL() {
         return acl;
     }
 
+    @Nonnull
     public Set<String> getGroups() {
-        final TreeSet<String> sids = new TreeSet<String>(new IdStrategyComparator());
+        final TreeSet<String> sids = new TreeSet<>(new IdStrategyComparator());
         sids.addAll(this.sids);
         return sids;
-    }
-
-    /**
-     * Due to HUDSON-2324, we want to inject Item.READ permission to everyone who has Hudson.READ,
-     * to remain backward compatible.
-     * @param grantedPermissions
-     */
-    /*package*/ static boolean migrateHudson2324(Map<Permission,Set<String>> grantedPermissions) {
-        boolean result = false;
-        if(Jenkins.getActiveInstance().isUpgradedFromBefore(new VersionNumber("1.300.*"))) {
-            Set<String> f = grantedPermissions.get(Jenkins.READ);
-            if (f!=null) {
-                Set<String> t = grantedPermissions.get(Item.READ);
-                if (t!=null)
-                    result = t.addAll(f);
-                else {
-                    t = new HashSet<String>(f);
-                    result = true;
-                }
-                grantedPermissions.put(Item.READ,t);
-            }
-        }
-        return result;
     }
 
     /**
@@ -176,7 +150,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         if (!ENABLE_DANGEROUS_PERMISSIONS && DANGEROUS_PERMISSIONS.contains(p)) {
             return hasPermission(sid, Jenkins.ADMINISTER);
         }
-        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
         final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
         for (; p != null; p = p.impliedBy) {
@@ -203,7 +177,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * Checks if the given SID has the given permission.
      */
     public boolean hasPermission(String sid, Permission p, boolean principal) {
-        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
         final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
         for (; p != null; p = p.impliedBy) {
             if (!p.getEnabled()) {
@@ -236,7 +210,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             if (set.contains(sid)) {
                 return true;
             }
-            final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+            final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
             final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
             final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
             for (String s : set) {
@@ -254,10 +228,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 return true;
             }
         }
-        if (isAnyRelevantDangerousPermissionExplicitlyGranted("anonymous")) {
-            return true;
-        }
-        return false;
+        return isAnyRelevantDangerousPermissionExplicitlyGranted("anonymous");
     }
 
     boolean isAnyRelevantDangerousPermissionExplicitlyGranted(String sid) {
@@ -276,7 +247,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      *      Always non-null.
      */
     public List<String> getAllSIDs() {
-        Set<String> r = new TreeSet<String>(new IdStrategyComparator());
+        Set<String> r = new TreeSet<>(new IdStrategyComparator());
         for (Set<String> set : grantedPermissions.values())
             r.addAll(set);
         r.remove("anonymous");
@@ -288,7 +259,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
     @Restricted(NoExternalUse.class)
     public static class IdStrategyComparator implements Comparator<String> {
-        private final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        private final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
         private final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         private final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
 
@@ -329,11 +300,11 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             GlobalMatrixAuthorizationStrategy strategy = (GlobalMatrixAuthorizationStrategy)source;
 
             // Output in alphabetical order for readability.
-            SortedMap<Permission, Set<String>> sortedPermissions = new TreeMap<Permission, Set<String>>(Permission.ID_COMPARATOR);
+            SortedMap<Permission, Set<String>> sortedPermissions = new TreeMap<>(Permission.ID_COMPARATOR);
             sortedPermissions.putAll(strategy.grantedPermissions);
             for (Entry<Permission, Set<String>> e : sortedPermissions.entrySet()) {
                 String p = e.getKey().getId();
-                Set<String> sids = new TreeSet<String>(comparator);
+                Set<String> sids = new TreeSet<>(comparator);
                 sids.addAll(e.getValue());
                 for (String sid : sids) {
                     writer.startNode("permission");
@@ -359,9 +330,6 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 reader.moveUp();
             }
 
-            if (migrateHudson2324(as.grantedPermissions))
-                OldDataMonitor.report(context, "1.301");
-
             return as;
         }
 
@@ -371,19 +339,18 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
     
     public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> {
-        protected DescriptorImpl(Class<? extends GlobalMatrixAuthorizationStrategy> clazz) {
-            super(clazz);
+
+        DescriptorImpl() {
+            // make this constructor available for instantiation
         }
 
-        public DescriptorImpl() {
-        }
-
+        @Nonnull
         public String getDisplayName() {
             return Messages.GlobalMatrixAuthorizationStrategy_DisplayName();
         }
 
         @Override
-        public AuthorizationStrategy newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+        public AuthorizationStrategy newInstance(StaplerRequest req, @Nonnull JSONObject formData) throws FormException {
             GlobalMatrixAuthorizationStrategy gmas = create();
             Map<String,Object> data = formData.getJSONObject("data");
 
@@ -432,7 +399,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public List<PermissionGroup> getAllGroups() {
-            List<PermissionGroup> groups = new ArrayList<PermissionGroup>(PermissionGroup.getAll());
+            List<PermissionGroup> groups = new ArrayList<>(PermissionGroup.getAll());
             groups.remove(PermissionGroup.get(Permission.class));
             return groups;
         }
@@ -449,7 +416,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             }
 
             // if we grant any dangerous permission, show them all
-            AuthorizationStrategy strategy = Jenkins.getActiveInstance().getAuthorizationStrategy();
+            AuthorizationStrategy strategy = Jenkins.getInstance().getAuthorizationStrategy();
             if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
                 GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = (GlobalMatrixAuthorizationStrategy) strategy;
                 return globalMatrixAuthorizationStrategy.isAnyRelevantDangerousPermissionExplicitlyGranted();
@@ -486,12 +453,12 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             return description;
         }
 
-        public FormValidation doCheckName(@QueryParameter String value ) throws IOException, ServletException {
+        public FormValidation doCheckName(@QueryParameter String value ) {
             return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
         }
 
         public FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, 
-                @Nonnull Permission permission) throws IOException, ServletException {
+                @Nonnull Permission permission) {
 
             final String v = value.substring(1,value.length()-1);
             String ev = Functions.escape(v);
@@ -515,9 +482,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 } catch (UserMayOrMayNotExistException e) {
                     // undecidable, meaning the user may exist
                     return FormValidation.respond(Kind.OK, ev);
-                } catch (UsernameNotFoundException e) {
-                    // fall through next
-                } catch (DataAccessException e) {
+                } catch (UsernameNotFoundException|DataAccessException e) {
                     // fall through next
                 } catch (AuthenticationException e) {
                     // other seemingly unexpected error.
@@ -530,9 +495,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 } catch (UserMayOrMayNotExistException e) {
                     // undecidable, meaning the group may exist
                     return FormValidation.respond(Kind.OK, ev);
-                } catch (UsernameNotFoundException e) {
-                    // fall through next
-                } catch (DataAccessException e) {
+                } catch (UsernameNotFoundException|DataAccessException e) {
                     // fall through next
                 } catch (AuthenticationException e) {
                     // other seemingly unexpected error.

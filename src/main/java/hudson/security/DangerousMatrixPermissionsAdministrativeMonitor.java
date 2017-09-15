@@ -33,7 +33,6 @@ import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +46,7 @@ public class DangerousMatrixPermissionsAdministrativeMonitor extends Administrat
     }
 
     @RequirePOST
-    public HttpResponse doAct(@QueryParameter String yes) throws IOException {
+    public HttpResponse doAct(@QueryParameter String yes) {
         if (yes != null) {
             return HttpResponses.redirectViaContextPath("configureSecurity");
         }
@@ -61,11 +60,11 @@ public class DangerousMatrixPermissionsAdministrativeMonitor extends Administrat
             return Collections.emptyList();
         }
 
-        List<String> sids = new ArrayList<String>();
+        List<String> sids = new ArrayList<>();
 
         GlobalMatrixAuthorizationStrategy strategy = (GlobalMatrixAuthorizationStrategy) j.getAuthorizationStrategy();
 
-        List<String> allSidsPlusAnon = new ArrayList<String>(strategy.getAllSIDs());
+        List<String> allSidsPlusAnon = new ArrayList<>(strategy.getAllSIDs());
         allSidsPlusAnon.add("anonymous");
 
         for (String sid : allSidsPlusAnon) {

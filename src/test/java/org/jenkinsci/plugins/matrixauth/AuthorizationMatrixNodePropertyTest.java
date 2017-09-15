@@ -44,7 +44,7 @@ public class AuthorizationMatrixNodePropertyTest {
 
     @Test
     public void ensureCreatorHasPermissions() throws Exception {
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice","alice");
         realm.createAccount("bob","bob");
         r.jenkins.setSecurityRealm(realm);
