@@ -399,8 +399,18 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         }
 
         public List<PermissionGroup> getAllGroups() {
-            List<PermissionGroup> groups = new ArrayList<>(PermissionGroup.getAll());
-            groups.remove(PermissionGroup.get(Permission.class));
+            List<PermissionGroup> groups = new ArrayList<PermissionGroup>();
+            for (PermissionGroup group : PermissionGroup.getAll()) {
+                if (group == PermissionGroup.get(Permission.class)) {
+                    continue;
+                }
+                for (Permission p : group.getPermissions()) {
+                    if (p.getEnabled()) {
+                        groups.add(group);
+                        break;
+                    }
+                }
+            }
             return groups;
         }
 
@@ -547,7 +557,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     /**
      * Backwards compatibility: Enable granting dangerous permissions independently of Administer access.
      *
-     * @since TODO
+     * @since 1.5
      */
     @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
     @Restricted(NoExternalUse.class)

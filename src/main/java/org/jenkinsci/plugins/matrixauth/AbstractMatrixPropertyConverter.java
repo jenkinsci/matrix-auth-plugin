@@ -31,6 +31,9 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.Permission;
 import hudson.util.RobustReflectionConverter;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -49,12 +52,13 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
                         MarshallingContext context) {
         AuthorizationProperty authorizationProperty = (AuthorizationProperty) source;
 
-        if (authorizationProperty.isBlocksInheritance()) {
-            writer.startNode("blocksInheritance");
-            writer.setValue("true");
+        InheritanceStrategy strategy = authorizationProperty.getInheritanceStrategy();
+        if (strategy != null) {
+            writer.startNode("inheritanceStrategy");
+            writer.addAttribute("class", strategy.getClass().getCanonicalName());
             writer.endNode();
         }
-
+        
         for (Map.Entry<Permission, Set<String>> e : authorizationProperty.getGrantedPermissions()
                 .entrySet()) {
             String p = e.getKey().getId();
@@ -80,7 +84,21 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
         }
         if ("blocksInheritance".equals(prop)) {
             reader.moveDown();
-            authorizationProperty.setBlocksInheritance("true".equals(reader.getValue()));
+            boolean blocksInheritance = "true".equals(reader.getValue());
+            if (blocksInheritance) {
+                authorizationProperty.setInheritanceStrategy(new NonInheritingStrategy());
+            }
+            reader.moveUp();
+        }
+        
+        if ("inheritanceStrategy".equals(prop)) {
+            reader.moveDown();
+            String clazz = reader.getAttribute("class");
+            try {
+                authorizationProperty.setInheritanceStrategy((InheritanceStrategy) Class.forName(clazz).newInstance());
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Failed to restore inheritance strategy", e);
+            }
             reader.moveUp();
         }
 
@@ -98,4 +116,6 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
 
         return authorizationProperty;
     }
+
+    public static final Logger LOGGER = Logger.getLogger(AbstractMatrixPropertyConverter.class.getName());
 }

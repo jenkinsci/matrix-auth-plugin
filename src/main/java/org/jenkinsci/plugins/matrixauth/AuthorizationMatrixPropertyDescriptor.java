@@ -29,6 +29,7 @@ import hudson.security.PermissionScope;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
@@ -52,8 +53,7 @@ public interface AuthorizationMatrixPropertyDescriptor<T extends AuthorizationPr
 
         T amnp = createProperty();
 
-        // Disable inheritance, if so configured
-        amnp.setBlocksInheritance(!formData.getJSONObject("blocksInheritance").isNullObject());
+        amnp.setInheritanceStrategy(req.bindJSON(InheritanceStrategy.class, formData.getJSONObject("inheritanceStrategy")));
 
         for (Map.Entry<String, Object> r : (Set<Map.Entry<String, Object>>) formData.getJSONObject("data").entrySet()) {
             String sid = r.getKey();
@@ -72,11 +72,7 @@ public interface AuthorizationMatrixPropertyDescriptor<T extends AuthorizationPr
 
     default boolean isApplicable() {
         // only applicable when ProjectMatrixAuthorizationStrategy is in charge
-        try {
-            return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
-        } catch (NoClassDefFoundError x) { // after matrix-auth split?
-            return false;
-        }
+        return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
     }
 
     @Nonnull

@@ -44,6 +44,8 @@ import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -65,7 +67,13 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     private final Set<String> sids = new HashSet<>();
 
-    private boolean blocksInheritance = false;
+    /**
+     * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
+     */
+    @Deprecated
+    private transient Boolean blocksInheritance;
+
+    private InheritanceStrategy inheritanceStrategy = new InheritGlobalStrategy();
 
     private AuthorizationMatrixNodeProperty() {
     }
@@ -90,6 +98,14 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         return Collections.unmodifiableMap(grantedPermissions);
     }
 
+    public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
+        this.inheritanceStrategy = inheritanceStrategy;
+    }
+
+    public InheritanceStrategy getInheritanceStrategy() {
+        return inheritanceStrategy;
+    }
+
     /**
      * Adds to {@link #grantedPermissions}. Use of this method should be limited
      * during construction, as this object itself is considered immutable once
@@ -101,16 +117,6 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
             grantedPermissions.put(p, set = new HashSet<>());
         set.add(sid);
         sids.add(sid);
-    }
-
-    @Override
-    public boolean isBlocksInheritance() {
-        return blocksInheritance;
-    }
-
-    @Override
-    public void setBlocksInheritance(boolean blocksInheritance) {
-        this.blocksInheritance = blocksInheritance;
     }
 
     private final class AclImpl extends SidACL {
@@ -167,7 +173,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         }
 
         public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) {
-            // TODO Computer needs to become a DescriptorByNameOwner for the AncestorInPath to work
+            // Computer isn't a DescriptorByNameOwner before Jenkins 2.78, and then @AncestorInPath doesn't work
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value,
                     computer == null ? Jenkins.getInstance() : computer,
                     computer == null ? Jenkins.ADMINISTER : Computer.CONFIGURE);

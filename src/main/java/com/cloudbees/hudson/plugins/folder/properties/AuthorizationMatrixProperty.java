@@ -47,6 +47,8 @@ import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -76,7 +78,14 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     private final Set<String> sids = new HashSet<>();
 
-    private boolean blocksInheritance = false;
+    /**
+     * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
+     */
+    @Deprecated
+    private transient Boolean blocksInheritance;
+
+    private InheritanceStrategy inheritanceStrategy = new InheritParentStrategy();
+
 
     protected AuthorizationMatrixProperty() {
     }
@@ -156,21 +165,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         return acl;
     }
 
-    /**
-     * Sets the flag to block inheritance
-     *
-     */
-    public void setBlocksInheritance(boolean blocksInheritance) {
-        this.blocksInheritance = blocksInheritance;
+    public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
+        this.inheritanceStrategy = inheritanceStrategy;
     }
 
-    /**
-     * Returns true if the authorization matrix is configured to block
-     * inheritance from the parent.
-     *
-     */
-    public boolean isBlocksInheritance() {
-        return this.blocksInheritance;
+    public InheritanceStrategy getInheritanceStrategy() {
+        return inheritanceStrategy;
     }
 
     /**
