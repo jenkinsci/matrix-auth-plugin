@@ -3,6 +3,8 @@ package hudson.security;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlLabel;
+import hudson.model.Item;
+import hudson.model.Job;
 import hudson.model.User;
 import jenkins.model.Jenkins;
 import org.junit.Assert;
@@ -15,6 +17,30 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
     @Rule
     public JenkinsRule r = new JenkinsRule();
+
+    @Test
+    public void ensureCreatorHasPermissions() throws Exception {
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        realm.createAccount("alice","alice");
+        realm.createAccount("bob","bob");
+        r.jenkins.setSecurityRealm(realm);
+
+        ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
+        authorizationStrategy.add(Item.CREATE, "alice");
+        authorizationStrategy.add(Jenkins.READ, "alice");
+        authorizationStrategy.add(Jenkins.READ, "bob");
+        r.jenkins.setAuthorizationStrategy(authorizationStrategy);
+        
+        Job job;
+        try (ACLContext _ = ACL.as(User.get("alice"))) {
+            job = r.createFreeStyleProject();
+        }
+
+        Assert.assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.CONFIGURE));
+    }
 
     @Test
     public void submitEmptyPropertyEnsuresPermissionsForSubmitter() throws Exception {

@@ -29,12 +29,18 @@ import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import hudson.model.FreeStyleProject;
 import hudson.model.Hudson;
 import hudson.model.Item;
+import hudson.model.User;
+import hudson.security.ACL;
+import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import java.util.concurrent.Callable;
 
+import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import static org.junit.Assert.*;
+
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -42,6 +48,29 @@ import org.jvnet.hudson.test.JenkinsRule;
 public class AuthorizationMatrixPropertyTest {
 
     @Rule public JenkinsRule r = new JenkinsRule();
+
+    @Test
+    public void ensureCreatorHasPermissions() throws Exception {
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        realm.createAccount("alice","alice");
+        realm.createAccount("bob","bob");
+        r.jenkins.setSecurityRealm(realm);
+
+        ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
+        authorizationStrategy.add(Item.CREATE, "alice");
+        authorizationStrategy.add(Jenkins.READ, "alice");
+        r.jenkins.setAuthorizationStrategy(authorizationStrategy);
+        
+        Folder job;
+        try (ACLContext _ = ACL.as(User.get("alice"))) {
+            job = r.createProject(Folder.class);
+        }
+
+        Assert.assertNotNull(job.getProperties().get(AuthorizationMatrixProperty.class));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.CONFIGURE));
+    }
 
     @Test public void basics1() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
