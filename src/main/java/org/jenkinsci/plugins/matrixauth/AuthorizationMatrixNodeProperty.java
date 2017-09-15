@@ -99,18 +99,10 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         return Collections.unmodifiableMap(grantedPermissions);
     }
 
-    /**
-     * @since TODO
-     * @param inheritanceStrategy
-     */
     public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
         this.inheritanceStrategy = inheritanceStrategy;
     }
 
-    /**
-     * @since TODO
-     * @return
-     */
     public InheritanceStrategy getInheritanceStrategy() {
         return inheritanceStrategy;
     }
@@ -187,7 +179,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         }
 
         public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) throws IOException, ServletException {
-            // TODO Computer needs to become a DescriptorByNameOwner for the AncestorInPath to work
+            // Computer isn't a DescriptorByNameOwner before Jenkins 2.78, and then @AncestorInPath doesn't work
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value,
                     computer == null ? Jenkins.getInstance() : computer,
                     computer == null ? Jenkins.ADMINISTER : Computer.CONFIGURE);

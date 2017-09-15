@@ -594,7 +594,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     /**
      * Backwards compatibility: Enable granting dangerous permissions independently of Administer access.
      *
-     * @since TODO
+     * @since 1.5
      */
     @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
     @Restricted(NoExternalUse.class)

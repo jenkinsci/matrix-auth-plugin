@@ -174,18 +174,10 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 		return acl;
 	}
 
-	/**
-	 * @since TODO
-	 * @param inheritanceStrategy
-	 */
 	public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
 		this.inheritanceStrategy = inheritanceStrategy;
 	}
 
-	/**
-	 * @since TODO
-	 * @return
-	 */
 	public InheritanceStrategy getInheritanceStrategy() {
 		return inheritanceStrategy;
 	}

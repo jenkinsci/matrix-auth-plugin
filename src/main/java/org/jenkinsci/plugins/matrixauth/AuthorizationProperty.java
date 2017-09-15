@@ -58,6 +58,7 @@ public interface AuthorizationProperty {
      * Note that for items nested inside folders, this will change behavior significantly.
      *
      * @param blocksInheritance
+     * @since 2.0
      * @deprecated
      */
     @Deprecated
@@ -77,6 +78,7 @@ public interface AuthorizationProperty {
      * if and only if the selected inheritance strategy is {@link NonInheritingStrategy}.
      *
      * @return
+     * @since 2.0
      * @deprecated
      */
     @Deprecated
