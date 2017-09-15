@@ -28,7 +28,9 @@ import hudson.security.Permission;
 import hudson.security.SecurityRealm;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -45,11 +47,42 @@ public interface AuthorizationProperty {
     void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy);
     InheritanceStrategy getInheritanceStrategy();
 
+    /**
+     * Sets the flag to block inheritance.
+     *
+     * Since the introduction of inheritance strategies, set the inheritance
+     * strategy roughly matching the previous behavior, i.e. {@code false} will
+     * set the {@link NonInheritingStrategy}, {@code true} will set the
+     * {@link InheritGlobalStrategy}.
+     *
+     * Note that for items nested inside folders, this will change behavior significantly.
+     *
+     * @param blocksInheritance
+     * @deprecated
+     */
     @Deprecated
-    Boolean isBlocksInheritance();
+    default void setBlocksInheritance(boolean blocksInheritance) {
+        if (blocksInheritance) {
+            setInheritanceStrategy(new NonInheritingStrategy());
+        } else {
+            setInheritanceStrategy(new InheritGlobalStrategy());
+        }
+    }
 
+    /**
+     * Returns true if the authorization matrix is configured to block
+     * inheritance from the parent.
+     *
+     * Since the introduction of inheritance strategies, returns {@code true}
+     * if and only if the selected inheritance strategy is {@link NonInheritingStrategy}.
+     *
+     * @return
+     * @deprecated
+     */
     @Deprecated
-    void setBlocksInheritance(boolean blocksInheritance);
+    default boolean isBlocksInheritance() {
+        return getInheritanceStrategy() instanceof NonInheritingStrategy;
+    }
 
     /**
      * Checks if the given SID has the given permission.

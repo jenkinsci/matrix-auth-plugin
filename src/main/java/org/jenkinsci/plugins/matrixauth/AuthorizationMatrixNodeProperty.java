@@ -68,6 +68,9 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     private Set<String> sids = new HashSet<String>();
 
+    /**
+     * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
+     */
     @Deprecated
     private transient Boolean blocksInheritance;
 
@@ -96,10 +99,18 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         return Collections.unmodifiableMap(grantedPermissions);
     }
 
+    /**
+     * @since TODO
+     * @param inheritanceStrategy
+     */
     public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
         this.inheritanceStrategy = inheritanceStrategy;
     }
 
+    /**
+     * @since TODO
+     * @return
+     */
     public InheritanceStrategy getInheritanceStrategy() {
         return inheritanceStrategy;
     }
@@ -115,16 +126,6 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
             grantedPermissions.put(p, set = new HashSet<String>());
         set.add(sid);
         sids.add(sid);
-    }
-
-    @Override
-    public Boolean isBlocksInheritance() {
-        return blocksInheritance;
-    }
-
-    @Override
-    public void setBlocksInheritance(boolean blocksInheritance) {
-        this.blocksInheritance = blocksInheritance;
     }
 
     private final class AclImpl extends SidACL {

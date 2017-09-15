@@ -81,12 +81,12 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
 	private Set<String> sids = new HashSet<String>();
 
+	/**
+	 * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
+	 */
 	@Deprecated
     private transient Boolean blocksInheritance;
 
-	/**
-	 * @since TODO
-	 */
 	private InheritanceStrategy inheritanceStrategy = new InheritParentStrategy();
 
     private AuthorizationMatrixProperty() {
@@ -175,30 +175,17 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	}
 
 	/**
-	 * Sets the flag to block inheritance
-	 *
-	 * @param blocksInheritance
+	 * @since TODO
+	 * @param inheritanceStrategy
 	 */
-	@Deprecated
-	public void setBlocksInheritance(boolean blocksInheritance) {
-		this.blocksInheritance = blocksInheritance;
-	}
-
-	/**
-	 * Returns true if the authorization matrix is configured to block
-	 * inheritance from the parent.
-	 *
-	 * @return
-	 */
-	@Deprecated
-	public Boolean isBlocksInheritance() {
-		return this.blocksInheritance;
-	}
-
 	public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
 		this.inheritanceStrategy = inheritanceStrategy;
 	}
 
+	/**
+	 * @since TODO
+	 * @return
+	 */
 	public InheritanceStrategy getInheritanceStrategy() {
 		return inheritanceStrategy;
 	}

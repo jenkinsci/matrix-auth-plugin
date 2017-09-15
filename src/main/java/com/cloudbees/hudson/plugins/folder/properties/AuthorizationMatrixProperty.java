@@ -79,6 +79,9 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     private Set<String> sids = new HashSet<String>();
 
+    /**
+     * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
+     */
     @Deprecated
     private transient Boolean blocksInheritance;
 
@@ -169,30 +172,17 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     /**
-     * Sets the flag to block inheritance
-     *
-     * @param blocksInheritance
+     * @since TODO
+     * @param inheritanceStrategy
      */
-    @Deprecated
-    public void setBlocksInheritance(boolean blocksInheritance) {
-        this.blocksInheritance = blocksInheritance;
-    }
-
-    /**
-     * Returns true if the authorization matrix is configured to block
-     * inheritance from the parent.
-     *
-     * @return
-     */
-    @Deprecated
-    public Boolean isBlocksInheritance() {
-        return this.blocksInheritance;
-    }
-
     public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
         this.inheritanceStrategy = inheritanceStrategy;
     }
 
+    /**
+     * @since TODO
+     * @return
+     */
     public InheritanceStrategy getInheritanceStrategy() {
         return inheritanceStrategy;
     }

@@ -28,7 +28,7 @@ public class InheritanceMigrationTest {
         {
             Folder folder = (Folder) j.jenkins.getItemByFullName("folder");
             AuthorizationMatrixProperty prop = (folder).getProperties().get(AuthorizationMatrixProperty.class);
-            Assert.assertNull(prop.isBlocksInheritance());
+            Assert.assertTrue(prop.isBlocksInheritance());
             Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
             Assert.assertTrue(prop.hasExplicitPermission("admin", Item.CONFIGURE));
             Assert.assertTrue(prop.hasExplicitPermission("admin", Item.READ));
@@ -38,7 +38,7 @@ public class InheritanceMigrationTest {
 
             folder = (Folder) j.jenkins.getItemByFullName("folder1");
             prop = (folder).getProperties().get(AuthorizationMatrixProperty.class);
-            Assert.assertNull(prop.isBlocksInheritance());
+            Assert.assertTrue(prop.isBlocksInheritance());
             Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
             Assert.assertTrue(prop.hasExplicitPermission("admin", Item.CONFIGURE));
             Assert.assertFalse(prop.hasExplicitPermission("admin", Item.READ));
@@ -54,14 +54,14 @@ public class InheritanceMigrationTest {
         {
             Job job = (Job) j.jenkins.getItemByFullName("folder/inheritNone");
             hudson.security.AuthorizationMatrixProperty prop = (hudson.security.AuthorizationMatrixProperty) job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
-            Assert.assertNull(prop.isBlocksInheritance());
+            Assert.assertTrue(prop.isBlocksInheritance());
             Assert.assertEquals(0, prop.getGrantedPermissions().size());
             Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
             Assert.assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.READ)); // change from before (JENKINS-37904)
 
             job = (Job) j.jenkins.getItemByFullName("job");
             prop = (hudson.security.AuthorizationMatrixProperty) job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
-            Assert.assertNull(prop.isBlocksInheritance());
+            Assert.assertFalse(prop.isBlocksInheritance());
             Assert.assertTrue(prop.getInheritanceStrategy() instanceof InheritParentStrategy);
             Assert.assertTrue(job.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
             Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
