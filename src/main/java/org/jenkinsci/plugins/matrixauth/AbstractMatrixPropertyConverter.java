@@ -94,7 +94,7 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
             try {
                 authorizationProperty.setInheritanceStrategy((InheritanceStrategy) Class.forName(clazz).newInstance());
             } catch (Exception e) {
-                // TODO logging
+                LOGGER.log(Level.WARNING, "Failed to restore inheritance strategy", e);
             }
             reader.moveUp();
         }
@@ -113,4 +113,6 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
 
         return authorizationProperty;
     }
+
+    public static final Logger LOGGER = Logger.getLogger(AbstractMatrixPropertyConverter.class.getName());
 }

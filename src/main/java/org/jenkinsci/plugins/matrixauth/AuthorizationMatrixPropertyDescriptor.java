@@ -72,11 +72,7 @@ public interface AuthorizationMatrixPropertyDescriptor<T extends AuthorizationPr
 
     default boolean isApplicable() {
         // only applicable when ProjectMatrixAuthorizationStrategy is in charge
-        try {
-            return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
-        } catch (NoClassDefFoundError x) { // after matrix-auth split?
-            return false;
-        }
+        return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
     }
 
     default String getDisplayName() {
