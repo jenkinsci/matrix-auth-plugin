@@ -174,5 +174,19 @@ public class ProjectMatrixAuthorizationStrategyTest {
         Assert.assertTrue(acl.hasPermission(admin, Item.CONFIGURE));
         Assert.assertFalse(acl.hasPermission(bob, Item.READ));
         Assert.assertFalse(acl.hasPermission(bob, Item.CONFIGURE));
+
+        JenkinsRule.WebClient wc = r.createWebClient().login("alice", "alice");
+        wc.goTo(aliceProjects.getUrl());
+
+        wc = r.createWebClient().login("admin", "admin");
+        wc.goTo(aliceProjects.getUrl());
+
+        wc = r.createWebClient().login("bob", "bob");
+        try {
+            wc.goTo(aliceProjects.getUrl());
+            Assert.fail();
+        } catch (Exception expected) {
+            // expected
+        }
     }
 }
