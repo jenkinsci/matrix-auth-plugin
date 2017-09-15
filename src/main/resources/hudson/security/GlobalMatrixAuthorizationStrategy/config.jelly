@@ -28,7 +28,25 @@ THE SOFTWARE.
     <d:taglib uri="local">
       <!-- generate one row for the sid name @sid -->
       <d:tag name="row">
-        <td class="left-most">${title}</td>
+        <j:choose>
+          <j:when test="${attrs.sid == 'authenticated'}">
+            <td class="left-most">
+              <span title="authenticated">
+                <img src="${imagesURL}/16x16/user.gif" style="margin-right:0.2em"/>${%Authenticated Users}
+              </span>
+            </td>
+          </j:when>
+          <j:when test="${attrs.sid == 'anonymous'}">
+            <td class="left-most">
+              <span title="anonymous">
+                <img src="${imagesURL}/16x16/user.gif" style="margin-right:0.2em"/>${%Anonymous Users}
+              </span>
+            </td>
+          </j:when>
+          <j:otherwise>
+            <td class="left-most">${title}</td>
+          </j:otherwise>
+        </j:choose>
         <j:forEach var="g" items="${groups}">
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
@@ -45,7 +63,7 @@ THE SOFTWARE.
           <a href="#" class="unselectall">
             <img alt="${%Unselect all}" src="${rootURL}/plugin/matrix-auth/images/16x16/unselect-all.png" height="16" width="16"/>
           </a>
-          <j:if test="${attrs.sid!='anonymous'}">
+          <j:if test="${attrs.sid!='anonymous' and attrs.sid!='authenticated'}">
             <a href="#" class="remove">
               <img alt="${%Remove user/group}" src="${imagesURL}/16x16/stop.png" height="16" width="16"/>
             </a>
@@ -89,14 +107,19 @@ THE SOFTWARE.
         </j:forEach>
       </tr>
 
-      <j:forEach var="sid" items="${instance.allSIDs}">
-        <tr name="[${sid}]" class="permission-row">
-          <local:row title="${sid}" sid="${sid}"/>
-        </tr>
-      </j:forEach>
-      <tr name="anonymous">
+      <tr name="[anonymous]">
         <local:row sid="anonymous" title="${%Anonymous}" />
       </tr>
+      <tr name="[authenticated]">
+        <local:row sid="authenticated" title="authenticated" />
+      </tr>
+      <j:forEach var="sid" items="${instance.allSIDs}">
+        <j:if test="${sid != 'authenticated'}">
+          <tr name="[${sid}]" class="permission-row">
+            <local:row title="${sid}" sid="${sid}"/>
+          </tr>
+        </j:if>
+      </j:forEach>
 
 
       <!-- template row to be used for adding a new row -->
