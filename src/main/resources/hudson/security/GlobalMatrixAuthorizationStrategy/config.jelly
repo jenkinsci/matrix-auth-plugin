@@ -33,21 +33,21 @@ THE SOFTWARE.
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
               <td width="*">
-                <f:checkbox name="[${p.id}]" checked="${instance.hasExplicitPermission(attrs.sid,p)}"/>
+                <f:checkbox name="[${p.id}]" tooltip="${p.group.title}/${p.name} for ${attrs.sid}" checked="${instance.hasExplicitPermission(attrs.sid,p)}"/>
               </td>
             </j:if>
           </j:forEach>
         </j:forEach>
         <td class="stop" style="text-align:left;">
           <a href="#" class="selectall">
-            <img alt="${%Select all}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
+            <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
           </a>
           <a href="#" class="unselectall">
-            <img alt="${%Unselect all}" src="${rootURL}/plugin/matrix-auth/images/16x16/unselect-all.png" height="16" width="16"/>
+            <img alt="${%Unselect all}" title="${%unselectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/unselect-all.png" height="16" width="16"/>
           </a>
           <j:if test="${attrs.sid!='anonymous'}">
             <a href="#" class="remove">
-              <img alt="${%Remove user/group}" src="${imagesURL}/16x16/stop.png" height="16" width="16"/>
+              <img alt="${%Remove user/group}" title="${%remove(attrs.sid)}" src="${imagesURL}/16x16/stop.png" height="16" width="16"/>
             </a>
           </j:if>
         </td>
