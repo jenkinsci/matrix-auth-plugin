@@ -32,14 +32,14 @@ THE SOFTWARE.
           <j:when test="${attrs.sid == 'authenticated'}">
             <td class="left-most">
               <span title="authenticated">
-                <img src="${imagesURL}/16x16/user.gif" style="margin-right:0.2em"/>${%Authenticated Users}
+                <img src="${imagesURL}/16x16/user.png" style="margin-right:0.2em"/>${%Authenticated Users}
               </span>
             </td>
           </j:when>
           <j:when test="${attrs.sid == 'anonymous'}">
             <td class="left-most">
               <span title="anonymous">
-                <img src="${imagesURL}/16x16/user.gif" style="margin-right:0.2em"/>${%Anonymous Users}
+                <img src="${imagesURL}/16x16/user.png" style="margin-right:0.2em"/>${%Anonymous Users}
               </span>
             </td>
           </j:when>

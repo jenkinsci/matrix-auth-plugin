@@ -172,6 +172,12 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
             return isApplicable();
         }
 
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return Messages.AuthorizationMatrixNodeProperty_DisplayName();
+        }
+
         public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) {
             // Computer isn't a DescriptorByNameOwner before Jenkins 2.78, and then @AncestorInPath doesn't work
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value,
