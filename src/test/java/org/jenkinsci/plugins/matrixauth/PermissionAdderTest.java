@@ -27,7 +27,7 @@ public class PermissionAdderTest {
         r.addStep(new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                r.j.jenkins.setSecurityRealm(new HudsonPrivateSecurityRealm(true));
+                r.j.jenkins.setSecurityRealm(new HudsonPrivateSecurityRealm(true, false, null));
                 r.j.jenkins.setAuthorizationStrategy(new GlobalMatrixAuthorizationStrategy());
                 r.j.jenkins.save();
 

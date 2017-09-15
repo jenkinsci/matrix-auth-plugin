@@ -31,12 +31,7 @@ import jenkins.model.Jenkins;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Job;
-import hudson.util.RobustReflectionConverter;
 import hudson.Extension;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.mapper.Mapper;
-import com.thoughtworks.xstream.core.JVM;
 import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.Messages;
@@ -55,7 +50,8 @@ import java.util.TreeSet;
  */
 public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizationStrategy {
     @Override
-    public ACL getACL(Job<?,?> project) {
+    @Nonnull
+    public ACL getACL(@Nonnull Job<?,?> project) {
         AuthorizationMatrixProperty amp = project.getProperty(AuthorizationMatrixProperty.class);
         if (amp != null) {
             SidACL projectAcl = amp.getACL();
@@ -77,7 +73,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
         return new ACL() {
             @Override
-            public boolean hasPermission(Authentication a, Permission permission) {
+            public boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission) {
                 return child.hasPermission(a, permission) || parent.hasPermission(a, permission);
             }
         };
@@ -92,7 +88,8 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     }
 
     @Override
-    public ACL getACL(AbstractItem item) {
+    @Nonnull
+    public ACL getACL(@Nonnull AbstractItem item) {
         if (Jenkins.getInstance().getPlugin("cloudbees-folder") != null) { // optional dependency
             if (item instanceof AbstractFolder) {
                 com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = (com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty) ((AbstractFolder) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
@@ -129,8 +126,9 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     }
 
     @Override
+    @Nonnull
     public Set<String> getGroups() {
-        Set<String> r = new TreeSet<String>(new IdStrategyComparator());
+        Set<String> r = new TreeSet<>(new IdStrategyComparator());
         r.addAll(super.getGroups());
         for (Job<?,?> j : Jenkins.getInstance().getAllItems(Job.class)) {
             AuthorizationMatrixProperty jobProperty = j.getProperty(AuthorizationMatrixProperty.class);
@@ -159,6 +157,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
 
         @Override
+        @Nonnull
         public String getDisplayName() {
             return Messages.ProjectMatrixAuthorizationStrategy_DisplayName();
         }

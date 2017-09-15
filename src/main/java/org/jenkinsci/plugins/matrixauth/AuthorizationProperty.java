@@ -134,7 +134,7 @@ public interface AuthorizationProperty {
      * @return Always non-null.
      */
     default List<String> getAllSIDs() {
-        Set<String> r = new TreeSet<String>(new GlobalMatrixAuthorizationStrategy.IdStrategyComparator());
+        Set<String> r = new TreeSet<>(new GlobalMatrixAuthorizationStrategy.IdStrategyComparator());
         for (Set<String> set : getGrantedPermissions().values())
             r.addAll(set);
         r.remove("anonymous");

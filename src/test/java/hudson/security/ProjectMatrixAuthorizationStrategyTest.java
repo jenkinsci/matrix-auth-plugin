@@ -20,7 +20,7 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
     @Test
     public void ensureCreatorHasPermissions() throws Exception {
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice","alice");
         realm.createAccount("bob","bob");
         r.jenkins.setSecurityRealm(realm);
@@ -44,7 +44,7 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
     @Test
     public void submitEmptyPropertyEnsuresPermissionsForSubmitter() throws Exception {
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice","alice");
         realm.createAccount("bob","bob");
         r.jenkins.setSecurityRealm(realm);
@@ -82,7 +82,7 @@ public class ProjectMatrixAuthorizationStrategyTest {
     @Test
     public void submitEmptyPropertyEnsuresPermissionsForAnonymousSubmitter() throws Exception {
         // prepare form to have options visible
-        r.jenkins.setSecurityRealm(new HudsonPrivateSecurityRealm(true));
+        r.jenkins.setSecurityRealm(new HudsonPrivateSecurityRealm(true, false, null));
         r.jenkins.setAuthorizationStrategy(new AuthorizationStrategy.Unsecured());
 
         Assert.assertTrue("anon is admin", r.jenkins.getACL().hasPermission(Jenkins.ANONYMOUS, Jenkins.ADMINISTER));

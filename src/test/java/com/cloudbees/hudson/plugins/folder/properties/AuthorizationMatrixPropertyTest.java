@@ -51,7 +51,7 @@ public class AuthorizationMatrixPropertyTest {
 
     @Test
     public void ensureCreatorHasPermissions() throws Exception {
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice","alice");
         realm.createAccount("bob","bob");
         r.jenkins.setSecurityRealm(realm);
@@ -73,7 +73,7 @@ public class AuthorizationMatrixPropertyTest {
     }
 
     @Test public void basics1() throws Exception {
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice","alice");
         realm.createAccount("bob","bob");
         r.jenkins.setSecurityRealm(realm);
@@ -120,7 +120,7 @@ public class AuthorizationMatrixPropertyTest {
     }
 
     @Test public void disabling_permission_inheritance_removes_global_permissions() throws Exception {
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice","alice");
         realm.createAccount("bob","bob");
         r.jenkins.setSecurityRealm(realm);

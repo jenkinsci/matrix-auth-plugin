@@ -26,10 +26,10 @@ package com.cloudbees.hudson.plugins.folder.properties;
 import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderProperty;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderPropertyDescriptor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.AbstractItem;
 import hudson.model.Item;
-import hudson.model.Job;
 import hudson.model.User;
 import hudson.model.listeners.ItemListener;
 import hudson.security.AuthorizationStrategy;
@@ -51,7 +51,6 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,7 +64,7 @@ import java.util.Set;
  */
 public class AuthorizationMatrixProperty extends AbstractFolderProperty<AbstractFolder<?>> implements AuthorizationProperty {
 
-    private transient SidACL acl = new AclImpl();
+    private final transient SidACL acl = new AclImpl();
 
     /**
      * List up all permissions that are granted.
@@ -73,9 +72,9 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      * Strings are either the granted authority or the principal, which is not
      * distinguished.
      */
-    private final Map<Permission, Set<String>> grantedPermissions = new HashMap<Permission, Set<String>>();
+    private final Map<Permission, Set<String>> grantedPermissions = new HashMap<>();
 
-    private Set<String> sids = new HashSet<String>();
+    private final Set<String> sids = new HashSet<>();
 
     private boolean blocksInheritance = false;
 
@@ -85,7 +84,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     public AuthorizationMatrixProperty(Map<Permission,? extends Set<String>> grantedPermissions) {
         // do a deep copy to be safe
         for (Entry<Permission,? extends Set<String>> e : grantedPermissions.entrySet())
-            this.grantedPermissions.put(e.getKey(),new HashSet<String>(e.getValue()));
+            this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
     }
 
     public Set<String> getGroups() {
@@ -110,7 +109,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     public void add(Permission p, String sid) {
         Set<String> set = grantedPermissions.get(p);
         if (set == null)
-            grantedPermissions.put(p, set = new HashSet<String>());
+            grantedPermissions.put(p, set = new HashSet<>());
         set.add(sid);
         sids.add(sid);
     }
@@ -138,18 +137,13 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
             return isApplicable();
         }
 
-        @Override
-        public String getDisplayName() {
-            return "Authorization Matrix";
-        }
-
-        public FormValidation doCheckName(@AncestorInPath AbstractFolder<?> folder, @QueryParameter String value) throws IOException, ServletException {
+        public FormValidation doCheckName(@AncestorInPath AbstractFolder<?> folder, @QueryParameter String value) {
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value, folder, Item.CONFIGURE);
         }
     }
 
     private final class AclImpl extends SidACL {
-        @edu.umd.cs.findbugs.annotations.SuppressWarnings(value = "NP_BOOLEAN_RETURN_NULL",
+        @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL",
                 justification = "Because that is the way this SPI works")
         protected Boolean hasPermission(Sid sid, Permission p) {
             if (AuthorizationMatrixProperty.this.hasPermission(toString(sid),p))
@@ -165,7 +159,6 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     /**
      * Sets the flag to block inheritance
      *
-     * @param blocksInheritance
      */
     public void setBlocksInheritance(boolean blocksInheritance) {
         this.blocksInheritance = blocksInheritance;
@@ -175,7 +168,6 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      * Returns true if the authorization matrix is configured to block
      * inheritance from the parent.
      *
-     * @return
      */
     public boolean isBlocksInheritance() {
         return this.blocksInheritance;
