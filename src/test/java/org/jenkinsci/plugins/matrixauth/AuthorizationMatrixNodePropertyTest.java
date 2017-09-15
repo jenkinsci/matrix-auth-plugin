@@ -25,7 +25,6 @@
 package org.jenkinsci.plugins.matrixauth;
 
 import hudson.model.Computer;
-import hudson.model.Item;
 import hudson.model.Node;
 import hudson.model.User;
 import hudson.security.ACL;
@@ -51,7 +50,7 @@ public class AuthorizationMatrixNodePropertyTest {
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
-        authorizationStrategy.add(Item.CREATE, "alice");
+        authorizationStrategy.add(Computer.CREATE, "alice");
         authorizationStrategy.add(Jenkins.READ, "alice");
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
 
@@ -62,6 +61,6 @@ public class AuthorizationMatrixNodePropertyTest {
 
         Assert.assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
         Assert.assertTrue(node.getACL().hasPermission(User.get("alice").impersonate(), Computer.CONFIGURE));
-        Assert.assertTrue(node.getACL().hasPermission(User.get("bob").impersonate(), Computer.CONFIGURE));
+        Assert.assertFalse(node.getACL().hasPermission(User.get("bob").impersonate(), Computer.CONFIGURE));
     }
 }

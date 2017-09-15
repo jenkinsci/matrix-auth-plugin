@@ -26,6 +26,7 @@ package hudson.security;
 import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import hudson.model.AbstractItem;
 import hudson.model.Descriptor;
+import hudson.model.Node;
 import jenkins.model.Jenkins;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
@@ -37,8 +38,10 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.core.JVM;
 import org.acegisecurity.Authentication;
+import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.Messages;
 
+import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -106,6 +109,23 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
             }
         }
         return getACL(item.getParent());
+    }
+
+    @Nonnull
+    @Override
+    public ACL getACL(@Nonnull Node node) {
+        AuthorizationMatrixNodeProperty prop = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+        if (prop == null) {
+            return getRootACL();
+        }
+
+        SidACL nodeACL = prop.getACL();
+        if (!prop.isBlocksInheritance()) {
+            final ACL parentAcl = getRootACL();
+            return inheritingACL(parentAcl, nodeACL);
+        } else {
+            return nodeACL;
+        }
     }
 
     @Override
