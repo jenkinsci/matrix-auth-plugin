@@ -23,11 +23,8 @@
  */
 package hudson.security;
 
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
-import hudson.diagnosis.OldDataMonitor;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.JobProperty;
@@ -44,7 +41,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.CheckForNull;
-import javax.servlet.ServletException;
 
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -69,7 +65,7 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implements AuthorizationProperty {
 
-	private transient SidACL acl = new AclImpl();
+	private final transient SidACL acl = new AclImpl();
 
 	/**
 	 * List up all permissions that are granted.
@@ -77,9 +73,9 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	 * Strings are either the granted authority or the principal, which is not
 	 * distinguished.
 	 */
-	private final Map<Permission, Set<String>> grantedPermissions = new HashMap<Permission, Set<String>>();
+	private final Map<Permission, Set<String>> grantedPermissions = new HashMap<>();
 
-	private Set<String> sids = new HashSet<String>();
+	private final Set<String> sids = new HashSet<>();
 
 	/**
 	 * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
@@ -95,7 +91,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
     public AuthorizationMatrixProperty(Map<Permission, Set<String>> grantedPermissions) {
         // do a deep copy to be safe
         for (Entry<Permission,Set<String>> e : grantedPermissions.entrySet())
-            this.grantedPermissions.put(e.getKey(),new HashSet<String>(e.getValue()));
+            this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
     }
 
 	public Set<String> getGroups() {
@@ -120,7 +116,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	public void add(Permission p, String sid) {
 		Set<String> set = grantedPermissions.get(p);
 		if (set == null)
-			grantedPermissions.put(p, set = new HashSet<String>());
+			grantedPermissions.put(p, set = new HashSet<>());
 		set.add(sid);
 		sids.add(sid);
 	}
@@ -148,12 +144,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
             return isApplicable();
 		}
 
-		@Override
-		public String getDisplayName() {
-			return "Authorization Matrix";
-		}
-
-        public FormValidation doCheckName(@AncestorInPath Job project, @QueryParameter String value) throws IOException, ServletException {
+        public FormValidation doCheckName(@AncestorInPath Job project, @QueryParameter String value) {
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value, project, Item.CONFIGURE);
         }
     }
@@ -193,16 +184,6 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
 		public AuthorizationProperty createSubject() {
 		    return new AuthorizationMatrixProperty();
-        }
-
-		public Object unmarshal(HierarchicalStreamReader reader,
-				final UnmarshallingContext context) {
-			Object o = super.unmarshal(reader, context);
-
-            if (GlobalMatrixAuthorizationStrategy.migrateHudson2324(((AuthorizationMatrixProperty)o).grantedPermissions))
-                OldDataMonitor.report(context, "1.301");
-
-            return o;
         }
     }
 

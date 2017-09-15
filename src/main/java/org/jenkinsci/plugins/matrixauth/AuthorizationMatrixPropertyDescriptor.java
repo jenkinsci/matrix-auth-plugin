@@ -23,7 +23,6 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
-import hudson.model.Descriptor;
 import hudson.security.Permission;
 import hudson.security.PermissionGroup;
 import hudson.security.PermissionScope;
@@ -33,6 +32,7 @@ import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,7 @@ public interface AuthorizationMatrixPropertyDescriptor<T extends AuthorizationPr
 
     PermissionScope getPermissionScope();
 
-    default T createNewInstance(StaplerRequest req, JSONObject formData, boolean hasOptionalWrap) throws Descriptor.FormException {
+    default T createNewInstance(StaplerRequest req, JSONObject formData, boolean hasOptionalWrap) {
         if (hasOptionalWrap) {
             formData = formData.getJSONObject("useProjectSecurity");
             if (formData.isNullObject())
@@ -75,12 +75,13 @@ public interface AuthorizationMatrixPropertyDescriptor<T extends AuthorizationPr
         return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
     }
 
+    @Nonnull
     default String getDisplayName() {
-        return "Authorization Matrix";
+        return "Authorization Matrix"; // TODO i18n
     }
 
     default List<PermissionGroup> getAllGroups() {
-        List<PermissionGroup> groups = new ArrayList<PermissionGroup>();
+        List<PermissionGroup> groups = new ArrayList<>();
         for (PermissionGroup g : PermissionGroup.getAll()) {
             if (g.hasPermissionContainedBy(getPermissionScope())) {
                 groups.add(g);

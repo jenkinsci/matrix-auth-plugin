@@ -52,7 +52,6 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,11 +61,11 @@ import java.util.Set;
 
 public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implements AuthorizationProperty {
 
-    private transient SidACL acl = new AclImpl();
+    private final transient SidACL acl = new AclImpl();
 
-    private final Map<Permission, Set<String>> grantedPermissions = new HashMap<Permission, Set<String>>();
+    private final Map<Permission, Set<String>> grantedPermissions = new HashMap<>();
 
-    private Set<String> sids = new HashSet<String>();
+    private final Set<String> sids = new HashSet<>();
 
     /**
      * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
@@ -82,7 +81,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     public AuthorizationMatrixNodeProperty(Map<Permission, Set<String>> grantedPermissions) {
         // do a deep copy to be safe
         for (Map.Entry<Permission,Set<String>> e : grantedPermissions.entrySet())
-            this.grantedPermissions.put(e.getKey(),new HashSet<String>(e.getValue()));
+            this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
     }
 
     public Set<String> getGroups() {
@@ -115,7 +114,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     public void add(Permission p, String sid) {
         Set<String> set = grantedPermissions.get(p);
         if (set == null)
-            grantedPermissions.put(p, set = new HashSet<String>());
+            grantedPermissions.put(p, set = new HashSet<>());
         set.add(sid);
         sids.add(sid);
     }
@@ -164,7 +163,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         }
 
         @Override
-        public AuthorizationMatrixNodeProperty newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+        public AuthorizationMatrixNodeProperty newInstance(StaplerRequest req, @Nonnull JSONObject formData) throws FormException {
             return createNewInstance(req, formData, false);
         }
 
@@ -173,12 +172,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
             return isApplicable();
         }
 
-        @Override
-        public String getDisplayName() {
-            return "Authorization Matrix";
-        }
-
-        public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) throws IOException, ServletException {
+        public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) {
             // Computer isn't a DescriptorByNameOwner before Jenkins 2.78, and then @AncestorInPath doesn't work
             return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value,
                     computer == null ? Jenkins.getInstance() : computer,

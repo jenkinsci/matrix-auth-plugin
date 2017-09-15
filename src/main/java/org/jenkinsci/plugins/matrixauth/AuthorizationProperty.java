@@ -148,7 +148,7 @@ public interface AuthorizationProperty {
         if (set != null && p.getEnabled()) {
             if (set.contains(sid))
                 return true;
-            final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+            final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
             final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
             final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
             for (String s: set) {
@@ -179,7 +179,7 @@ public interface AuthorizationProperty {
      * @return Always non-null.
      */
     default List<String> getAllSIDs() {
-        Set<String> r = new TreeSet<String>(new GlobalMatrixAuthorizationStrategy.IdStrategyComparator());
+        Set<String> r = new TreeSet<>(new GlobalMatrixAuthorizationStrategy.IdStrategyComparator());
         for (Set<String> set : getGrantedPermissions().values())
             r.addAll(set);
         r.remove("anonymous");
