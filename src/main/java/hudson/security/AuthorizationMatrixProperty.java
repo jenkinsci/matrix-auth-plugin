@@ -197,16 +197,6 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 		public AuthorizationProperty createSubject() {
 		    return new AuthorizationMatrixProperty();
         }
-
-		public Object unmarshal(HierarchicalStreamReader reader,
-				final UnmarshallingContext context) {
-			Object o = super.unmarshal(reader, context);
-
-            if (GlobalMatrixAuthorizationStrategy.migrateHudson2324(((AuthorizationMatrixProperty)o).grantedPermissions))
-                OldDataMonitor.report(context, "1.301");
-
-            return o;
-        }
     }
 
 	/**

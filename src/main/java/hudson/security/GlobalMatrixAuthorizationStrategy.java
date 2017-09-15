@@ -147,36 +147,13 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     /**
-     * Due to HUDSON-2324, we want to inject Item.READ permission to everyone who has Hudson.READ,
-     * to remain backward compatible.
-     * @param grantedPermissions
-     */
-    /*package*/ static boolean migrateHudson2324(Map<Permission,Set<String>> grantedPermissions) {
-        boolean result = false;
-        if(Jenkins.getActiveInstance().isUpgradedFromBefore(new VersionNumber("1.300.*"))) {
-            Set<String> f = grantedPermissions.get(Jenkins.READ);
-            if (f!=null) {
-                Set<String> t = grantedPermissions.get(Item.READ);
-                if (t!=null)
-                    result = t.addAll(f);
-                else {
-                    t = new HashSet<String>(f);
-                    result = true;
-                }
-                grantedPermissions.put(Item.READ,t);
-            }
-        }
-        return result;
-    }
-
-    /**
      * Checks if the given SID has the given permission.
      */
     public boolean hasPermission(String sid, Permission p) {
         if (!ENABLE_DANGEROUS_PERMISSIONS && DANGEROUS_PERMISSIONS.contains(p)) {
             return hasPermission(sid, Jenkins.ADMINISTER);
         }
-        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
         final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
         for (; p != null; p = p.impliedBy) {
@@ -203,7 +180,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * Checks if the given SID has the given permission.
      */
     public boolean hasPermission(String sid, Permission p, boolean principal) {
-        final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
         final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
         for (; p != null; p = p.impliedBy) {
             if (!p.getEnabled()) {
@@ -236,7 +213,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             if (set.contains(sid)) {
                 return true;
             }
-            final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+            final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
             final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
             final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
             for (String s : set) {
@@ -288,7 +265,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
     @Restricted(NoExternalUse.class)
     public static class IdStrategyComparator implements Comparator<String> {
-        private final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+        private final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
         private final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         private final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
 
@@ -358,9 +335,6 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
                 }
                 reader.moveUp();
             }
-
-            if (migrateHudson2324(as.grantedPermissions))
-                OldDataMonitor.report(context, "1.301");
 
             return as;
         }
@@ -449,7 +423,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             }
 
             // if we grant any dangerous permission, show them all
-            AuthorizationStrategy strategy = Jenkins.getActiveInstance().getAuthorizationStrategy();
+            AuthorizationStrategy strategy = Jenkins.getInstance().getAuthorizationStrategy();
             if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
                 GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = (GlobalMatrixAuthorizationStrategy) strategy;
                 return globalMatrixAuthorizationStrategy.isAnyRelevantDangerousPermissionExplicitlyGranted();

@@ -93,7 +93,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
 
     @Override
     public ACL getACL(AbstractItem item) {
-        if (Jenkins.getActiveInstance().getPlugin("cloudbees-folder") != null) { // optional dependency
+        if (Jenkins.getInstance().getPlugin("cloudbees-folder") != null) { // optional dependency
             if (item instanceof AbstractFolder) {
                 com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = (com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty) ((AbstractFolder) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
                 if (p != null) {
@@ -132,10 +132,21 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     public Set<String> getGroups() {
         Set<String> r = new TreeSet<String>(new IdStrategyComparator());
         r.addAll(super.getGroups());
-        for (Job<?,?> j : Jenkins.getActiveInstance().getItems(Job.class)) {
-            AuthorizationMatrixProperty amp = j.getProperty(AuthorizationMatrixProperty.class);
-            if (amp != null)
-                r.addAll(amp.getGroups());
+        for (Job<?,?> j : Jenkins.getInstance().getAllItems(Job.class)) {
+            AuthorizationMatrixProperty jobProperty = j.getProperty(AuthorizationMatrixProperty.class);
+            if (jobProperty != null)
+                r.addAll(jobProperty.getGroups());
+        }
+        for (AbstractFolder<?> j : Jenkins.getInstance().getAllItems(AbstractFolder.class)) {
+            com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty = j.getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
+            if (folderProperty != null)
+                r.addAll(folderProperty.getGroups());
+        }
+        for (Node node : Jenkins.getInstance().getNodes()) {
+            AuthorizationMatrixNodeProperty nodeProperty = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            if (nodeProperty != null) {
+                r.addAll(nodeProperty.getGroups());
+            }
         }
         return r;
     }

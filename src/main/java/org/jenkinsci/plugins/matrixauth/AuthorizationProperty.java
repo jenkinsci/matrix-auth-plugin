@@ -103,7 +103,7 @@ public interface AuthorizationProperty {
         if (set != null && p.getEnabled()) {
             if (set.contains(sid))
                 return true;
-            final SecurityRealm securityRealm = Jenkins.getActiveInstance().getSecurityRealm();
+            final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
             final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
             final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
             for (String s: set) {
