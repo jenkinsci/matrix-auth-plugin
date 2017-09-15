@@ -42,7 +42,7 @@ public class InheritanceMigrationTest {
             Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
             Assert.assertTrue(prop.hasExplicitPermission("admin", Item.CONFIGURE));
             Assert.assertFalse(prop.hasExplicitPermission("admin", Item.READ));
-            Assert.assertTrue(folder.getACL().hasPermission(User.get("admin").impersonate(), Item.READ)); // change from before (JENKINS-37904)
+            Assert.assertTrue(folder.getACL().hasPermission(User.get("admin").impersonate(), Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
             Assert.assertTrue(folder.getACL().hasPermission(User.get("admin").impersonate(), Item.CONFIGURE));
             Assert.assertTrue(prop.hasExplicitPermission("alice", Item.CONFIGURE));
             Assert.assertTrue(prop.hasExplicitPermission("alice", Item.READ));
@@ -57,7 +57,7 @@ public class InheritanceMigrationTest {
             Assert.assertTrue(prop.isBlocksInheritance());
             Assert.assertEquals(0, prop.getGrantedPermissions().size());
             Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
-            Assert.assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.READ)); // change from before (JENKINS-37904)
+            Assert.assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
 
             job = (Job) j.jenkins.getItemByFullName("job");
             prop = (hudson.security.AuthorizationMatrixProperty) job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
