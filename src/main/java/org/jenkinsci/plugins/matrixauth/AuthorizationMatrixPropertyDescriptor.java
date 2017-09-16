@@ -75,11 +75,6 @@ public interface AuthorizationMatrixPropertyDescriptor<T extends AuthorizationPr
         return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
     }
 
-    @Nonnull
-    default String getDisplayName() {
-        return "Authorization Matrix"; // TODO i18n
-    }
-
     default List<PermissionGroup> getAllGroups() {
         List<PermissionGroup> groups = new ArrayList<>();
         for (PermissionGroup g : PermissionGroup.getAll()) {
