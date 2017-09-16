@@ -30,6 +30,7 @@ import hudson.security.ACL;
 import hudson.security.AccessControlled;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -63,6 +64,7 @@ public class InheritParentStrategy extends InheritanceStrategy {
         }
     }
 
+    @Symbol("inheriting")
     @Extension(ordinal = 100)
     public static class DescriptorImpl extends InheritanceStrategyDescriptor {
 

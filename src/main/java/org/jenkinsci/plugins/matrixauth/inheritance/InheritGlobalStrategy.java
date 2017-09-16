@@ -28,6 +28,7 @@ import hudson.security.ACL;
 import hudson.security.AccessControlled;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -47,6 +48,7 @@ public class InheritGlobalStrategy extends InheritanceStrategy {
         return ProjectMatrixAuthorizationStrategy.inheritingACL(Jenkins.getInstance().getAuthorizationStrategy().getRootACL(), acl);
     }
 
+    @Symbol("inheritingGlobal")
     @Extension
     public static class DescriptorImpl extends InheritanceStrategyDescriptor {
 

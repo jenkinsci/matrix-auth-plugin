@@ -29,6 +29,7 @@ import hudson.security.AccessControlled;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import org.acegisecurity.Authentication;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -69,7 +70,8 @@ public class NonInheritingStrategy extends InheritanceStrategy {
             }
         };
     }
-    
+
+    @Symbol("nonInheriting")
     @Extension(ordinal = -100)
     public static class DescriptorImpl extends InheritanceStrategyDescriptor {
 

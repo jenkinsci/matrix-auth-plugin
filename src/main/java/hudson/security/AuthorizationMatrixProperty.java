@@ -34,9 +34,11 @@ import hudson.model.listeners.ItemListener;
 import hudson.util.FormValidation;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -46,6 +48,7 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.matrixauth.AbstractMatrixPropertyConverter;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixPropertyDescriptor;
 import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
@@ -54,6 +57,8 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -94,6 +99,26 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
             this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
     }
 
+    @DataBoundConstructor
+    public AuthorizationMatrixProperty(List<String> permissions) {
+        for (String str : permissions) {
+            if (str != null) {
+                this.add(str);
+            }
+        }
+    }
+
+    public List<String> getPermissions() {
+        List<String> permissions = new ArrayList<>();
+        for (Map.Entry<Permission, Set<String>> entry : this.grantedPermissions.entrySet()) {
+            for (String sid : entry.getValue()) {
+                String permission = entry.getKey().getId();
+                permissions.add(permission + ":" + sid);
+            }
+        }
+        return permissions;
+    }
+
 	public Set<String> getGroups() {
 		return sids;
 	}
@@ -122,6 +147,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 	}
 
     @Extension
+    @Symbol("authorizationMatrix")
     public static class DescriptorImpl extends JobPropertyDescriptor implements AuthorizationMatrixPropertyDescriptor<AuthorizationMatrixProperty> {
 
         @Override
@@ -165,6 +191,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 		return acl;
 	}
 
+	@DataBoundSetter
 	public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
 		this.inheritanceStrategy = inheritanceStrategy;
 	}
