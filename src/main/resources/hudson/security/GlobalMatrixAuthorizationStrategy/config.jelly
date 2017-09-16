@@ -125,7 +125,7 @@ THE SOFTWARE.
       <!-- template row to be used for adding a new row -->
       <j:set var="id" value="${h.generateId()}"/>
       <tr id="${id}" style="display:none" class="permission-row">
-        <local:row sid="${null}" />
+        <local:row sid="__SID__" />
       </tr>
     </table>
     <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
@@ -165,6 +165,12 @@ THE SOFTWARE.
           copy.removeAttribute("style");
           copy.firstChild.innerHTML = name;
           copy.setAttribute("name",'['+name+']');
+          findElementsBySelector(copy, ".stop img").each(function(item) {
+            item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+          });
+          findElementsBySelector(copy, "input[type=checkbox]").each(function(item) {
+            item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+          });
           table.appendChild(copy);
           Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
         });
