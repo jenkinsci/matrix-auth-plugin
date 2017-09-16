@@ -37,6 +37,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Administrative monitor that shows up when 'dangerous' permissions are granted to non-admin users.
+ * Those are permissions that could be used to grant themselves administer permissions.
+ *
+ * See also https://jenkins.io/security/advisory/2017-04-10/#matrix-authorization-strategy-plugin-allowed-configuring-dangerous-permissions
+ */
 @Extension
 @Restricted(DoNotUse.class)
 public class DangerousMatrixPermissionsAdministrativeMonitor extends AdministrativeMonitor {

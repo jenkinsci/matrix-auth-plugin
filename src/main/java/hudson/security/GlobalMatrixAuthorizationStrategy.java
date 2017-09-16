@@ -23,62 +23,45 @@
  */
 package hudson.security;
 
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.PluginManager;
-import hudson.Util;
 import hudson.model.Descriptor;
-import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import hudson.util.FormValidation;
-import hudson.util.FormValidation.Kind;
-import hudson.util.RobustReflectionConverter;
-import hudson.Functions;
 import hudson.Extension;
 import hudson.model.User;
 import net.sf.json.JSONObject;
-import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.acls.sid.PrincipalSid;
-import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.acegisecurity.acls.sid.Sid;
-import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.matrixauth.AbstractAuthorizationContainerConverter;
+import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
+import org.jenkinsci.plugins.matrixauth.AuthorizationContainerDescriptor;
 import org.jenkinsci.plugins.matrixauth.Messages;
 import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
-import org.springframework.dao.DataAccessException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
  * Role-based authorization via a matrix.
- *
- * @author Kohsuke Kawaguchi
  */
 // TODO: think about the concurrency commitment of this class
-public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
+public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy implements AuthorizationContainer {
     private final transient SidACL acl = new AclImpl();
 
     /**
@@ -93,11 +76,11 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * List of permissions considered dangerous to grant to non-admin users
      */
     @Restricted(NoExternalUse.class)
-    static final List<Permission> DANGEROUS_PERMISSIONS = Arrays.asList(
+    public static final List<Permission> DANGEROUS_PERMISSIONS = Collections.unmodifiableList(Arrays.asList(
             Jenkins.RUN_SCRIPTS,
             PluginManager.CONFIGURE_UPDATECENTER,
             PluginManager.UPLOAD_PLUGINS
-    );
+    ));
 
     private final Set<String> sids = new HashSet<>();
 
@@ -118,16 +101,8 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         sids.add(sid);
     }
 
-    /**
-     * Works like {@link #add(Permission, String)} but takes both parameters
-     * from a single string of the form <tt>PERMISSIONID:sid</tt>
-     */
-    private void add(String shortForm) {
-        int idx = shortForm.indexOf(':');
-        Permission p = Permission.fromId(shortForm.substring(0, idx));
-        if (p==null)
-            throw new IllegalArgumentException("Failed to parse '"+shortForm+"' --- no such permission");
-        add(p,shortForm.substring(idx+1));
+    public Map<Permission, Set<String>> getGrantedPermissions() {
+        return Collections.unmodifiableMap(grantedPermissions);
     }
 
     @Override
@@ -136,140 +111,12 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
         return acl;
     }
 
+    @Override
     @Nonnull
     public Set<String> getGroups() {
         final TreeSet<String> sids = new TreeSet<>(new IdStrategyComparator());
         sids.addAll(this.sids);
         return sids;
-    }
-
-    /**
-     * Checks if the given SID has the given permission.
-     */
-    public boolean hasPermission(String sid, Permission p) {
-        if (!ENABLE_DANGEROUS_PERMISSIONS && DANGEROUS_PERMISSIONS.contains(p)) {
-            return hasPermission(sid, Jenkins.ADMINISTER);
-        }
-        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
-        final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
-        final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
-        for (; p != null; p = p.impliedBy) {
-            if (!p.getEnabled()) {
-                continue;
-            }
-            Set<String> set = grantedPermissions.get(p);
-            if (set == null) {
-                continue;
-            }
-            if (set.contains(sid)) {
-                return true;
-            }
-            for (String s : set) {
-                if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the given SID has the given permission.
-     */
-    public boolean hasPermission(String sid, Permission p, boolean principal) {
-        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
-        final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
-        for (; p != null; p = p.impliedBy) {
-            if (!p.getEnabled()) {
-                continue;
-            }
-            Set<String> set = grantedPermissions.get(p);
-            if (set != null && set.contains(sid)) {
-                return true;
-            }
-            if (set != null) {
-                for (String s : set) {
-                    if (strategy.equals(s, sid)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the permission is explicitly given, instead of implied through {@link Permission#impliedBy}.
-     */
-    public boolean hasExplicitPermission(String sid, Permission p) {
-        if (sid == null) { // used for template row in UI
-            return false;
-        }
-        Set<String> set = grantedPermissions.get(p);
-        if (set != null && p.getEnabled()) {
-            if (set.contains(sid)) {
-                return true;
-            }
-            final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
-            final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
-            final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
-            for (String s : set) {
-                if (userIdStrategy.equals(s, sid) || groupIdStrategy.equals(s, sid)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    boolean isAnyRelevantDangerousPermissionExplicitlyGranted() {
-        for (String sid : getAllSIDs()) {
-            if (isAnyRelevantDangerousPermissionExplicitlyGranted(sid)) {
-                return true;
-            }
-        }
-        return isAnyRelevantDangerousPermissionExplicitlyGranted("anonymous");
-    }
-
-    boolean isAnyRelevantDangerousPermissionExplicitlyGranted(String sid) {
-        for (Permission p : DANGEROUS_PERMISSIONS) {
-            if (!hasPermission(sid, Jenkins.ADMINISTER) && hasExplicitPermission(sid, p)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns all SIDs configured in this matrix, minus "anonymous"
-     *
-     * @return
-     *      Always non-null.
-     */
-    public List<String> getAllSIDs() {
-        Set<String> r = new TreeSet<>(new IdStrategyComparator());
-        for (Set<String> set : grantedPermissions.values())
-            r.addAll(set);
-        r.remove("anonymous");
-
-        String[] data = r.toArray(new String[r.size()]);
-        Arrays.sort(data);
-        return Arrays.asList(data);
-    }
-
-    @Restricted(NoExternalUse.class)
-    public static class IdStrategyComparator implements Comparator<String> {
-        private final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
-        private final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
-        private final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
-
-        public int compare(String o1, String o2) {
-            int r = userIdStrategy.compare(o1, o2);
-            if (r == 0) {
-                r = groupIdStrategy.compare(o1, o2);
-            }
-            return r;
-        }
     }
 
     private final class AclImpl extends SidACL {
@@ -290,58 +137,27 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
      * Persist {@link GlobalMatrixAuthorizationStrategy} as a list of IDs that
      * represent {@link GlobalMatrixAuthorizationStrategy#grantedPermissions}.
      */
-    public static class ConverterImpl implements Converter {
+    @Restricted(NoExternalUse.class)
+    public static class ConverterImpl extends AbstractAuthorizationContainerConverter<GlobalMatrixAuthorizationStrategy> {
         public boolean canConvert(Class type) {
-            return type==GlobalMatrixAuthorizationStrategy.class;
+            return type == GlobalMatrixAuthorizationStrategy.class;
         }
 
-        public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
-            final IdStrategyComparator comparator = new IdStrategyComparator();
-            GlobalMatrixAuthorizationStrategy strategy = (GlobalMatrixAuthorizationStrategy)source;
-
-            // Output in alphabetical order for readability.
-            SortedMap<Permission, Set<String>> sortedPermissions = new TreeMap<>(Permission.ID_COMPARATOR);
-            sortedPermissions.putAll(strategy.grantedPermissions);
-            for (Entry<Permission, Set<String>> e : sortedPermissions.entrySet()) {
-                String p = e.getKey().getId();
-                Set<String> sids = new TreeSet<>(comparator);
-                sids.addAll(e.getValue());
-                for (String sid : sids) {
-                    writer.startNode("permission");
-                    writer.setValue(p+':'+sid);
-                    writer.endNode();
-                }
-            }
-
-        }
-
-        public Object unmarshal(HierarchicalStreamReader reader, final UnmarshallingContext context) {
-            GlobalMatrixAuthorizationStrategy as = create();
-
-            while (reader.hasMoreChildren()) {
-                reader.moveDown();
-                try {
-                    as.add(reader.getValue());
-                } catch (IllegalArgumentException ex) {
-                    Logger.getLogger(GlobalMatrixAuthorizationStrategy.class.getName())
-                          .log(Level.WARNING,"Skipping a non-existent permission",ex);
-                    RobustReflectionConverter.addErrorInContext(context, ex);
-                }
-                reader.moveUp();
-            }
-
-            return as;
-        }
-
-        protected GlobalMatrixAuthorizationStrategy create() {
+        @Override
+        public GlobalMatrixAuthorizationStrategy create() {
             return new GlobalMatrixAuthorizationStrategy();
         }
     }
     
-    public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> {
+    public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> implements AuthorizationContainerDescriptor<GlobalMatrixAuthorizationStrategy> {
 
         DescriptorImpl() {
-            // make this constructor available for instantiation
+            // make this constructor available for instantiation for ProjectMatrixAuthorizationStrategy
+        }
+
+        @Override
+        public PermissionScope getPermissionScope() {
+            return PermissionScope.JENKINS;
         }
 
         @Nonnull
@@ -351,6 +167,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
 
         @Override
         public AuthorizationStrategy newInstance(StaplerRequest req, @Nonnull JSONObject formData) throws FormException {
+            // TODO parent impl
             GlobalMatrixAuthorizationStrategy gmas = create();
             Map<String,Object> data = formData.getJSONObject("data");
 
@@ -398,142 +215,14 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy {
             return new GlobalMatrixAuthorizationStrategy();
         }
 
-        public List<PermissionGroup> getAllGroups() {
-            List<PermissionGroup> groups = new ArrayList<PermissionGroup>();
-            for (PermissionGroup group : PermissionGroup.getAll()) {
-                if (group == PermissionGroup.get(Permission.class)) {
-                    continue;
-                }
-                for (Permission p : group.getPermissions()) {
-                    if (p.getEnabled()) {
-                        groups.add(group);
-                        break;
-                    }
-                }
-            }
-            return groups;
-        }
-
-        public boolean showPermission(Permission p) {
-            if (!p.getEnabled()) {
-                // Permission is disabled, so don't show it
-                return false;
-            }
-
-            if (ENABLE_DANGEROUS_PERMISSIONS || !DANGEROUS_PERMISSIONS.contains(p)) {
-                // we allow assignment of dangerous permissions, or it's a safe permission, so show it
-                return true;
-            }
-
-            // if we grant any dangerous permission, show them all
-            AuthorizationStrategy strategy = Jenkins.getInstance().getAuthorizationStrategy();
-            if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
-                GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = (GlobalMatrixAuthorizationStrategy) strategy;
-                return globalMatrixAuthorizationStrategy.isAnyRelevantDangerousPermissionExplicitlyGranted();
-            }
-
-            // don't show by default, i.e. when initially configuring the authorization strategy
-            return false;
-        }
-
         @Restricted(NoExternalUse.class)
-        public String getDescription(Permission p) {
-            String description = p.description == null ? "" : p.description.toString();
-            Permission impliedBy = p.impliedBy;
-            while (impliedBy != null && impliedBy.group == PermissionGroup.get(Permission.class)) {
-                if (impliedBy.impliedBy == null) {
-                    break;
-                }
-                impliedBy = impliedBy.impliedBy;
-            }
-            if (impliedBy == null) {
-                // this permission is not implied by anything else, this is notable
-                if (description.length() > 0) {
-                    description += "<br/><br/>";
-                }
-                description += Messages.GlobalMatrixAuthorizationStrategy_PermissionNotImpliedBy();
-            } else if (impliedBy != Jenkins.ADMINISTER) {
-                // this is implied by a permission other than Administer
-                if (description.length() > 0) {
-                    description += "<br/><br/>";
-                }
-                description += Messages.GlobalMatrixAuthorizationStrategy_PermissionImpliedBy(impliedBy.group.title, impliedBy.name);
-            }
-
-            return description;
-        }
-
         public FormValidation doCheckName(@QueryParameter String value ) {
             return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
         }
 
-        public FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, 
-                @Nonnull Permission permission) {
-
-            final String v = value.substring(1,value.length()-1);
-            String ev = Functions.escape(v);
-
-            if(!subject.hasPermission(permission))  return FormValidation.ok(ev); // can't check
-
-            SecurityRealm sr = Jenkins.getInstance().getSecurityRealm();
-
-            if(v.equals("authenticated"))
-                // system reserved group
-                return FormValidation.respond(Kind.OK, makeImg("user.png", ev, "Group", false));
-
-            try {
-                try {
-                    sr.loadUserByUsername(v);
-                    User u = User.get(v);
-                    if (ev.equals(u.getFullName())) {
-                        return FormValidation.respond(Kind.OK, makeImg("person.png", ev, "User", false));
-                    }
-                    return FormValidation.respond(Kind.OK, makeImg("person.png", Util.escape(StringUtils.abbreviate(u.getFullName(), 50)), "User " + ev, false));
-                } catch (UserMayOrMayNotExistException e) {
-                    // undecidable, meaning the user may exist
-                    return FormValidation.respond(Kind.OK, ev);
-                } catch (UsernameNotFoundException|DataAccessException e) {
-                    // fall through next
-                } catch (AuthenticationException e) {
-                    // other seemingly unexpected error.
-                    return FormValidation.error(e,"Failed to test the validity of the user name "+v);
-                }
-
-                try {
-                    sr.loadGroupByGroupname(v);
-                    return FormValidation.respond(Kind.OK, makeImg("user.png", ev, "Group", false));
-                } catch (UserMayOrMayNotExistException e) {
-                    // undecidable, meaning the group may exist
-                    return FormValidation.respond(Kind.OK, ev);
-                } catch (UsernameNotFoundException|DataAccessException e) {
-                    // fall through next
-                } catch (AuthenticationException e) {
-                    // other seemingly unexpected error.
-                    return FormValidation.error(e,"Failed to test the validity of the group name "+v);
-                }
-
-                // couldn't find it. it doesn't exist
-                return FormValidation.respond(Kind.ERROR, makeImg("user-disabled.png", formatNonexistentUser(ev), "User or group not found", true));
-            } catch (Exception e) {
-                // if the check fails miserably, we still want the user to be able to see the name of the user,
-                // so use 'ev' as the message
-                return FormValidation.error(e,ev);
-            }
-        }
-
-        private String formatNonexistentUser(String username) {
-            return "<span style='text-decoration: line-through; color: grey;'>" + username + "</span>";
-        }
-
-        private String makeImg(String img, String label, String tooltip, boolean inPlugin) {
-            if (inPlugin) {
-                return String.format("<span title='%s'><img src='%s/plugin/matrix-auth/images/%s' style='margin-right:0.2em'>%s</span>", tooltip, Stapler.getCurrentRequest().getContextPath(), img, label);
-            } else {
-                return String.format("<span title='%s'><img src='%s%s/images/16x16/%s' style='margin-right:0.2em'>%s</span>", tooltip, Stapler.getCurrentRequest().getContextPath(), Jenkins.RESOURCE_PATH, img, label);
-            }
-        }
     }
 
+    @Restricted(DoNotUse.class)
     @Extension public static final class PermissionAdderImpl extends PermissionAdder {
 
         @Override public boolean add(AuthorizationStrategy strategy, User user, Permission perm) {

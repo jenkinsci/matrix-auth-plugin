@@ -36,6 +36,7 @@ import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.Messages;
 import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.Nonnull;
@@ -145,10 +146,11 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
     };
 
+    @Restricted(DoNotUse.class)
     public static class ConverterImpl extends GlobalMatrixAuthorizationStrategy.ConverterImpl {
 
         @Override
-        protected GlobalMatrixAuthorizationStrategy create() {
+        public GlobalMatrixAuthorizationStrategy create() {
             return new ProjectMatrixAuthorizationStrategy();
         }
 

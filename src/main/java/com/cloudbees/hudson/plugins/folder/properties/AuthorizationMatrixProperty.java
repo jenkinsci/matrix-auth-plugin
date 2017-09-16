@@ -34,18 +34,18 @@ import hudson.model.User;
 import hudson.model.listeners.ItemListener;
 import hudson.security.AuthorizationStrategy;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixPropertyDescriptor;
-import hudson.security.GlobalMatrixAuthorizationStrategy;
+import org.jenkinsci.plugins.matrixauth.AuthorizationPropertyDescriptor;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import hudson.security.SidACL;
-import org.jenkinsci.plugins.matrixauth.AbstractMatrixPropertyConverter;
+import org.jenkinsci.plugins.matrixauth.AbstractAuthorizationPropertyConverter;
 import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
@@ -96,6 +96,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
             this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
     }
 
+    @Restricted(NoExternalUse.class)
     public Set<String> getGroups() {
         return sids;
     }
@@ -124,10 +125,10 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     @Extension(optional = true)
-    public static class DescriptorImpl extends AbstractFolderPropertyDescriptor implements AuthorizationMatrixPropertyDescriptor<AuthorizationMatrixProperty> {
+    public static class DescriptorImpl extends AbstractFolderPropertyDescriptor implements AuthorizationPropertyDescriptor<AuthorizationMatrixProperty> {
 
         @Override
-        public AuthorizationMatrixProperty createProperty() {
+        public AuthorizationMatrixProperty create() {
             return new AuthorizationMatrixProperty();
         }
 
@@ -147,7 +148,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         }
 
         public FormValidation doCheckName(@AncestorInPath AbstractFolder<?> folder, @QueryParameter String value) {
-            return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value, folder, Item.CONFIGURE);
+            return doCheckName_(value, folder, Item.CONFIGURE);
         }
     }
 
@@ -177,13 +178,14 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      * Persist {@link ProjectMatrixAuthorizationStrategy} as a list of IDs that
      * represent {@link ProjectMatrixAuthorizationStrategy#grantedPermissions}.
      */
-    public static final class ConverterImpl extends AbstractMatrixPropertyConverter {
+    @Restricted(DoNotUse.class)
+    public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }
 
         @Override
-        public AuthorizationProperty createSubject() {
+        public AuthorizationMatrixProperty create() {
             return new AuthorizationMatrixProperty();
         }
     }
