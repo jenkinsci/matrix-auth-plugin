@@ -1,4 +1,4 @@
-package com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty
+package hudson.security.AuthorizationMatrixProperty
 
 import lib.FormTagLib
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategyDescriptor
