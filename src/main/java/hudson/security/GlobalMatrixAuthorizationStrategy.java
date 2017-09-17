@@ -151,8 +151,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
     
     public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> implements AuthorizationContainerDescriptor<GlobalMatrixAuthorizationStrategy> {
 
-        DescriptorImpl() {
+        public DescriptorImpl() {
             // make this constructor available for instantiation for ProjectMatrixAuthorizationStrategy
+            // public for role-strategy plugin
         }
 
         @Override
