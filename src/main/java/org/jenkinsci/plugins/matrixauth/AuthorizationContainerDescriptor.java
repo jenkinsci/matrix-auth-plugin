@@ -74,6 +74,9 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
             if (group == PermissionGroup.get(Permission.class)) {
                 continue;
             }
+            if (!group.hasPermissionContainedBy(getPermissionScope())) {
+                continue;
+            }
             for (Permission p : group.getPermissions()) {
                 if (p.getEnabled()) {
                     groups.add(group);
