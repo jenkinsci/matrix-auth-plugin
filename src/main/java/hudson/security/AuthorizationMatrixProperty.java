@@ -96,7 +96,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
     }
 
     public Set<String> getGroups() {
-        return sids;
+        return new HashSet<>(sids);
     }
 
     /**

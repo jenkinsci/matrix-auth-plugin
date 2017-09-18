@@ -86,7 +86,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     @Restricted(NoExternalUse.class)
     public Set<String> getGroups() {
-        return sids;
+        return new HashSet<>(sids);
     }
 
     /**

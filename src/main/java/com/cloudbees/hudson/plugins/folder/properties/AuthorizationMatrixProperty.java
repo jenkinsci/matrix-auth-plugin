@@ -98,7 +98,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     @Restricted(NoExternalUse.class)
     public Set<String> getGroups() {
-        return sids;
+        return new HashSet<>(sids);
     }
 
     /**
