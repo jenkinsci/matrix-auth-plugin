@@ -53,6 +53,13 @@
             <version>2.10</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <!-- requireUpperBoundDeps -->
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>structs</artifactId>
+            <version>1.6</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <repositories>
         <repository>
