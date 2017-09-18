@@ -36,12 +36,16 @@ import hudson.util.FormValidation;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import javax.annotation.CheckForNull;
 
 import jenkins.model.Jenkins;
@@ -101,6 +105,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
     @DataBoundConstructor
     public AuthorizationMatrixProperty(List<String> permissions) {
+        // FIXME this needs to ensure all the permissions are actually applicable to this object, and log a warning if not (or fail outright)
         for (String str : permissions) {
             if (str != null) {
                 this.add(str);
@@ -110,9 +115,12 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
     public List<String> getPermissions() {
         List<String> permissions = new ArrayList<>();
-        for (Map.Entry<Permission, Set<String>> entry : this.grantedPermissions.entrySet()) {
-            for (String sid : entry.getValue()) {
-                String permission = entry.getKey().getId();
+
+        SortedMap<Permission, Set<String>> map = new TreeMap<>(Comparator.comparing(Permission::getId));
+        map.putAll(this.grantedPermissions);
+        for (Map.Entry<Permission, Set<String>> entry : map.entrySet()) {
+            String permission = entry.getKey().getId();
+            for (String sid : new TreeSet<>(entry.getValue())) {
                 permissions.add(permission + ":" + sid);
             }
         }
