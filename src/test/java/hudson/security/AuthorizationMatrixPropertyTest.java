@@ -46,6 +46,7 @@ public class AuthorizationMatrixPropertyTest {
     @Issue("JENKINS-46944")
     public void testSnippetizerInapplicablePermission() throws Exception {
         AuthorizationMatrixProperty property = new AuthorizationMatrixProperty(Collections.emptyMap());
+        l.record(AuthorizationContainer.class, Level.WARNING).capture(1);
         property.add("hudson.model.Item.Configure:alice");
         property.add("hudson.model.Item.Read:bob");
         property.add("hudson.model.Item.Read:alice");
@@ -54,14 +55,13 @@ public class AuthorizationMatrixPropertyTest {
 
         property.setInheritanceStrategy(new NonInheritingStrategy());
 
-        l.record(AuthorizationContainer.class, Level.WARNING).capture(1);
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(new JobPropertyStep(Collections.singletonList(property)),
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), " +
                         "permissions: ['hudson.model.Item.Configure:alice', 'hudson.model.Item.Read:alice', 'hudson.model.Item.Read:bob', 'hudson.scm.SCM.Tag:bob'])])");
 
         Assert.assertTrue(l.getMessages().get(0).contains("Tried to add inapplicable permission"));
-        Assert.assertTrue(l.getMessages().get(0).contains("Hudson.Read"));
+        Assert.assertTrue(l.getMessages().get(0).contains("Hudson,Read"));
         Assert.assertTrue(l.getMessages().get(0).contains("carol"));
     }
 
