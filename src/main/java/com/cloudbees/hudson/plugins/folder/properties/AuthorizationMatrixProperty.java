@@ -52,6 +52,7 @@ import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.verb.GET;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -60,6 +61,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Holds ACL for {@link ProjectMatrixAuthorizationStrategy}.
@@ -149,6 +152,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
             return isApplicable();
         }
 
+        @GET
         public FormValidation doCheckName(@AncestorInPath AbstractFolder<?> folder, @QueryParameter String value) {
             return doCheckName_(value, folder, Item.CONFIGURE);
         }
@@ -225,11 +229,13 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                         try {
                             folder.addProperty(prop);
                         } catch (IOException ex) {
-                            // TODO LOGGER
+                            LOGGER.log(Level.WARNING, "Failed to grant creator permissions on folder " + item.getFullName(), ex);
                         }
                     }
                 }
             }
         }
     }
+
+    private static final Logger LOGGER = Logger.getLogger(AuthorizationMatrixProperty.class.getName());
 }

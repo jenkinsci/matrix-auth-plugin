@@ -55,7 +55,7 @@ public class AuthorizationMatrixNodePropertyTest {
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
 
         Node node;
-        try (ACLContext unused = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice"))) {
             node = r.createSlave();
         }
 

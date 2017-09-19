@@ -18,6 +18,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.recipes.LocalData;
 
 import java.util.Collections;
+import java.util.Optional;
 
 public class ProjectMatrixAuthorizationStrategyTest {
 
@@ -38,7 +39,7 @@ public class ProjectMatrixAuthorizationStrategyTest {
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
         
         Job<?, ?> job;
-        try (ACLContext unused = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice"))) {
             job = r.createFreeStyleProject();
         }
 
@@ -58,10 +59,10 @@ public class ProjectMatrixAuthorizationStrategyTest {
         r.jenkins.setAuthorizationStrategy(new FullControlOnceLoggedInAuthorizationStrategy());
 
         // ensure logged in users are admins, but anon is not
-        try (ACLContext unused = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice"))) {
             Assert.assertTrue("alice is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
-        try (ACLContext unused = ACL.as(User.get("bob"))) {
+        try (ACLContext ignored = ACL.as(User.get("bob"))) {
             Assert.assertTrue("bob is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
         Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission(Jenkins.ANONYMOUS, Jenkins.ADMINISTER));
@@ -69,17 +70,20 @@ public class ProjectMatrixAuthorizationStrategyTest {
         JenkinsRule.WebClient wc = r.createWebClient().login("alice");
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
-        // TODO this must be possible in a nicer way
-        HtmlElement label = form.getElementsByTagName("label").stream().filter(
-                lbl -> lbl.asText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny().get();
+        Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream().filter(
+                lbl -> lbl.asText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
+        if (!anyLabel.isPresent()) {
+            throw new IllegalStateException("expected to find a label");
+        }
+        HtmlElement label = anyLabel.get();
         ((HtmlLabel)label).click();
         r.submit(form);
 
-        try (ACLContext unused = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice"))) {
             // ensure that the user submitting the empty matrix will be admin
             Assert.assertTrue("alice is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
-        try (ACLContext unused = ACL.as(User.get("bob"))) {
+        try (ACLContext ignored = ACL.as(User.get("bob"))) {
             Assert.assertFalse("bob is not admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
         Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission(Jenkins.ANONYMOUS, Jenkins.ADMINISTER));
@@ -96,9 +100,12 @@ public class ProjectMatrixAuthorizationStrategyTest {
         JenkinsRule.WebClient wc = r.createWebClient();
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
-        // TODO this must be possible in a nicer way
-        HtmlElement label = form.getElementsByTagName("label").stream().filter(
-                lbl -> lbl.asText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny().get();
+        Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream().filter(
+                lbl -> lbl.asText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
+        if (!anyLabel.isPresent()) {
+            throw new IllegalStateException("expected to find a label");
+        }
+        HtmlElement label = anyLabel.get();
         ((HtmlLabel)label).click();
         r.submit(form);
 

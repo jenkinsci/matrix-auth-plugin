@@ -58,6 +58,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implements AuthorizationProperty {
 
@@ -222,10 +224,12 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
                     try {
                         node.getNodeProperties().replace(prop);
                     } catch (IOException ex) {
-                        // TODO LOGGER
+                        LOGGER.log(Level.WARNING, "Failed to grant creator permissions on node " + node.getDisplayName(), ex);
                     }
                 }
             }
         }
     }
+
+    private static final Logger LOGGER = Logger.getLogger(AuthorizationMatrixNodeProperty.class.getName());
 }

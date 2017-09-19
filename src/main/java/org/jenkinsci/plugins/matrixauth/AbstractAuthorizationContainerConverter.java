@@ -81,9 +81,8 @@ public abstract class AbstractAuthorizationContainerConverter<T extends Authoriz
             try {
                 container.add(reader.getValue());
             } catch (IllegalArgumentException ex) {
-                // TODO Logger field
-                Logger.getLogger(GlobalMatrixAuthorizationStrategy.class.getName())
-                        .log(Level.WARNING,"Skipping a non-existent permission",ex);
+                Logger.getLogger(AbstractAuthorizationContainerConverter.class.getName())
+                        .log(Level.WARNING,"Skipping a non-existent permission", ex);
                 RobustReflectionConverter.addErrorInContext(context, ex);
             }
             reader.moveUp();

@@ -34,11 +34,11 @@ class ValidationUtil {
         // do not use
     }
 
-    public static String formatNonExistentUserGroupValidationResponse(String user, String tooltip) {
+    static String formatNonExistentUserGroupValidationResponse(String user, String tooltip) {
         return formatUserGroupValidationResponse("user-disabled.png", "<span style='text-decoration: line-through; color: grey;'>" + user + "</span>", tooltip, true);
     }
 
-    public static String formatUserGroupValidationResponse(String img, String user, String tooltip, boolean inPlugin) {
+    static String formatUserGroupValidationResponse(String img, String user, String tooltip, boolean inPlugin) {
         if (inPlugin) {
             return String.format("<span title='%s'><img src='%s/plugin/matrix-auth/images/%s' style='margin-right:0.2em'>%s</span>", tooltip, Stapler.getCurrentRequest().getContextPath(), img, user);
         } else {

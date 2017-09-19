@@ -40,6 +40,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.CheckForNull;
 
 import jenkins.model.Jenkins;
@@ -57,6 +59,7 @@ import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.verb.GET;
 
 /**
  * {@link JobProperty} to associate ACL for each project.
@@ -146,6 +149,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
             return isApplicable();
         }
 
+        @GET
         public FormValidation doCheckName(@AncestorInPath Job<?, ?> project, @QueryParameter String value) {
             return doCheckName_(value, project, Item.CONFIGURE);
         }
@@ -223,11 +227,13 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
                         try {
                             job.addProperty(prop);
                         } catch (IOException ex) {
-                            // TODO LOGGER
+                            LOGGER.log(Level.WARNING, "Failed to grant creator permissions on job " + item.getFullName(), ex);
                         }
                     }
                 }
             }
         }
     }
+
+    private static final Logger LOGGER = Logger.getLogger(AuthorizationMatrixProperty.class.getName());
 }

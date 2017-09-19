@@ -6,7 +6,6 @@ import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
-import java.util.concurrent.Callable;
 import jenkins.model.IdStrategy;
 import org.acegisecurity.AccessDeniedException;
 import org.junit.Rule;
@@ -69,17 +68,15 @@ public class IdStrategyTest {
         wc.getPage(foo);    // this should succeed
 
         // and build permission should be set, too
-        wc.executeOnServer(new Callable<Object>() {
-            public Object call() throws Exception {
-                foo.checkPermission(Item.BUILD);
-                try {
-                    foo.checkPermission(Item.DELETE);
-                    fail("acecss should be denied");
-                } catch (AccessDeniedException e) {
-                    // expected
-                }
-                return null;
+        wc.executeOnServer(() -> {
+            foo.checkPermission(Item.BUILD);
+            try {
+                foo.checkPermission(Item.DELETE);
+                fail("access should be denied");
+            } catch (AccessDeniedException e) {
+                // expected
             }
+            return null;
         });
 
         try {
@@ -94,17 +91,15 @@ public class IdStrategyTest {
         wc.getPage(foo);    // this should succeed
 
         // and build permission should be set, too
-        wc.executeOnServer(new Callable<Object>() {
-            public Object call() throws Exception {
-                foo.checkPermission(Item.BUILD);
-                try {
-                    foo.checkPermission(Item.DELETE);
-                    fail("acecss should be denied");
-                } catch (AccessDeniedException e) {
-                    // expected
-                }
-                return null;
+        wc.executeOnServer(() -> {
+            foo.checkPermission(Item.BUILD);
+            try {
+                foo.checkPermission(Item.DELETE);
+                fail("acecss should be denied");
+            } catch (AccessDeniedException e) {
+                // expected
             }
+            return null;
         });
     }
 
@@ -125,17 +120,15 @@ public class IdStrategyTest {
         wc.getPage(foo);    // this should succeed
 
         // and build permission should be set, too
-        wc.executeOnServer(new Callable<Object>() {
-            public Object call() throws Exception {
-                foo.checkPermission(Item.BUILD);
-                try {
-                    foo.checkPermission(Item.DELETE);
-                    fail("acecss should be denied");
-                } catch (AccessDeniedException e) {
-                    // expected
-                }
-                return null;
+        wc.executeOnServer(() -> {
+            foo.checkPermission(Item.BUILD);
+            try {
+                foo.checkPermission(Item.DELETE);
+                fail("access should be denied");
+            } catch (AccessDeniedException e) {
+                // expected
             }
+            return null;
         });
 
         try {
