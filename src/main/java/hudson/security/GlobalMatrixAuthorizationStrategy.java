@@ -169,7 +169,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
 
         @Override
         public AuthorizationStrategy newInstance(StaplerRequest req, @Nonnull JSONObject formData) throws FormException {
-            // TODO parent impl
+            // TODO Is there a way to pull this up into AuthorizationContainerDescriptor and share code with AuthorizationPropertyDescriptor?
             GlobalMatrixAuthorizationStrategy gmas = create();
             Map<String,Object> data = formData.getJSONObject("data");
 
