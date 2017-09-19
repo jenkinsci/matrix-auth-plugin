@@ -49,10 +49,4 @@ public abstract class InheritanceStrategyDescriptor extends Descriptor<Inheritan
     }
     
     public abstract boolean isApplicable(Class<?> clazz);
-
-    @Nonnull
-    @Override
-    public String getDisplayName() {
-        return super.getDisplayName();
-    }
 }

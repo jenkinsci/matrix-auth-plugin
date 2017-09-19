@@ -69,7 +69,6 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
 
     @Restricted(DoNotUse.class) // Called from Jelly view
     default List<PermissionGroup> getAllGroups() {
-        // TODO parent impl
         List<PermissionGroup> groups = new ArrayList<>();
         for (PermissionGroup group : PermissionGroup.getAll()) {
             if (group == PermissionGroup.get(Permission.class)) {

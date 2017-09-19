@@ -1,9 +1,6 @@
 package org.jenkinsci.plugins.matrixauth;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.model.User;
-import hudson.security.ACL;
-import hudson.security.ACLContext;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.pages.SignupPage;
@@ -36,7 +33,7 @@ public class PermissionAdderTest {
                 signup.enterUsername("alice");
                 signup.enterPassword("alice");
                 signup.enterFullName("Alice User");
-                HtmlPage success = signup.submit(r.j);
+                signup.submit(r.j);
 
                 Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice").impersonate(), Jenkins.ADMINISTER));
             }

@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 
 @Restricted(NoExternalUse.class)
 public abstract class AbstractAuthorizationContainerConverter<T extends AuthorizationContainer> implements Converter {
-
+    @SuppressWarnings("rawtypes")
     abstract public boolean canConvert(Class type);
 
     abstract public T create();
@@ -81,9 +81,8 @@ public abstract class AbstractAuthorizationContainerConverter<T extends Authoriz
             try {
                 container.add(reader.getValue());
             } catch (IllegalArgumentException ex) {
-                // TODO Logger field
-                Logger.getLogger(GlobalMatrixAuthorizationStrategy.class.getName())
-                        .log(Level.WARNING,"Skipping a non-existent permission",ex);
+                Logger.getLogger(AbstractAuthorizationContainerConverter.class.getName())
+                        .log(Level.WARNING,"Skipping a non-existent permission", ex);
                 RobustReflectionConverter.addErrorInContext(context, ex);
             }
             reader.moveUp();
