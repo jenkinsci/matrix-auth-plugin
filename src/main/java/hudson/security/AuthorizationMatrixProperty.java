@@ -106,7 +106,6 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
     @DataBoundConstructor
     public AuthorizationMatrixProperty(List<String> permissions) {
-        // FIXME this needs to ensure all the permissions are actually applicable to this object, and log a warning if not (or fail outright)
         for (String str : permissions) {
             if (str != null) {
                 this.add(str);

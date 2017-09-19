@@ -23,6 +23,7 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
+import hudson.model.Descriptor;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.SecurityRealm;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Restricted(NoExternalUse.class)
 public interface AuthorizationContainer {
@@ -58,6 +61,7 @@ public interface AuthorizationContainer {
 
     void add(Permission permission, String sid);
     Map<Permission, Set<String>> getGrantedPermissions();
+    Descriptor getDescriptor();
 
     /**
      * Works like {@link #add(Permission, String)} but takes both parameters
@@ -69,6 +73,12 @@ public interface AuthorizationContainer {
         Permission p = Permission.fromId(shortForm.substring(0, idx));
         if (p==null)
             throw new IllegalArgumentException("Failed to parse '"+shortForm+"' --- no such permission");
+        String sid = shortForm.substring(idx + 1);
+        if (!p.isContainedBy(((AuthorizationContainerDescriptor) getDescriptor()).getPermissionScope())) {
+            Logger.getLogger(AuthorizationContainer.class.getName()).log(Level.WARNING,
+                    "Tried to add inapplicable permission " + p + " for " + sid + " in " + this + ", skipping");
+            return;
+        }
         add(p, shortForm.substring(idx + 1));
     }
 

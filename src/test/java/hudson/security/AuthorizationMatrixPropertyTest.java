@@ -3,6 +3,7 @@ package hudson.security;
 import hudson.model.Item;
 import hudson.scm.SCM;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester;
@@ -11,14 +12,20 @@ import org.jenkinsci.plugins.workflow.multibranch.JobPropertyStep;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.LoggerRule;
 
 import java.util.Collections;
+import java.util.logging.Level;
 
 public class AuthorizationMatrixPropertyTest {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
+
+    @Rule
+    public LoggerRule l = new LoggerRule();
 
     @Test
     public void testSnippetizer() throws Exception {
@@ -32,6 +39,30 @@ public class AuthorizationMatrixPropertyTest {
         tester.assertRoundTrip(new JobPropertyStep(Collections.singletonList(property)),
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), " +
                 "permissions: ['hudson.model.Item.Configure:alice', 'hudson.model.Item.Read:alice', 'hudson.model.Item.Read:bob', 'hudson.scm.SCM.Tag:bob'])])");
+
+    }
+
+    @Test
+    @Issue("JENKINS-46944")
+    public void testSnippetizerInapplicablePermission() throws Exception {
+        AuthorizationMatrixProperty property = new AuthorizationMatrixProperty(Collections.emptyMap());
+        property.add("hudson.model.Item.Configure:alice");
+        property.add("hudson.model.Item.Read:bob");
+        property.add("hudson.model.Item.Read:alice");
+        property.add("hudson.scm.SCM.Tag:bob"); // use this to test for JENKINS-17200 robustness
+        property.add("hudson.model.Hudson.Read:carol"); // the important line for this test, inapplicable permission
+
+        property.setInheritanceStrategy(new NonInheritingStrategy());
+
+        l.record(AuthorizationContainer.class, Level.WARNING).capture(1);
+        SnippetizerTester tester = new SnippetizerTester(j);
+        tester.assertRoundTrip(new JobPropertyStep(Collections.singletonList(property)),
+                "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), " +
+                        "permissions: ['hudson.model.Item.Configure:alice', 'hudson.model.Item.Read:alice', 'hudson.model.Item.Read:bob', 'hudson.scm.SCM.Tag:bob'])])");
+
+        Assert.assertTrue(l.getMessages().get(0).contains("Tried to add inapplicable permission"));
+        Assert.assertTrue(l.getMessages().get(0).contains("Hudson.Read"));
+        Assert.assertTrue(l.getMessages().get(0).contains("carol"));
     }
 
     @Test
