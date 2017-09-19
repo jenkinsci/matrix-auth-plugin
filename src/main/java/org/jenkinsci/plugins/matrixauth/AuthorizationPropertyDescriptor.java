@@ -23,74 +23,71 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
+import hudson.model.Descriptor;
 import hudson.security.Permission;
-import hudson.security.PermissionGroup;
-import hudson.security.PermissionScope;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.StaplerRequest;
 
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public interface AuthorizationMatrixPropertyDescriptor<T extends AuthorizationProperty> {
+/**
+ * Interface with default methods common to all authorization related property descriptors.
+ * 
+ */
+@Restricted(NoExternalUse.class)
+public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty> extends AuthorizationContainerDescriptor<T> {
 
-    T createProperty();
+    T create();
 
-    PermissionScope getPermissionScope();
-
-    default T createNewInstance(StaplerRequest req, JSONObject formData, boolean hasOptionalWrap) {
+    default T createNewInstance(StaplerRequest req, JSONObject formData, boolean hasOptionalWrap) throws Descriptor.FormException {
         if (hasOptionalWrap) {
             formData = formData.getJSONObject("useProjectSecurity");
             if (formData.isNullObject())
                 return null;
         }
 
-        T amnp = createProperty();
+        T property = create();
 
-        amnp.setInheritanceStrategy(req.bindJSON(InheritanceStrategy.class, formData.getJSONObject("inheritanceStrategy")));
+        Map<String,Object> data = formData.getJSONObject("data");
 
-        for (Map.Entry<String, Object> r : (Set<Map.Entry<String, Object>>) formData.getJSONObject("data").entrySet()) {
+
+        property.setInheritanceStrategy(req.bindJSON(InheritanceStrategy.class, formData.getJSONObject("inheritanceStrategy")));
+
+        for (Map.Entry<String, Object> r : data.entrySet()) {
             String sid = r.getKey();
-            if (r.getValue() instanceof JSONObject) {
-                for (Map.Entry<String, Boolean> e : (Set<Map.Entry<String, Boolean>>) ((JSONObject) r
-                        .getValue()).entrySet()) {
-                    if (e.getValue()) {
-                        Permission p = Permission.fromId(e.getKey());
-                        amnp.add(p, sid);
+
+            if (!(r.getValue() instanceof JSONObject)) {
+                throw new Descriptor.FormException("not an object: " + formData, "data");
+            }
+            Map<String,Object> value = (JSONObject) r.getValue();
+
+            for (Map.Entry<String, Object> e : value.entrySet()) {
+                if (!(e.getValue() instanceof Boolean)) {
+                    throw new Descriptor.FormException("not an boolean: " + formData, "data");
+                }
+                if ((Boolean) e.getValue()) {
+                    Permission p = Permission.fromId(e.getKey());
+                    if (p == null) {
+                        Logger.getLogger(AuthorizationPropertyDescriptor.class.getName())
+                                .log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\"", new Object[]{e.getKey(), sid});
+                    } else {
+                        property.add(p, sid);
                     }
                 }
             }
         }
-        return amnp;
+        return property;
     }
 
     default boolean isApplicable() {
         // only applicable when ProjectMatrixAuthorizationStrategy is in charge
         return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
-    }
-
-    @Nonnull
-    default String getDisplayName() {
-        return "Authorization Matrix"; // TODO i18n
-    }
-
-    default List<PermissionGroup> getAllGroups() {
-        List<PermissionGroup> groups = new ArrayList<>();
-        for (PermissionGroup g : PermissionGroup.getAll()) {
-            if (g.hasPermissionContainedBy(getPermissionScope())) {
-                groups.add(g);
-            }
-        }
-        return groups;
-    }
-
-    default boolean showPermission(Permission p) {
-        return p.getEnabled() && p.isContainedBy(getPermissionScope());
     }
 }

@@ -23,30 +23,23 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
-import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import hudson.security.AuthorizationMatrixProperty;
-import hudson.security.Permission;
-import hudson.util.RobustReflectionConverter;
-import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Restricted(NoExternalUse.class)
-public abstract class AbstractMatrixPropertyConverter implements Converter {
+public abstract class AbstractAuthorizationPropertyConverter<T extends AuthorizationProperty> extends AbstractAuthorizationContainerConverter<T> {
     abstract public boolean canConvert(Class type);
 
-    abstract public AuthorizationProperty createSubject();
+    abstract public T create();
 
     public void marshal(Object source, HierarchicalStreamWriter writer,
                         MarshallingContext context) {
@@ -58,22 +51,12 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
             writer.addAttribute("class", strategy.getClass().getCanonicalName());
             writer.endNode();
         }
-        
-        for (Map.Entry<Permission, Set<String>> e : authorizationProperty.getGrantedPermissions()
-                .entrySet()) {
-            String p = e.getKey().getId();
-            for (String sid : e.getValue()) {
-                writer.startNode("permission");
-                writer.setValue(p + ':' + sid);
-                writer.endNode();
-            }
-        }
+
+        super.marshal(source, writer, context);
     }
 
-    public Object unmarshal(HierarchicalStreamReader reader,
-                            final UnmarshallingContext context) {
-        AuthorizationProperty authorizationProperty = createSubject();
-
+    @Override
+    protected void unmarshalContainer(T container, HierarchicalStreamReader reader, UnmarshallingContext context) {
         String prop = reader.peekNextChild();
 
         if (prop!=null && prop.equals("useProjectSecurity")) {
@@ -86,7 +69,7 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
             reader.moveDown();
             boolean blocksInheritance = "true".equals(reader.getValue());
             if (blocksInheritance) {
-                authorizationProperty.setInheritanceStrategy(new NonInheritingStrategy());
+                container.setInheritanceStrategy(new NonInheritingStrategy());
             }
             reader.moveUp();
         }
@@ -95,27 +78,16 @@ public abstract class AbstractMatrixPropertyConverter implements Converter {
             reader.moveDown();
             String clazz = reader.getAttribute("class");
             try {
-                authorizationProperty.setInheritanceStrategy((InheritanceStrategy) Class.forName(clazz).newInstance());
+                container.setInheritanceStrategy((InheritanceStrategy) Class.forName(clazz).newInstance());
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Failed to restore inheritance strategy", e);
             }
             reader.moveUp();
         }
 
-        while (reader.hasMoreChildren()) {
-            reader.moveDown();
-            try {
-                authorizationProperty.add(reader.getValue());
-            } catch (IllegalArgumentException ex) {
-                Logger.getLogger(AuthorizationMatrixProperty.class.getName())
-                        .log(Level.WARNING,"Skipping a non-existent permission",ex);
-                RobustReflectionConverter.addErrorInContext(context, ex);
-            }
-            reader.moveUp();
-        }
-
-        return authorizationProperty;
+        // let the super handle the permissions that are always towards the end
+        super.unmarshalContainer(container, reader, context);
     }
 
-    public static final Logger LOGGER = Logger.getLogger(AbstractMatrixPropertyConverter.class.getName());
+    public static final Logger LOGGER = Logger.getLogger(AbstractAuthorizationPropertyConverter.class.getName());
 }
