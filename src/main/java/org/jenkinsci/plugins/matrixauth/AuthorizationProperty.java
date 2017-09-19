@@ -26,7 +26,10 @@ package org.jenkinsci.plugins.matrixauth;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
+@Restricted(NoExternalUse.class)
 public interface AuthorizationProperty extends AuthorizationContainer {
 
     void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy);
