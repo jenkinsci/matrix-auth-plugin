@@ -99,7 +99,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     public ACL getACL(@Nonnull AbstractItem item) {
         if (Jenkins.getInstance().getPlugin("cloudbees-folder") != null) { // optional dependency
             if (item instanceof AbstractFolder) {
-                com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = (com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty) ((AbstractFolder) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
+                com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = ((AbstractFolder<?>) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
                 if (p != null) {
                     return p.getInheritanceStrategy().getEffectiveACL(p.getACL(), item);
                 }
