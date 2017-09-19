@@ -29,7 +29,6 @@ import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.User;
 import hudson.security.AuthorizationStrategy;
-import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
@@ -43,6 +42,7 @@ import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
@@ -84,8 +84,9 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
             this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
     }
 
+    @Restricted(NoExternalUse.class)
     public Set<String> getGroups() {
-        return sids;
+        return new HashSet<>(sids);
     }
 
     /**
@@ -111,6 +112,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
      * during construction, as this object itself is considered immutable once
      * populated.
      */
+    // TODO Restrict?
     public void add(Permission p, String sid) {
         Set<String> set = grantedPermissions.get(p);
         if (set == null)
@@ -139,24 +141,27 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
      * Persist {@link ProjectMatrixAuthorizationStrategy} as a list of IDs that
      * represent {@link ProjectMatrixAuthorizationStrategy#grantedPermissions}.
      */
-    public static final class ConverterImpl extends AbstractMatrixPropertyConverter {
+    @Restricted(NoExternalUse.class)
+    public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixNodeProperty> {
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixNodeProperty.class;
         }
 
-        public AuthorizationProperty createSubject() {
+        public AuthorizationMatrixNodeProperty create() {
             return new AuthorizationMatrixNodeProperty();
         }
     }
 
     @Extension
-    public static class DescriptorImpl extends NodePropertyDescriptor implements AuthorizationMatrixPropertyDescriptor<AuthorizationMatrixNodeProperty> {
+    public static class DescriptorImpl extends NodePropertyDescriptor implements AuthorizationPropertyDescriptor<AuthorizationMatrixNodeProperty> {
 
+        @Restricted(NoExternalUse.class)
         @Override
-        public AuthorizationMatrixNodeProperty createProperty() {
+        public AuthorizationMatrixNodeProperty create() {
             return new AuthorizationMatrixNodeProperty();
         }
 
+        @Restricted(NoExternalUse.class)
         @Override
         public PermissionScope getPermissionScope() {
             return PermissionScope.COMPUTER;
@@ -178,9 +183,10 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
             return Messages.AuthorizationMatrixNodeProperty_DisplayName();
         }
 
+        @Restricted(DoNotUse.class)
         public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) {
             // Computer isn't a DescriptorByNameOwner before Jenkins 2.78, and then @AncestorInPath doesn't work
-            return GlobalMatrixAuthorizationStrategy.DESCRIPTOR.doCheckName_(value,
+            return doCheckName_(value,
                     computer == null ? Jenkins.getInstance() : computer,
                     computer == null ? Jenkins.ADMINISTER : Computer.CONFIGURE);
         }
