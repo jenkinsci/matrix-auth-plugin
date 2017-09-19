@@ -5,8 +5,6 @@ import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixPropert
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
-import hudson.security.ACL;
-import hudson.security.ACLContext;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -21,9 +19,9 @@ public class InheritanceMigrationTest {
 
     @Test
     @LocalData
+    @SuppressWarnings("deprecation")
     public void testInheritanceMigration() throws Exception {
         Assert.assertTrue(j.jenkins.getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy);
-        ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) j.jenkins.getAuthorizationStrategy();
 
         {
             Folder folder = (Folder) j.jenkins.getItemByFullName("folder");

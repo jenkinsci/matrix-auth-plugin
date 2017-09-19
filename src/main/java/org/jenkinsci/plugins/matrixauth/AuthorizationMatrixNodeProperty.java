@@ -58,6 +58,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implements AuthorizationProperty {
 
@@ -71,6 +73,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
      * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
      */
     @Deprecated
+    @SuppressWarnings("unused")
     private transient Boolean blocksInheritance;
 
     private InheritanceStrategy inheritanceStrategy = new InheritGlobalStrategy();
@@ -143,6 +146,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
      */
     @Restricted(NoExternalUse.class)
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixNodeProperty> {
+        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixNodeProperty.class;
         }
@@ -220,10 +224,12 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
                     try {
                         node.getNodeProperties().replace(prop);
                     } catch (IOException ex) {
-                        // TODO LOGGER
+                        LOGGER.log(Level.WARNING, "Failed to grant creator permissions on node " + node.getDisplayName(), ex);
                     }
                 }
             }
         }
     }
+
+    private static final Logger LOGGER = Logger.getLogger(AuthorizationMatrixNodeProperty.class.getName());
 }

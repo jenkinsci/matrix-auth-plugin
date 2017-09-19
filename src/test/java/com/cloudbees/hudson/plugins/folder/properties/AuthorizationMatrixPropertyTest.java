@@ -34,7 +34,6 @@ import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 import jenkins.model.Jenkins;
@@ -69,7 +68,7 @@ public class AuthorizationMatrixPropertyTest {
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
         
         Folder job;
-        try (ACLContext _ = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice"))) {
             job = r.createProject(Folder.class);
         }
 
@@ -112,17 +111,15 @@ public class AuthorizationMatrixPropertyTest {
         wc.getPage(foo);    // this should succeed
 
         // and build permission should be set, too
-        wc.executeOnServer(new Callable<Object>() {
-            public Object call() throws Exception {
-                foo.checkPermission(Item.BUILD);
-                try {
-                    foo.checkPermission(Item.DELETE);
-                    fail("acecss should be denied");
-                } catch (AccessDeniedException e) {
-                    // expected
-                }
-                return null;
+        wc.executeOnServer(() -> {
+            foo.checkPermission(Item.BUILD);
+            try {
+                foo.checkPermission(Item.DELETE);
+                fail("access should be denied");
+            } catch (AccessDeniedException e) {
+                // expected
             }
+            return null;
         });
     }
 
