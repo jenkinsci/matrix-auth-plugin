@@ -4,7 +4,6 @@ import com.cloudbees.hudson.plugins.folder.Folder;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlLabel;
-import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
@@ -38,8 +37,8 @@ public class ProjectMatrixAuthorizationStrategyTest {
         authorizationStrategy.add(Jenkins.READ, "bob");
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
         
-        Job job;
-        try (ACLContext _ = ACL.as(User.get("alice"))) {
+        Job<?, ?> job;
+        try (ACLContext unused = ACL.as(User.get("alice"))) {
             job = r.createFreeStyleProject();
         }
 
@@ -59,10 +58,10 @@ public class ProjectMatrixAuthorizationStrategyTest {
         r.jenkins.setAuthorizationStrategy(new FullControlOnceLoggedInAuthorizationStrategy());
 
         // ensure logged in users are admins, but anon is not
-        try (ACLContext _ = ACL.as(User.get("alice"))) {
+        try (ACLContext unused = ACL.as(User.get("alice"))) {
             Assert.assertTrue("alice is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
-        try (ACLContext _ = ACL.as(User.get("bob"))) {
+        try (ACLContext unused = ACL.as(User.get("bob"))) {
             Assert.assertTrue("bob is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
         Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission(Jenkins.ANONYMOUS, Jenkins.ADMINISTER));
@@ -76,11 +75,11 @@ public class ProjectMatrixAuthorizationStrategyTest {
         ((HtmlLabel)label).click();
         r.submit(form);
 
-        try (ACLContext _ = ACL.as(User.get("alice"))) {
+        try (ACLContext unused = ACL.as(User.get("alice"))) {
             // ensure that the user submitting the empty matrix will be admin
             Assert.assertTrue("alice is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
-        try (ACLContext _ = ACL.as(User.get("bob"))) {
+        try (ACLContext unused = ACL.as(User.get("bob"))) {
             Assert.assertFalse("bob is not admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
         Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission(Jenkins.ANONYMOUS, Jenkins.ADMINISTER));

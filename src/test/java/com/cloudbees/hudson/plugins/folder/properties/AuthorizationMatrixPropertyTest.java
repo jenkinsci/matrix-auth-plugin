@@ -64,7 +64,7 @@ public class AuthorizationMatrixPropertyTest {
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
         
         Folder job;
-        try (ACLContext _ = ACL.as(User.get("alice"))) {
+        try (ACLContext unused = ACL.as(User.get("alice"))) {
             job = r.createProject(Folder.class);
         }
 
@@ -112,7 +112,7 @@ public class AuthorizationMatrixPropertyTest {
                 foo.checkPermission(Item.BUILD);
                 try {
                     foo.checkPermission(Item.DELETE);
-                    fail("acecss should be denied");
+                    fail("access should be denied");
                 } catch (AccessDeniedException e) {
                     // expected
                 }
