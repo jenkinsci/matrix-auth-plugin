@@ -82,6 +82,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
      */
     @Deprecated
+    @SuppressWarnings("unused")
     private transient Boolean blocksInheritance;
 
     private InheritanceStrategy inheritanceStrategy = new InheritParentStrategy();
@@ -143,6 +144,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public boolean isApplicable(Class<? extends AbstractFolder> folder) {
             return isApplicable();
         }
@@ -180,6 +182,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      */
     @Restricted(DoNotUse.class)
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
+        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }

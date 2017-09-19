@@ -82,6 +82,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
      * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
      */
     @Deprecated
+    @SuppressWarnings("unused")
     private transient Boolean blocksInheritance;
 
     private InheritanceStrategy inheritanceStrategy = new InheritParentStrategy();
@@ -140,11 +141,12 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public boolean isApplicable(Class<? extends Job> jobType) {
             return isApplicable();
         }
 
-        public FormValidation doCheckName(@AncestorInPath Job project, @QueryParameter String value) {
+        public FormValidation doCheckName(@AncestorInPath Job<?, ?> project, @QueryParameter String value) {
             return doCheckName_(value, project, Item.CONFIGURE);
         }
     }
@@ -179,6 +181,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
      */
     @Restricted(DoNotUse.class)
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
+        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }

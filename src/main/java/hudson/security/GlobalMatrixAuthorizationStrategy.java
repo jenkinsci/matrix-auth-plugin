@@ -139,6 +139,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
      */
     @Restricted(NoExternalUse.class)
     public static class ConverterImpl extends AbstractAuthorizationContainerConverter<GlobalMatrixAuthorizationStrategy> {
+        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == GlobalMatrixAuthorizationStrategy.class;
         }

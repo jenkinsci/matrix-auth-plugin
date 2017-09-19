@@ -76,7 +76,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         };
     }
 
-    public ACL getACL(ItemGroup g) {
+    public ACL getACL(ItemGroup<?> g) {
         if (g instanceof Item) {
             Item item = (Item) g;
             return item.getACL();
@@ -155,6 +155,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type==ProjectMatrixAuthorizationStrategy.class;
         }
