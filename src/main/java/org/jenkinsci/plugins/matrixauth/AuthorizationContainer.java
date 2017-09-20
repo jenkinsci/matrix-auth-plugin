@@ -61,6 +61,8 @@ public interface AuthorizationContainer {
 
     void add(Permission permission, String sid);
     Map<Permission, Set<String>> getGrantedPermissions();
+
+    @SuppressWarnings("rawtypes")
     Descriptor getDescriptor();
 
     /**
@@ -74,7 +76,7 @@ public interface AuthorizationContainer {
         if (p==null)
             throw new IllegalArgumentException("Failed to parse '"+shortForm+"' --- no such permission");
         String sid = shortForm.substring(idx + 1);
-        if (!p.isContainedBy(((AuthorizationContainerDescriptor) getDescriptor()).getPermissionScope())) {
+        if (!p.isContainedBy(((AuthorizationContainerDescriptor<?>) getDescriptor()).getPermissionScope())) {
             Logger.getLogger(AuthorizationContainer.class.getName()).log(Level.WARNING,
                     "Tried to add inapplicable permission " + p + " for " + sid + " in " + this + ", skipping");
             return;
