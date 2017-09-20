@@ -34,21 +34,26 @@ import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
+import java.util.logging.Level;
 
 import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import static org.junit.Assert.*;
 
+import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 import org.junit.Assert;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.LoggerRule;
 
 public class AuthorizationMatrixPropertyTest {
 
     @Rule public JenkinsRule r = new JenkinsRule();
+
+    @Rule public LoggerRule l = new LoggerRule();
 
     @Test
     public void ensureCreatorHasPermissions() throws Exception {
@@ -146,5 +151,16 @@ public class AuthorizationMatrixPropertyTest {
 
         wc = r.createWebClient().login("alice");
         wc.getPage(foo);    // this should succeed
+    }
+
+    @Test
+    public void inapplicablePermissionIsSkipped() throws Exception {
+        AuthorizationMatrixProperty property = new AuthorizationMatrixProperty();
+        l.record(AuthorizationContainer.class, Level.WARNING).capture(1);
+        property.add("hudson.model.Hudson.Administer:alice");
+        assertTrue(property.getGrantedPermissions().isEmpty());
+        assertTrue(l.getMessages().get(0).contains("Tried to add inapplicable permission"));
+        assertTrue(l.getMessages().get(0).contains("Administer"));
+        assertTrue(l.getMessages().get(0).contains("alice"));
     }
 }
