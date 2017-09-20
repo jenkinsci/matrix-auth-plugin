@@ -27,7 +27,6 @@ import hudson.DescriptorExtensionList;
 import hudson.model.Descriptor;
 import jenkins.model.Jenkins;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
