@@ -8,7 +8,7 @@ def st = namespace("jelly:stapler")
 
 f.nested {
     table(style: "width: 100%") {
-        f.dropdownDescriptorSelector(title: _("Inheritance Strategy"), descriptors: InheritanceStrategyDescriptor.getApplicableDescriptors(my.class), field: 'inheritanceStrategy')
+        f.dropdownDescriptorSelector(title: _("Inheritance Strategy"), descriptors: InheritanceStrategyDescriptor.getApplicableDescriptors(my?.class?:hudson.model.Node.class), field: 'inheritanceStrategy')
         st.include(class: "hudson.security.GlobalMatrixAuthorizationStrategy", page: "config")
     }
 }
