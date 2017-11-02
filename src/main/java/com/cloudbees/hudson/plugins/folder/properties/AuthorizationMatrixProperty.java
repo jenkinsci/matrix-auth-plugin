@@ -200,7 +200,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     /**
      * Ensure that the user creating a folder has Read and Configure permissions
      */
-    @Extension
+    @Extension(optional = true)
     @Restricted(NoExternalUse.class)
     public static class ItemListenerImpl extends ItemListener {
         @Override
