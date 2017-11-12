@@ -177,8 +177,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         }
 
         @Override
-        public boolean isApplicable(Class<? extends Node> folder) {
-            return isApplicable();
+        public boolean isApplicable(Class<? extends Node> node) {
+            return Node.class.isAssignableFrom(node) && isApplicable();
         }
 
         @Nonnull
