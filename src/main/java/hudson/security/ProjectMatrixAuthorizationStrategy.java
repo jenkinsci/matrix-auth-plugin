@@ -71,7 +71,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         return new ACL() {
             @Override
             public boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission) {
-                return child.hasPermission(a, permission) || parent.hasPermission(a, permission);
+                return a.equals(SYSTEM) || child.hasPermission(a, permission) || parent.hasPermission(a, permission);
             }
         };
     }
