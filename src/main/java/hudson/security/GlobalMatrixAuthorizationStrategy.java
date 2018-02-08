@@ -72,7 +72,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
     }
 
     /**
-     * Added because of <a href="https://github.com/jenkinsci/configuration-as-code-plugin"/>Configuration as Code plugin</a>
+     * Added because of <a href="https://github.com/jenkinsci/configuration-as-code-plugin">Configuration as Code plugin</a>
      * We can use this constructor to pre-populate a Jenkins instance with a configured permission matrix.
      * @since TODO
      * @param grantedPermissions A map of permission to be granted.
