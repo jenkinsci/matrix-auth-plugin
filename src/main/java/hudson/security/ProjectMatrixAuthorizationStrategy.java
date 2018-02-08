@@ -54,8 +54,14 @@ import java.util.TreeSet;
  */
 public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizationStrategy {
 
-    public ProjectMatrixAuthorizationStrategy() { }
+    /**
+     * {@inheritDoc}
+     */
+    public ProjectMatrixAuthorizationStrategy() { super(); }
 
+    /**
+     * {@inheritDoc}
+     */
     public ProjectMatrixAuthorizationStrategy(Map<Permission,Set<String>> grantedPermissions) {
         super(grantedPermissions);
     }

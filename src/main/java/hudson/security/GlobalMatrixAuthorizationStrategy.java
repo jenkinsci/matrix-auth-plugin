@@ -64,10 +64,19 @@ import javax.annotation.Nonnull;
 public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy implements AuthorizationContainer {
     private final transient SidACL acl = new AclImpl();
 
+    /**
+     * @since TODO
+     */
     public GlobalMatrixAuthorizationStrategy() {
          this.grantedPermissions = new HashMap<>();
     }
 
+    /**
+     * Added because of <a href="https://github.com/jenkinsci/configuration-as-code-plugin"/>Configuration as Code plugin</a>
+     * We can use this constructor to pre-populate a Jenkins instance with a configured permission matrix.
+     * @since TODO
+     * @param grantedPermissions A map of permission to be granted.
+     */
     public GlobalMatrixAuthorizationStrategy(Map<Permission,Set<String>> grantedPermissions) {
         this.grantedPermissions = new HashMap<>(grantedPermissions);
     }
