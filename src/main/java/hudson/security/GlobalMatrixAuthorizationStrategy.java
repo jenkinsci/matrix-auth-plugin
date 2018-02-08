@@ -64,13 +64,21 @@ import javax.annotation.Nonnull;
 public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy implements AuthorizationContainer {
     private final transient SidACL acl = new AclImpl();
 
+    public GlobalMatrixAuthorizationStrategy() {
+         this.grantedPermissions = new HashMap<>();
+    }
+
+    public GlobalMatrixAuthorizationStrategy(Map<Permission,Set<String>> grantedPermissions) {
+        this.grantedPermissions = new HashMap<>(grantedPermissions);
+    }
+
     /**
      * List up all permissions that are granted.
      *
      * Strings are either the granted authority or the principal,
      * which is not distinguished.
      */
-    private final Map<Permission,Set<String>> grantedPermissions = new HashMap<>();
+    private final Map<Permission,Set<String>> grantedPermissions;
 
     /**
      * List of permissions considered dangerous to grant to non-admin users

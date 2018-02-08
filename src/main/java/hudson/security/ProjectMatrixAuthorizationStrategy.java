@@ -40,6 +40,7 @@ import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -52,6 +53,13 @@ import java.util.TreeSet;
  * @author Kohsuke Kawaguchi
  */
 public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizationStrategy {
+
+    public ProjectMatrixAuthorizationStrategy() { }
+
+    public ProjectMatrixAuthorizationStrategy(Map<Permission,Set<String>> grantedPermissions) {
+        super(grantedPermissions);
+    }
+
     @Override
     @Nonnull
     public ACL getACL(@Nonnull Job<?,?> project) {
