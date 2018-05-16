@@ -60,6 +60,13 @@
             <version>1.6</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.jenkins</groupId>
+            <artifactId>configuration-as-code</artifactId>
+            <version>1.0-20180516.160229-4</version>
+            <optional>true</optional>
+        </dependency>
+        
     </dependencies>
     <repositories>
         <repository>
