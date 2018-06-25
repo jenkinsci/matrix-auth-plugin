@@ -100,7 +100,9 @@ THE SOFTWARE.
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
               <th class="pane" tooltip="${descriptor.getDescription(p)}">
-                ${p.name}
+                <span>
+                  ${p.name}
+                </span>
               </th>
             </j:if>
           </j:forEach>
