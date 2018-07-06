@@ -132,9 +132,7 @@ THE SOFTWARE.
     </table>
     <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
      <tr><td colspan="3">
-      ${%User/group to add}:
-      <input type="text" id="${id}text" />
-      <input type="button" value="${%Add}" id="${id}button"/>
+      <input type="button" value="${%Add user or group…}" id="${id}button"/>
      </td><td align="right">
       <a href="#" class="help-button" helpURL="${rootURL}${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"><img src="${imagesURL}/16x16/help.png" alt="[help]" height="16" width="16"/></a>
      </td></tr>
@@ -149,7 +147,10 @@ THE SOFTWARE.
       
         makeButton($$('${id}button'), function (e) {
           <!-- when 'add' is clicked... -->
-          var name = $$('${id}text').value;
+          var name = prompt("${%User or group name:}");
+          if (name == null) {
+            return;
+          }
           if(name=="") {
             alert("Please enter a user name or a group name");
             return;
