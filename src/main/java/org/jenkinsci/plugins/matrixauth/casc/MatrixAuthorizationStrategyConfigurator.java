@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.matrixauth.casc;
 
+import hudson.security.AuthorizationStrategy;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import org.jenkinsci.plugins.casc.Attribute;
@@ -8,6 +9,7 @@ import org.jenkinsci.plugins.casc.MultivaluedAttribute;
 import org.jenkinsci.plugins.casc.util.PermissionFinder;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 
+import javax.annotation.CheckForNull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -17,6 +19,13 @@ import java.util.stream.Collectors;
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
 public abstract class MatrixAuthorizationStrategyConfigurator<T> extends BaseConfigurator<T> {
+
+    @CheckForNull
+    @Override
+    public Class getExtensionPoint() {
+        return AuthorizationStrategy.class;
+    }
+
 
     @Override
     public Set<Attribute> describe() {
