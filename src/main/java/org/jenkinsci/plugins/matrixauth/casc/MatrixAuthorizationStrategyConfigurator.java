@@ -5,7 +5,7 @@ import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import org.jenkinsci.plugins.casc.Attribute;
 import org.jenkinsci.plugins.casc.BaseConfigurator;
-import org.jenkinsci.plugins.casc.MultivaluedAttribute;
+import org.jenkinsci.plugins.casc.impl.attributes.MultivaluedAttribute;
 import org.jenkinsci.plugins.casc.util.PermissionFinder;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 
