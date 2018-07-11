@@ -1,11 +1,7 @@
 package org.jenkinsci.plugins.matrixauth.casc;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
-import hudson.security.Permission;
-import org.jenkinsci.plugins.casc.Attribute;
-import org.jenkinsci.plugins.casc.Configurator;
 import org.jenkinsci.plugins.casc.ConfiguratorException;
 import org.jenkinsci.plugins.casc.model.CNode;
 import org.jenkinsci.plugins.casc.model.Mapping;
@@ -13,20 +9,14 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.CheckForNull;
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Mads Nielsen
  * @since TODO
  */
-@Extension(optional = true)
+@Extension(optional = true, ordinal = 1)
 @Restricted(NoExternalUse.class)
-public class GlobalMatrixAuthorizationStrategyConfigurator extends Configurator<GlobalMatrixAuthorizationStrategy> {
+public class GlobalMatrixAuthorizationStrategyConfigurator extends MatrixAuthorizationStrategyConfigurator<GlobalMatrixAuthorizationStrategy> {
 
     @Override
     public String getName() {
@@ -38,40 +28,13 @@ public class GlobalMatrixAuthorizationStrategyConfigurator extends Configurator<
         return GlobalMatrixAuthorizationStrategy.class;
     }
 
-    @Override
-    @SuppressFBWarnings(value = "DM_NEW_FOR_GETCLASS", justification = "We need a fully qualified type to do proper attribute binding")
-    public Set<Attribute> describe() {
-        return Collections.singleton(new Attribute<GlobalMatrixAuthorizationStrategy, GroupPermissionDefinition>("grantedPermissions", new HashSet<GroupPermissionDefinition>().getClass()));
-    }
-
-    @Override
-    public GlobalMatrixAuthorizationStrategy configure(CNode config) throws ConfiguratorException {
-        Mapping map = config.asMapping();
-        Configurator<GroupPermissionDefinition> permissionConfigurator = Configurator.lookupOrFail(GroupPermissionDefinition.class);
-        Map<Permission,Set<String>> grantedPermissions = new HashMap<>();
-        for (CNode entry : map.get("grantedPermissions").asSequence()) {
-            GroupPermissionDefinition gpd = permissionConfigurator.configure(entry);
-            //We transform the linear list to a matrix (Where permission is the key instead)
-            gpd.grantPermission(grantedPermissions);
-        }
-
-        //TODO: Once change is in place for GlobalMatrixAuthentication. Switch away from reflection
-        GlobalMatrixAuthorizationStrategy gms = new GlobalMatrixAuthorizationStrategy();
-        try {
-            Field f = gms.getClass().getDeclaredField("grantedPermissions");
-            f.setAccessible(true);
-            f.set(gms, grantedPermissions);
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-            throw new ConfiguratorException(this, "Cannot set GlobalMatrixAuthorizationStrategy#grantedPermissions via reflection", ex);
-        }
-        return gms;
+    public GlobalMatrixAuthorizationStrategy instance(Mapping mapping) throws ConfiguratorException {
+        return new GlobalMatrixAuthorizationStrategy();
     }
 
     @CheckForNull
     @Override
-    public CNode describe(GlobalMatrixAuthorizationStrategy instance) {
-        // FIXME
-        return null;
+    public CNode describe(GlobalMatrixAuthorizationStrategy instance) throws Exception {
+        return compare(instance, new GlobalMatrixAuthorizationStrategy());
     }
-
 }
