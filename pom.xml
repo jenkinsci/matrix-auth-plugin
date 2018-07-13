@@ -16,6 +16,8 @@
         <changelist>-SNAPSHOT</changelist>
         <jenkins.version>2.60.1</jenkins.version>
         <java.level>8</java.level>
+        <!-- Use completionGoals until https://github.com/jenkinsci/plugin-pom/pull/117 is merged -->
+        <completionGoals>incrementals:reincrementalify</completionGoals>
     </properties>
     <licenses>
         <license>
