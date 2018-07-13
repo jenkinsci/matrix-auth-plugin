@@ -5,7 +5,7 @@ import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.casc.ConfigurationAsCode;
 import org.jenkinsci.plugins.casc.Configurator;
-import org.jenkinsci.plugins.casc.integrations.projectmatriaxauth.ProjectMatrixAuthorizationStrategyConfigurator;
+import org.jenkinsci.plugins.matrixauth.casc.ProjectMatrixAuthorizationStrategyConfigurator;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
