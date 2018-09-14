@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 import javax.annotation.CheckForNull;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,8 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
      */
     static Collection<String> getGrantedPermissions(AuthorizationContainer container) {
         return container.getGrantedPermissions().entrySet().stream()
-                .flatMap( e -> e.getValue().stream().map(v -> e.getKey()+":"+v))
+                .flatMap( e -> e.getValue().stream()
+                        .map(v -> e.getKey().group.title.toString(Locale.US)+"/"+e.getKey().name+":"+v))
                 .collect(Collectors.toList());
     }
 
