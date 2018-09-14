@@ -1,12 +1,11 @@
 package org.jenkinsci.plugins.matrixauth.casc;
 
 import hudson.security.AuthorizationStrategy;
-import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
-import org.jenkinsci.plugins.casc.Attribute;
-import org.jenkinsci.plugins.casc.BaseConfigurator;
-import org.jenkinsci.plugins.casc.impl.attributes.MultivaluedAttribute;
-import org.jenkinsci.plugins.casc.util.PermissionFinder;
+import io.jenkins.plugins.casc.Attribute;
+import io.jenkins.plugins.casc.BaseConfigurator;
+import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
+import io.jenkins.plugins.casc.util.PermissionFinder;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 
 import javax.annotation.CheckForNull;
@@ -18,19 +17,19 @@ import java.util.stream.Collectors;
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
-public abstract class MatrixAuthorizationStrategyConfigurator<T> extends BaseConfigurator<T> {
+public abstract class MatrixAuthorizationStrategyConfigurator<T extends AuthorizationContainer> extends BaseConfigurator<T> {
 
     @CheckForNull
     @Override
-    public Class getExtensionPoint() {
+    public Class getImplementedAPI() {
         return AuthorizationStrategy.class;
     }
 
 
     @Override
-    public Set<Attribute> describe() {
+    public Set<Attribute<T, ?>> describe() {
         return Collections.singleton(
-                new MultivaluedAttribute<GlobalMatrixAuthorizationStrategy, String>("grantedPermissions", String.class)
+                new MultivaluedAttribute<T, String>("grantedPermissions", String.class)
                         .getter(MatrixAuthorizationStrategyConfigurator::getGrantedPermissions)
                         .setter(MatrixAuthorizationStrategyConfigurator::setGrantedPermissions)
         );

@@ -2,9 +2,10 @@ package org.jenkinsci.plugins.matrixauth.casc;
 
 import hudson.Extension;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
-import org.jenkinsci.plugins.casc.ConfiguratorException;
-import org.jenkinsci.plugins.casc.model.CNode;
-import org.jenkinsci.plugins.casc.model.Mapping;
+import io.jenkins.plugins.casc.ConfigurationContext;
+import io.jenkins.plugins.casc.ConfiguratorException;
+import io.jenkins.plugins.casc.model.CNode;
+import io.jenkins.plugins.casc.model.Mapping;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -14,7 +15,7 @@ import javax.annotation.CheckForNull;
  * @author Mads Nielsen
  * @since TODO
  */
-@Extension(optional = true, ordinal = 1)
+@Extension(optional = true)
 @Restricted(NoExternalUse.class)
 public class GlobalMatrixAuthorizationStrategyConfigurator extends MatrixAuthorizationStrategyConfigurator<GlobalMatrixAuthorizationStrategy> {
 
@@ -28,13 +29,14 @@ public class GlobalMatrixAuthorizationStrategyConfigurator extends MatrixAuthori
         return GlobalMatrixAuthorizationStrategy.class;
     }
 
-    public GlobalMatrixAuthorizationStrategy instance(Mapping mapping) throws ConfiguratorException {
+    @Override
+    public GlobalMatrixAuthorizationStrategy instance(Mapping mapping, ConfigurationContext context) {
         return new GlobalMatrixAuthorizationStrategy();
     }
 
     @CheckForNull
     @Override
-    public CNode describe(GlobalMatrixAuthorizationStrategy instance) throws Exception {
-        return compare(instance, new GlobalMatrixAuthorizationStrategy());
+    public CNode describe(GlobalMatrixAuthorizationStrategy instance, ConfigurationContext context) throws Exception {
+        return compare(instance, new GlobalMatrixAuthorizationStrategy(), context);
     }
 }
