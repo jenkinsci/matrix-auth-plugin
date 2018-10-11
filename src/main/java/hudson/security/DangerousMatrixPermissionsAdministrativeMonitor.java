@@ -28,7 +28,7 @@ import hudson.model.AdministrativeMonitor;
 import hudson.util.HttpResponses;
 import jenkins.model.Jenkins;
 import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.DoNotUse;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -44,7 +44,7 @@ import java.util.List;
  * See also https://jenkins.io/security/advisory/2017-04-10/#matrix-authorization-strategy-plugin-allowed-configuring-dangerous-permissions
  */
 @Extension
-@Restricted(DoNotUse.class)
+@Restricted(NoExternalUse.class)
 public class DangerousMatrixPermissionsAdministrativeMonitor extends AdministrativeMonitor {
     @Override
     public boolean isActivated() {
