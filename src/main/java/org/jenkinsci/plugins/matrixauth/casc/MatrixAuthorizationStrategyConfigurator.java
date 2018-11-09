@@ -22,7 +22,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
 
     @Nonnull
     @Override
-    public Class getImplementedAPI() {
+    public Class<?> getImplementedAPI() {
         return AuthorizationStrategy.class;
     }
 
