@@ -3,19 +3,20 @@ package org.jenkinsci.plugins.matrixauth.casc;
 import hudson.Extension;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import io.jenkins.plugins.casc.ConfigurationContext;
-import io.jenkins.plugins.casc.ConfiguratorException;
 import io.jenkins.plugins.casc.model.CNode;
 import io.jenkins.plugins.casc.model.Mapping;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 @Extension(optional = true)
 @Restricted(NoExternalUse.class)
 public class ProjectMatrixAuthorizationStrategyConfigurator extends MatrixAuthorizationStrategyConfigurator<ProjectMatrixAuthorizationStrategy> {
 
     @Override
+    @Nonnull
     public String getName() {
         return "projectMatrix";
     }

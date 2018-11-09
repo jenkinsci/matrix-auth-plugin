@@ -3,23 +3,20 @@ package org.jenkinsci.plugins.matrixauth.casc;
 import hudson.Extension;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import io.jenkins.plugins.casc.ConfigurationContext;
-import io.jenkins.plugins.casc.ConfiguratorException;
 import io.jenkins.plugins.casc.model.CNode;
 import io.jenkins.plugins.casc.model.Mapping;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
-/**
- * @author Mads Nielsen
- * @since TODO
- */
 @Extension(optional = true)
 @Restricted(NoExternalUse.class)
 public class GlobalMatrixAuthorizationStrategyConfigurator extends MatrixAuthorizationStrategyConfigurator<GlobalMatrixAuthorizationStrategy> {
 
     @Override
+    @Nonnull
     public String getName() {
         return "globalMatrix";
     }

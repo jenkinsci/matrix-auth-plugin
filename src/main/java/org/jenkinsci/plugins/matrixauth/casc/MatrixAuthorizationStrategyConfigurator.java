@@ -10,20 +10,17 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
- */
 @Restricted(NoExternalUse.class)
 public abstract class MatrixAuthorizationStrategyConfigurator<T extends AuthorizationContainer> extends BaseConfigurator<T> {
 
-    @CheckForNull
+    @Nonnull
     @Override
     public Class getImplementedAPI() {
         return AuthorizationStrategy.class;
@@ -31,6 +28,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
 
 
     @Override
+    @Nonnull
     public Set<Attribute<T, ?>> describe() {
         return Collections.singleton(
                 new MultivaluedAttribute<T, String>("grantedPermissions", String.class)
@@ -42,7 +40,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     /**
      * Extract container's permissions as a List of "PERMISSION:sid"
      */
-    static Collection<String> getGrantedPermissions(AuthorizationContainer container) {
+    private static Collection<String> getGrantedPermissions(AuthorizationContainer container) {
         return container.getGrantedPermissions().entrySet().stream()
                 .flatMap( e -> e.getValue().stream()
                         .map(v -> e.getKey().group.title.toString(Locale.US)+"/"+e.getKey().name+":"+v))
@@ -51,10 +49,8 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
 
     /**
      * Configure container's permissions from a List of "PERMISSION:sid"
-     * @param container
-     * @param permissions
      */
-    static void setGrantedPermissions(AuthorizationContainer container, Collection<String> permissions) {
+    private static void setGrantedPermissions(AuthorizationContainer container, Collection<String> permissions) {
         permissions.forEach(p -> {
             final int i = p.indexOf(':');
             final Permission permission = PermissionFinder.findPermission(p.substring(0, i));
