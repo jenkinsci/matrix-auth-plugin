@@ -3,17 +3,20 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.17</version>
+        <version>3.25</version>
     </parent>
     <artifactId>matrix-auth</artifactId>
-    <version>2.4-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <name>Matrix Authorization Strategy Plugin</name>
     <description>Offers matrix-based security authorization strategies (global and per-project).</description>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Matrix+Authorization+Strategy+Plugin</url>
     <properties>
+        <revision>2.4</revision>
+        <changelist>-SNAPSHOT</changelist>
         <jenkins.version>2.60.3</jenkins.version>
         <java.level>8</java.level>
+        <workflow-cps.version>2.30</workflow-cps.version>
     </properties>
     <licenses>
         <license>
@@ -25,7 +28,7 @@
         <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-      <tag>HEAD</tag>
+      <tag>${scmTag}</tag>
   </scm>
     <dependencies>
         <dependency>
@@ -43,7 +46,13 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
-            <version>2.30</version>
+            <version>${workflow-cps.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-cps</artifactId>
+            <version>${workflow-cps.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
