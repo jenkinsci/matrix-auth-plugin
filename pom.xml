@@ -14,7 +14,6 @@
     <properties>
         <jenkins.version>2.60.3</jenkins.version>
         <java.level>8</java.level>
-        <useBeta>true</useBeta>
     </properties>
     <licenses>
         <license>
@@ -64,7 +63,7 @@
         <dependency>
             <groupId>io.jenkins</groupId>
             <artifactId>configuration-as-code</artifactId>
-            <version>1.0</version>
+            <version>1.2</version>
             <optional>true</optional>
         </dependency>
         
