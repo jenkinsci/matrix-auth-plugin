@@ -1,1 +1,11 @@
 Please remove the login page for the Google oAuth. 
+
+Everytime, session times out if user tries to click on something, 404 not found error is thrown. At that time user should goto Jenkins root url and then navigate back to the job they want to access.
+This becomes annoying at times.
+
+Also, if we have a webhook or say slack notifications for the Job, clicking on the link doesn't work. It throws 404 error and once user authenticates, then that link works.
+This is also not a good use case when user can authenticate via Google oAuth, then why do they have to visit the Login page?
+
+Is there a way to skip this?
+
+I KNOW THIS IS NOT THE PLACE TO GIVE SUGGESTION. PLEASE POINT ME TO ONE IF EXISTS. PLEASE REJECT THE PR.
