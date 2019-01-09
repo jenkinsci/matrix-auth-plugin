@@ -21,7 +21,7 @@ public class AuthorizationContainerDescriptorTest {
     @Rule
     public JenkinsRule r = new JenkinsRule(); // Needed to check the jenkins version
 
-    private Permission FAKE = new Permission(Item.PERMISSIONS, "Fake", new TestLocalizable(), Item.BUILD, PermissionScope.ITEM);
+    private Permission TEST_PERMISSION = new Permission(Item.PERMISSIONS, "Test", new Localizable(new ResourceBundleHolder(AuthorizationContainerDescriptorTest.class), "Test"), Item.BUILD, PermissionScope.ITEM);
 
     @Test
     public void testImpliedNotes() {
@@ -44,32 +44,10 @@ public class AuthorizationContainerDescriptorTest {
         }
 
         {
-            String description = new GlobalMatrixAuthorizationStrategy.DescriptorImpl().getDescription(FAKE);
+            // Use a fake permission for the 'implied by' message addition check, since Item.CANCEL changed behavior in 2.120.
+            String description = new GlobalMatrixAuthorizationStrategy.DescriptorImpl().getDescription(TEST_PERMISSION);
             Assert.assertFalse(description.contains(Messages.GlobalMatrixAuthorizationStrategy_PermissionNotImpliedBy()));
             Assert.assertTrue(description.contains(Messages.GlobalMatrixAuthorizationStrategy_PermissionImpliedBy(Item.PERMISSIONS.title.toString(), Item.BUILD.name)));
-        }
-    }
-
-    private static class TestLocalizable extends Localizable {
-        private static final String MSG = "This permission has been created for this test class";
-
-        public TestLocalizable() {
-            super(null, "key", new Object[0]);
-        }
-
-        @Override
-        public String getKey() {
-            return "key";
-        }
-
-        @Override
-        public String toString(Locale locale) {
-            return MSG;
-        }
-
-        @Override
-        public String toString() {
-            return MSG;
         }
     }
 }
