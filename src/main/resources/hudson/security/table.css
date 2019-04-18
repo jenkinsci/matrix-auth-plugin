@@ -56,8 +56,8 @@
 }
 
 .global-matrix-authorization-strategy-table TD.stop {
-  border-top: 1px solid white;
-  border-right: 1px solid white;
-  border-bottom: 1px solid white;
+  border-top: 1px solid transparent;
+  border-right: 1px solid transparent;
+  border-bottom: 1px solid transparent;
   white-space: nowrap;
 }
