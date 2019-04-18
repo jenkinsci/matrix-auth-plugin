@@ -3,11 +3,23 @@ package org.jenkinsci.plugins.matrixauth;
 import hudson.model.Item;
 import hudson.model.Run;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
+import hudson.security.Permission;
+import hudson.security.PermissionScope;
+import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.localizer.Localizable;
+import org.jvnet.localizer.ResourceBundleHolder;
+
+import java.util.Locale;
 
 public class AuthorizationContainerDescriptorTest {
+
+    private Permission TEST_PERMISSION = new Permission(Item.PERMISSIONS, "Test", new Localizable(new ResourceBundleHolder(AuthorizationContainerDescriptorTest.class), "Test"), Item.BUILD, PermissionScope.ITEM);
+
     @Test
     public void testImpliedNotes() {
         { // no message on Administer
@@ -22,8 +34,9 @@ public class AuthorizationContainerDescriptorTest {
             Assert.assertFalse(description.contains(Messages.GlobalMatrixAuthorizationStrategy_PermissionImpliedBy(Jenkins.PERMISSIONS.title.toString(), Jenkins.ADMINISTER.name)));
         }
 
-        { // Item.CANCEL is implied by Item.BUILD (at least up to core 2.111)
-            String description = new GlobalMatrixAuthorizationStrategy.DescriptorImpl().getDescription(Item.CANCEL);
+        {
+            // Use a fake permission for the 'implied by' message addition check, since Item.CANCEL changed behavior in 2.120, and there's no permission left with the same behavior.
+            String description = new GlobalMatrixAuthorizationStrategy.DescriptorImpl().getDescription(TEST_PERMISSION);
             Assert.assertFalse(description.contains(Messages.GlobalMatrixAuthorizationStrategy_PermissionNotImpliedBy()));
             Assert.assertTrue(description.contains(Messages.GlobalMatrixAuthorizationStrategy_PermissionImpliedBy(Item.PERMISSIONS.title.toString(), Item.BUILD.name)));
         }
