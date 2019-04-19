@@ -72,7 +72,7 @@
         <dependency>
             <groupId>io.jenkins</groupId>
             <artifactId>configuration-as-code</artifactId>
-            <version>1.11</version>
+            <version>1.12-rc753.3437a3dc870c</version>
             <optional>true</optional>
         </dependency>
         
