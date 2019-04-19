@@ -40,7 +40,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     /**
      * Extract container's permissions as a List of "PERMISSION:sid"
      */
-    private static Collection<String> getGrantedPermissions(AuthorizationContainer container) {
+    public static Collection<String> getGrantedPermissions(AuthorizationContainer container) {
         return container.getGrantedPermissions().entrySet().stream()
                 .flatMap( e -> e.getValue().stream()
                         .map(v -> e.getKey().group.title.toString(Locale.US)+"/"+e.getKey().name+":"+v))
@@ -50,7 +50,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     /**
      * Configure container's permissions from a List of "PERMISSION:sid"
      */
-    private static void setGrantedPermissions(AuthorizationContainer container, Collection<String> permissions) {
+    public static void setGrantedPermissions(AuthorizationContainer container, Collection<String> permissions) {
         permissions.forEach(p -> {
             final int i = p.indexOf(':');
             final Permission permission = PermissionFinder.findPermission(p.substring(0, i));

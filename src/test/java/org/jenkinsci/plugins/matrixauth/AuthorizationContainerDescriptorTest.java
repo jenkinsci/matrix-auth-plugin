@@ -5,20 +5,15 @@ import hudson.model.Run;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
-import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.localizer.Localizable;
 import org.jvnet.localizer.ResourceBundleHolder;
 
-import java.util.Locale;
-
 public class AuthorizationContainerDescriptorTest {
 
-    private Permission TEST_PERMISSION = new Permission(Item.PERMISSIONS, "Test", new Localizable(new ResourceBundleHolder(AuthorizationContainerDescriptorTest.class), "Test"), Item.BUILD, PermissionScope.ITEM);
+    private Permission TEST_PERMISSION = new Permission(Item.PERMISSIONS, "Test", new Localizable(ResourceBundleHolder.get(AuthorizationContainerDescriptorTest.class), "Test"), Item.BUILD, PermissionScope.ITEM);
 
     @Test
     public void testImpliedNotes() {

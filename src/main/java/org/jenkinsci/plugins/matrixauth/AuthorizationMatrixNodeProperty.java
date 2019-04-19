@@ -36,6 +36,13 @@ import hudson.security.SidACL;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.FormValidation;
+import io.jenkins.plugins.casc.Attribute;
+import io.jenkins.plugins.casc.BaseConfigurator;
+import io.jenkins.plugins.casc.ConfigurationContext;
+import io.jenkins.plugins.casc.ConfiguratorException;
+import io.jenkins.plugins.casc.impl.attributes.DescribableAttribute;
+import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
+import io.jenkins.plugins.casc.model.Mapping;
 import jenkins.model.Jenkins;
 import jenkins.model.NodeListener;
 import net.sf.json.JSONObject;
@@ -44,6 +51,7 @@ import org.acegisecurity.acls.sid.Sid;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.jenkinsci.plugins.matrixauth.casc.MatrixAuthorizationStrategyConfigurator;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
@@ -53,6 +61,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -228,6 +237,32 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
                     }
                 }
             }
+        }
+    }
+
+    @Extension(optional = true)
+    @Restricted(NoExternalUse.class)
+    public static class Configurator extends BaseConfigurator<AuthorizationMatrixNodeProperty> {
+
+        @Override
+        public Class<AuthorizationMatrixNodeProperty> getTarget() {
+            return AuthorizationMatrixNodeProperty.class;
+        }
+
+        @Override
+        protected AuthorizationMatrixNodeProperty instance(Mapping mapping, ConfigurationContext context)
+                throws ConfiguratorException {
+            return new AuthorizationMatrixNodeProperty();
+        }
+
+        @Override
+        @Nonnull
+        public Set<Attribute<AuthorizationMatrixNodeProperty, ?>> describe() {
+            return new HashSet<>(Arrays.asList(
+                    new MultivaluedAttribute<AuthorizationMatrixNodeProperty, String>("permissions", String.class)
+                            .getter(MatrixAuthorizationStrategyConfigurator::getGrantedPermissions)
+                            .setter(MatrixAuthorizationStrategyConfigurator::setGrantedPermissions),
+                    new DescribableAttribute<AuthorizationMatrixNodeProperty, InheritanceStrategy>("inheritanceStrategy", InheritanceStrategy.class)));
         }
     }
 
