@@ -66,7 +66,7 @@
             <!-- requireUpperBoundDeps -->
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>structs</artifactId>
-            <version>1.7</version>
+            <version>1.13</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -74,6 +74,13 @@
             <artifactId>configuration-as-code</artifactId>
             <version>1.12-rc753.3437a3dc870c</version>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.jenkins.configuration-as-code</groupId>
+            <artifactId>configuration-as-code-support</artifactId>
+            <version>1.12-rc753.3437a3dc870c</version>
+            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
         
     </dependencies>

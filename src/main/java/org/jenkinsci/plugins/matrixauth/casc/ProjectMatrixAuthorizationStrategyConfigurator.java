@@ -11,7 +11,7 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-@Extension(optional = true)
+@Extension(optional = true, ordinal = 2)
 @Restricted(NoExternalUse.class)
 public class ProjectMatrixAuthorizationStrategyConfigurator extends MatrixAuthorizationStrategyConfigurator<ProjectMatrixAuthorizationStrategy> {
 
