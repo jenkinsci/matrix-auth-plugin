@@ -1,0 +1,73 @@
+jenkins:
+  authorizationStrategy:
+    projectMatrix:
+      grantedPermissions:
+      - "Agent/Build:authenticated"
+      - "Agent/Configure:authenticated"
+      - "Agent/Connect:authenticated"
+      - "Agent/Create:authenticated"
+      - "Agent/Delete:authenticated"
+      - "Agent/Disconnect:authenticated"
+      - "Credentials/Create:authenticated"
+      - "Credentials/Delete:authenticated"
+      - "Credentials/ManageDomains:authenticated"
+      - "Credentials/Update:authenticated"
+      - "Credentials/View:authenticated"
+      - "Job/Build:authenticated"
+      - "Job/Cancel:authenticated"
+      - "Job/Configure:authenticated"
+      - "Job/Create:authenticated"
+      - "Job/Delete:authenticated"
+      - "Job/Discover:authenticated"
+      - "Job/Move:authenticated"
+      - "Job/Read:authenticated"
+      - "Job/Workspace:authenticated"
+      - "Overall/Read:anonymous"
+      - "Overall/Administer:authenticated"
+      - "Overall/Read:authenticated"
+      - "Run/Delete:authenticated"
+      - "Run/Replay:authenticated"
+      - "Run/Update:authenticated"
+      - "View/Configure:authenticated"
+      - "View/Create:authenticated"
+      - "View/Delete:authenticated"
+      - "View/Read:authenticated"
+  nodes:
+  - permanent:
+      launcher:
+        jnlp:
+          workDirSettings:
+            disabled: false
+            failIfWorkDirIsMissing: false
+            internalDir: "remoting"
+      name: "agent1"
+      nodeProperties:
+      - authorizationMatrix:
+          inheritanceStrategy: "inheritingGlobal"
+          permissions:
+          - "Agent/Disconnect:authenticated"
+          - "Agent/Build:authenticated"
+          - "Agent/Build:anonymous"
+      numExecutors: 1
+      retentionStrategy: "always"
+  securityRealm:
+    local:
+      allowsSignup: true
+      enableCaptcha: false
+jobs:
+- script: >
+    folder('generated') {
+      properties {
+        authorizationMatrix {
+          inheritanceStrategy {
+              nonInheriting()
+          }
+          permissions([
+              'Job/Build:authenticated',
+              'Job/Configure:authenticated',
+              'Job/Delete:authenticated',
+              'Job/Read:authenticated',
+          ])
+        }
+      }
+    }
