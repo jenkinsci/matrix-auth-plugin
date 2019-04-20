@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.matrixauth.casc;
+package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
 import hudson.security.AuthorizationStrategy;
 import hudson.security.Permission;
