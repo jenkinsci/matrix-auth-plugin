@@ -1,7 +1,0 @@
-jenkins:
-  authorizationStrategy:
-    projectMatrix:
-      grantedPermissions:
-        - "Overall/Read:anonymous"
-        - "Overall/Administer:authenticated"
-
