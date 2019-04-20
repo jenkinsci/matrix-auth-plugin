@@ -29,6 +29,7 @@ import hudson.security.Permission;
 import hudson.security.SecurityRealm;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.matrixauth.integrations.PermissionFinder;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -72,9 +73,15 @@ public interface AuthorizationContainer {
     @Restricted(NoExternalUse.class)
     default void add(String shortForm) {
         int idx = shortForm.indexOf(':');
-        Permission p = Permission.fromId(shortForm.substring(0, idx));
-        if (p==null)
-            throw new IllegalArgumentException("Failed to parse '"+shortForm+"' --- no such permission");
+        String permissionString = shortForm.substring(0, idx);
+        Permission p = Permission.fromId(permissionString);
+        if (p == null) {
+            // attempt to find the permission based on the 'nice' name, e.g. Overall/Administer
+            p = PermissionFinder.findPermission(permissionString);
+        }
+        if (p == null) {
+            throw new IllegalArgumentException("Failed to parse '" + shortForm + "' --- no such permission");
+        }
         String sid = shortForm.substring(idx + 1);
         if (!p.isContainedBy(((AuthorizationContainerDescriptor<?>) getDescriptor()).getPermissionScope())) {
             Logger.getLogger(AuthorizationContainer.class.getName()).log(Level.WARNING,

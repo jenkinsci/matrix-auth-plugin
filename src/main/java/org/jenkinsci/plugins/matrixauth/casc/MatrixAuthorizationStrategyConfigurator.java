@@ -5,8 +5,8 @@ import hudson.security.Permission;
 import io.jenkins.plugins.casc.Attribute;
 import io.jenkins.plugins.casc.BaseConfigurator;
 import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
-import io.jenkins.plugins.casc.util.PermissionFinder;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
+import org.jenkinsci.plugins.matrixauth.integrations.PermissionFinder;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
