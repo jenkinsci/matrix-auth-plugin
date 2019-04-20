@@ -50,6 +50,8 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.GET;
@@ -58,6 +60,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -98,6 +101,14 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         // do a deep copy to be safe
         for (Entry<Permission,? extends Set<String>> e : grantedPermissions.entrySet())
             this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
+    }
+
+    @DataBoundConstructor
+    @Restricted(NoExternalUse.class)
+    public AuthorizationMatrixProperty(List<String> permissions) {
+        for (String permission : permissions) {
+            add(permission);
+        }
     }
 
     @Restricted(NoExternalUse.class)
@@ -172,6 +183,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         return acl;
     }
 
+    @DataBoundSetter
     public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
         this.inheritanceStrategy = inheritanceStrategy;
     }
