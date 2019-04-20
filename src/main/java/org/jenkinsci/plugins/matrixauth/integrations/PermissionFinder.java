@@ -23,7 +23,6 @@
  */
 package org.jenkinsci.plugins.matrixauth.integrations;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.security.Permission;
 import hudson.security.PermissionGroup;
 import java.util.List;
@@ -32,6 +31,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+
+import javax.annotation.CheckForNull;
 
 
 /**
