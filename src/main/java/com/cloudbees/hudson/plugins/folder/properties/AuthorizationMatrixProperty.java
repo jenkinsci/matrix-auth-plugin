@@ -34,6 +34,7 @@ import hudson.model.User;
 import hudson.model.listeners.ItemListener;
 import hudson.security.AuthorizationStrategy;
 import jenkins.model.Jenkins;
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.matrixauth.AuthorizationPropertyDescriptor;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
@@ -103,7 +104,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
             this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
     }
 
-    @DataBoundConstructor
+    @DataBoundConstructor // JENKINS-49199: Used for job-dsl
     @Restricted(NoExternalUse.class)
     public AuthorizationMatrixProperty(List<String> permissions) {
         for (String permission : permissions) {
@@ -140,6 +141,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     @Extension(optional = true)
+    @Symbol("authorizationMatrix")
     public static class DescriptorImpl extends AbstractFolderPropertyDescriptor implements AuthorizationPropertyDescriptor<AuthorizationMatrixProperty> {
 
         @Override
