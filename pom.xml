@@ -9,15 +9,14 @@
     <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <name>Matrix Authorization Strategy Plugin</name>
-    <description>Offers matrix-based security authorization strategies (global and per-project).</description>
-    <url>http://wiki.jenkins-ci.org/display/JENKINS/Matrix+Authorization+Strategy+Plugin</url>
+    <url>https://wiki.jenkins-ci.org/display/JENKINS/Matrix+Authorization+Strategy+Plugin</url>
     <properties>
         <revision>2.4</revision>
         <changelist>-SNAPSHOT</changelist>
         <jenkins.version>2.138.3</jenkins.version>
         <java.level>8</java.level>
         <workflow-cps.version>2.30</workflow-cps.version>
-        <configuration-as-code.version>1.12-rc753.3437a3dc870c</configuration-as-code.version>
+        <configuration-as-code.version>1.12</configuration-as-code.version>
     </properties>
     <licenses>
         <license>
@@ -32,12 +31,21 @@
       <tag>${scmTag}</tag>
   </scm>
     <dependencies>
+        <!-- optional plugin dependencies -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>cloudbees-folder</artifactId>
             <version>6.1.0</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>io.jenkins</groupId>
+            <artifactId>configuration-as-code</artifactId>
+            <version>${configuration-as-code.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- test dependencies -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
@@ -69,12 +77,6 @@
             <artifactId>structs</artifactId>
             <version>1.13</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins</groupId>
-            <artifactId>configuration-as-code</artifactId>
-            <version>${configuration-as-code.version}</version>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.jenkins.configuration-as-code</groupId>
@@ -115,13 +117,13 @@
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
+            <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
+            <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
 
