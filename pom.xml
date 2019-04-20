@@ -95,6 +95,13 @@
             <artifactId>job-dsl</artifactId>
             <version>1.72</version>
             <scope>test</scope>
+            <exclusions>
+                <!-- needed for -Djenkins.version=2.164.1 -->
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <!-- requireUpperBounds -->
