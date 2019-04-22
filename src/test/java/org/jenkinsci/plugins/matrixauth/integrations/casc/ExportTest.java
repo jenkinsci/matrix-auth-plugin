@@ -13,11 +13,13 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.recipes.LocalData;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class ExportTest {
 
@@ -55,6 +57,16 @@ public class ExportTest {
             assertEquals("inheritance strategy", mapping.getScalarValue("inheritanceStrategy"), "inheritingGlobal");
             List<CNode> permissions = mapping.get("permissions").asSequence();
             assertEquals("list size", 6, permissions.size());
+
+            {
+                List<String> strings = Arrays.asList(
+                        "Agent/Build:anonymous", "Agent/Build:authenticated", "Agent/Configure:authenticated",
+                        "Agent/Connect:authenticated", "Agent/Delete:authenticated", "Agent/Disconnect:authenticated");
+                for (CNode entry : permissions) {
+                    String value = entry.asScalar().getValue();
+                    assertTrue("list contains entry", strings.contains(value));
+                }
+            }
         }
     }
 }
