@@ -72,12 +72,7 @@ public class PermissionFinder {
                 if(pg.owner.equals(Permission.class)) {
                     continue;
                 }
-
-                //TODO: Support PermissionGroupIDs (JENKINS-51598)
-                //How do we do this properly, we want to mimic the UI as best as possible. So the logic conclusion is
-                //That when you want admin to be Overall/Administer you put that in. Overall being the group title...
-                //Name being the Permission you want to set in the matrix.
-                if(pg.title.toString(Locale.US).equals(owner)) {
+                if(pg.getId().equals(owner)) {
                     return pg.owner.getName() + "." + name;
                 }
             }
