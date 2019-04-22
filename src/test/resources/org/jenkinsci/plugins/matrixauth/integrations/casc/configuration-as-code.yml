@@ -2,12 +2,12 @@ jenkins:
   authorizationStrategy:
     projectMatrix:
       permissions:
-      - "Agent/Build:authenticated"
-      - "Agent/Configure:authenticated"
-      - "Agent/Connect:authenticated"
-      - "Agent/Create:authenticated"
-      - "Agent/Delete:authenticated"
-      - "Agent/Disconnect:authenticated"
+      - "hudson.model.Computer.Build:authenticated"
+      - "hudson.model.Computer.Configure:authenticated"
+      - "hudson.model.Computer.Connect:authenticated"
+      - "hudson.model.Computer.Create:authenticated"
+      - "hudson.model.Computer.Delete:authenticated"
+      - "hudson.model.Computer.Disconnect:authenticated"
       - "Credentials/Create:authenticated"
       - "Credentials/Delete:authenticated"
       - "Credentials/ManageDomains:authenticated"

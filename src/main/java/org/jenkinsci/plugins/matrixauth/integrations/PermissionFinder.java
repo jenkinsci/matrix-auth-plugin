@@ -76,6 +76,8 @@ public class PermissionFinder {
                     return pg.owner.getName() + "." + name;
                 }
             }
+        } else {
+            return id; // assume this is an actual permission ID
         }
         return null;
     }

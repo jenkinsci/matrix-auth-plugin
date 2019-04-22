@@ -38,11 +38,20 @@ public class ImportTest {
         ProjectMatrixAuthorizationStrategy projectMatrixAuthorizationStrategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
         { // global
             assertEquals("one real user sid", 1, projectMatrixAuthorizationStrategy.getAllSIDs().size());
+
             assertTrue("anon can read", projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.READ));
+            assertFalse("anon can't do anything else", projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.ADMINISTER));
+            assertFalse("anon can't do anything else", projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Item.BUILD));
+            assertFalse("anon can't do anything else", projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Computer.BUILD));
+
             assertTrue("authenticated can read", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.READ));
             assertTrue("authenticated can build", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.BUILD));
             assertTrue("authenticated can delete jobs", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE));
             assertTrue("authenticated can administer", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER));
+            assertTrue("authenticated can do stuff with agents", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Computer.BUILD));
+            assertTrue("authenticated can do stuff with agents", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Computer.CONFIGURE));
+            assertTrue("authenticated can do stuff with agents", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Computer.CONNECT));
+            assertTrue("authenticated can do stuff with agents", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Computer.DELETE));
         }
         { // item from Job DSL
             Folder folder = (Folder) r.jenkins.getItem("generated");

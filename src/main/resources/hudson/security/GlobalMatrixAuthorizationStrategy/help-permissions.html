@@ -1,9 +1,15 @@
 <!-- This is used for Configuration-as-Code only, since this attribute does not exist in matrix-auth otherwise -->
 <div>
-    A list of strings with the following format: <code>"PermissionGroup/PermissionName:UserOrGroup"</code>.
-    Examples for list entries:
+    A list of strings in one of the following formats:
+    <ul>
+        <li><code>"PermissionGroup/PermissionName:UserOrGroup"</code> is the canonical format</li>.
+        <li><code>"fully.qualified.OwnerClassName.PermissionName:UserOrGroup"</code> is an alternate format compatible with on-disk setting storage</li>.
+    </ul>
+    Examples of list entries:
     <ul>
         <li><code>"Overall/Read:anonymous"</code></li>
         <li><code>"Job/Build:joe.chin"</code></li>
+        <li><code>"hudson.model.Hudson.Read:anonymous"</code></li>
+        <li><code>"hudson.model.Item.Build:joe.chin"</code></li>
     </ul>
 </div>
