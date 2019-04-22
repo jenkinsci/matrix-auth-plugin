@@ -219,7 +219,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     public static class ItemListenerImpl extends ItemListener {
         @Override
         public void onCreated(Item item) {
-            AuthorizationStrategy authorizationStrategy = Jenkins.getInstance().getAuthorizationStrategy();
+            AuthorizationStrategy authorizationStrategy = Jenkins.get().getAuthorizationStrategy();
             if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
                 ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
 

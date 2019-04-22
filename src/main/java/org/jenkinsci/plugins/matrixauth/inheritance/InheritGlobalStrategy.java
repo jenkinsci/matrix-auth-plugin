@@ -45,7 +45,7 @@ public class InheritGlobalStrategy extends InheritanceStrategy {
     
     @Override
     public ACL getEffectiveACL(ACL acl, AccessControlled subject) {
-        return ProjectMatrixAuthorizationStrategy.inheritingACL(Jenkins.getInstance().getAuthorizationStrategy().getRootACL(), acl);
+        return ProjectMatrixAuthorizationStrategy.inheritingACL(Jenkins.get().getAuthorizationStrategy().getRootACL(), acl);
     }
 
     @Symbol("inheritingGlobal")

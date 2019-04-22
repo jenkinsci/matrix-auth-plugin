@@ -200,7 +200,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) {
             // Computer isn't a DescriptorByNameOwner before Jenkins 2.78, and then @AncestorInPath doesn't work
             return doCheckName_(value,
-                    computer == null ? Jenkins.getInstance() : computer,
+                    computer == null ? Jenkins.get() : computer,
                     computer == null ? Jenkins.ADMINISTER : Computer.CONFIGURE);
         }
     }
@@ -214,7 +214,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     public static class NodeListenerImpl extends NodeListener {
         @Override
         protected void onCreated(@Nonnull Node node) {
-            AuthorizationStrategy authorizationStrategy = Jenkins.getInstance().getAuthorizationStrategy();
+            AuthorizationStrategy authorizationStrategy = Jenkins.get().getAuthorizationStrategy();
             if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
                 ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
 

@@ -47,7 +47,7 @@ public interface AuthorizationContainer {
 
     @Restricted(NoExternalUse.class)
     class IdStrategyComparator implements Comparator<String> {
-        private final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+        private final SecurityRealm securityRealm = Jenkins.get().getSecurityRealm();
         private final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         private final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
 
@@ -135,7 +135,7 @@ public interface AuthorizationContainer {
                 && GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p)) {
             return hasPermission(sid, Jenkins.ADMINISTER);
         }
-        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.get().getSecurityRealm();
         final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
         for (; p != null; p = p.impliedBy) {
@@ -166,7 +166,7 @@ public interface AuthorizationContainer {
                 && GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p)) {
             return hasPermission(sid, Jenkins.ADMINISTER, principal);
         }
-        final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+        final SecurityRealm securityRealm = Jenkins.get().getSecurityRealm();
         final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
         for (; p != null; p = p.impliedBy) {
             if (!p.getEnabled()) {
@@ -199,7 +199,7 @@ public interface AuthorizationContainer {
         if (set != null && p.getEnabled()) {
             if (set.contains(sid))
                 return true;
-            final SecurityRealm securityRealm = Jenkins.getInstance().getSecurityRealm();
+            final SecurityRealm securityRealm = Jenkins.get().getSecurityRealm();
             final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
             final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
             for (String s: set) {

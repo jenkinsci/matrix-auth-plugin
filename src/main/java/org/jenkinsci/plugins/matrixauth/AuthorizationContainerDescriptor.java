@@ -108,7 +108,7 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         }
 
         // if we grant any dangerous permission, show them all
-        AuthorizationStrategy strategy = Jenkins.getInstance().getAuthorizationStrategy();
+        AuthorizationStrategy strategy = Jenkins.get().getAuthorizationStrategy();
         if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
             GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = (GlobalMatrixAuthorizationStrategy) strategy;
             return globalMatrixAuthorizationStrategy.isAnyRelevantDangerousPermissionExplicitlyGranted();
@@ -128,7 +128,7 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
 
         if(!subject.hasPermission(permission))  return FormValidation.ok(ev); // can't check
 
-        SecurityRealm sr = Jenkins.getInstance().getSecurityRealm();
+        SecurityRealm sr = Jenkins.get().getSecurityRealm();
 
         if(v.equals("authenticated"))
             // system reserved group

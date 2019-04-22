@@ -33,7 +33,7 @@ import java.util.List;
 public abstract class InheritanceStrategyDescriptor extends Descriptor<InheritanceStrategy> {
 
     public static DescriptorExtensionList<InheritanceStrategy, InheritanceStrategyDescriptor> all() {
-        return Jenkins.getInstance().getDescriptorList(InheritanceStrategy.class);
+        return Jenkins.get().getDescriptorList(InheritanceStrategy.class);
     }
 
     public static List<InheritanceStrategyDescriptor> getApplicableDescriptors(Class<?> clazz) {

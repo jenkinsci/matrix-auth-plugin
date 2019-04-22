@@ -54,9 +54,9 @@ public class InheritParentStrategy extends InheritanceStrategy {
             ItemGroup<?> parent = item.getParent();
             final ACL parentACL;
             if (parent instanceof AbstractItem) {
-                parentACL = Jenkins.getInstance().getAuthorizationStrategy().getACL((AbstractItem) parent);
+                parentACL = Jenkins.get().getAuthorizationStrategy().getACL((AbstractItem) parent);
             } else {
-                parentACL = Jenkins.getInstance().getAuthorizationStrategy().getRootACL();
+                parentACL = Jenkins.get().getAuthorizationStrategy().getRootACL();
             }
             return ProjectMatrixAuthorizationStrategy.inheritingACL(parentACL, acl);
         } else {

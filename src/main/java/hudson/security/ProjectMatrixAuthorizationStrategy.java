@@ -97,7 +97,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     @Override
     @Nonnull
     public ACL getACL(@Nonnull AbstractItem item) {
-        if (Jenkins.getInstance().getPlugin("cloudbees-folder") != null) { // optional dependency
+        if (Jenkins.get().getPlugin("cloudbees-folder") != null) { // optional dependency
             if (item instanceof AbstractFolder) {
                 com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = ((AbstractFolder<?>) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
                 if (p != null) {
@@ -113,17 +113,17 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     public Set<String> getGroups() {
         Set<String> r = new TreeSet<>(new IdStrategyComparator());
         r.addAll(super.getGroups());
-        for (Job<?,?> j : Jenkins.getInstance().getAllItems(Job.class)) {
+        for (Job<?,?> j : Jenkins.get().getAllItems(Job.class)) {
             AuthorizationMatrixProperty jobProperty = j.getProperty(AuthorizationMatrixProperty.class);
             if (jobProperty != null)
                 r.addAll(jobProperty.getGroups());
         }
-        for (AbstractFolder<?> j : Jenkins.getInstance().getAllItems(AbstractFolder.class)) {
+        for (AbstractFolder<?> j : Jenkins.get().getAllItems(AbstractFolder.class)) {
             com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty = j.getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
             if (folderProperty != null)
                 r.addAll(folderProperty.getGroups());
         }
-        for (Node node : Jenkins.getInstance().getNodes()) {
+        for (Node node : Jenkins.get().getNodes()) {
             AuthorizationMatrixNodeProperty nodeProperty = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
             if (nodeProperty != null) {
                 r.addAll(nodeProperty.getGroups());

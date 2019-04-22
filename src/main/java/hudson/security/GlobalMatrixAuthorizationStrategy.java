@@ -219,7 +219,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
 
         @Restricted(NoExternalUse.class)
         public FormValidation doCheckName(@QueryParameter String value ) {
-            return doCheckName_(value, Jenkins.getInstance(), Jenkins.ADMINISTER);
+            return doCheckName_(value, Jenkins.get(), Jenkins.ADMINISTER);
         }
 
     }
@@ -231,7 +231,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
             if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
                 ((GlobalMatrixAuthorizationStrategy) strategy).add(perm, user.getId());
                 try {
-                    Jenkins.getInstance().save();
+                    Jenkins.get().save();
                 } catch (IOException ioe) {
                     LOGGER.log(Level.WARNING, "Failed to save Jenkins after adding permission for user: " + user.getId(), ioe);
                 }

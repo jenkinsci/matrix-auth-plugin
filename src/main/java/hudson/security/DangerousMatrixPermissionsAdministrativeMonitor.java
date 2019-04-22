@@ -60,7 +60,7 @@ public class DangerousMatrixPermissionsAdministrativeMonitor extends Administrat
     }
 
     public List<String> getSidsWithDangerousPermissions() {
-        Jenkins j = Jenkins.getInstance();
+        Jenkins j = Jenkins.get();
 
         if (!(j.getAuthorizationStrategy() instanceof GlobalMatrixAuthorizationStrategy)) {
             return Collections.emptyList();

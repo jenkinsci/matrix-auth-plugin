@@ -88,6 +88,6 @@ public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty
 
     default boolean isApplicable() {
         // only applicable when ProjectMatrixAuthorizationStrategy is in charge
-        return Jenkins.getInstance().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
+        return Jenkins.get().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy;
     }
 }

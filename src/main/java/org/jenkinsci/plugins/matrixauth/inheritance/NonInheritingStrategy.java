@@ -46,7 +46,7 @@ public class NonInheritingStrategy extends InheritanceStrategy {
 
     @Override
     public ACL getEffectiveACL(ACL acl, AccessControlled subject) {
-        final ACL rootACL = Jenkins.getInstance().getAuthorizationStrategy().getRootACL();
+        final ACL rootACL = Jenkins.get().getAuthorizationStrategy().getRootACL();
         return new ACL() {
             @Override
             public boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission) {
