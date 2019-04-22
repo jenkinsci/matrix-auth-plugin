@@ -68,7 +68,7 @@ public interface AuthorizationContainer {
 
     /**
      * Works like {@link #add(Permission, String)} but takes both parameters
-     * from a single string of the form <tt>PERMISSIONID:sid</tt>
+     * from a single string of the form <code>PERMISSIONID:sid</code>
      */
     @Restricted(NoExternalUse.class)
     default void add(String shortForm) {
