@@ -70,7 +70,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
      * Like {@link #setGrantedPermissions(AuthorizationContainer, Collection)} but logs a deprecation warning
      */
     public static void setGrantedPermissionsDeprecated(AuthorizationContainer container, Collection<String> permissions) {
-        LOGGER.log(Level.WARNING, "Loading deprecated attribute 'assignedPermissions' for instance of '" + container.getClass().getName() +"'. Use 'permissions' instead.");
+        LOGGER.log(Level.WARNING, "Loading deprecated attribute 'grantedPermissions' for instance of '" + container.getClass().getName() +"'. Use 'permissions' instead.");
         setGrantedPermissions(container, permissions);
     }
 
