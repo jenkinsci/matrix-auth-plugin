@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import org.jvnet.hudson.test.LoggerRule;
 
 import static org.junit.Assert.*;
 
@@ -22,6 +23,9 @@ public class ConfigurationAsCodeTest {
 
     @Rule
     public JenkinsConfiguredWithCodeRule r = new JenkinsConfiguredWithCodeRule();
+
+    @Rule
+    public LoggerRule l = new LoggerRule();
 
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
@@ -33,6 +37,10 @@ public class ConfigurationAsCodeTest {
         { // global
             assertEquals("one real user sid", 1, projectMatrixAuthorizationStrategy.getAllSIDs().size());
             assertTrue("anon can read", projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.READ));
+            assertTrue("authenticated can read", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.READ));
+            assertTrue("authenticated can build", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.BUILD));
+            assertTrue("authenticated can delete jobs", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE));
+            assertTrue("authenticated can administer", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER));
         }
         { // item from Job DSL
             Folder folder = (Folder) r.jenkins.getItem("generated");
@@ -50,6 +58,23 @@ public class ConfigurationAsCodeTest {
             assertTrue(property.hasExplicitPermission("anonymous", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.DISCONNECT));
+        }
+    }
+
+    @Test
+    @ConfiguredWithCode("legacy-format.yml")
+    public void legacyTest() throws Exception {
+        assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
+        AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
+        assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
+        ProjectMatrixAuthorizationStrategy projectMatrixAuthorizationStrategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
+        { // global
+            assertEquals("one real user sid", 1, projectMatrixAuthorizationStrategy.getAllSIDs().size());
+            assertTrue("anon can read", projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.READ));
+            assertTrue("authenticated can read", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.READ));
+            assertTrue("authenticated can build", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.BUILD));
+            assertTrue("authenticated can delete jobs", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE));
+            assertTrue("authenticated can administer", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER));
         }
     }
 }

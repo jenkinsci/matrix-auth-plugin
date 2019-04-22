@@ -1,7 +1,7 @@
 jenkins:
   authorizationStrategy:
     projectMatrix:
-      grantedPermissions:
+      permissions:
       - "Agent/Build:authenticated"
       - "Agent/Configure:authenticated"
       - "Agent/Connect:authenticated"

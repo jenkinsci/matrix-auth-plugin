@@ -11,10 +11,13 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Restricted(NoExternalUse.class)
@@ -30,11 +33,16 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     @Override
     @Nonnull
     public Set<Attribute<T, ?>> describe() {
-        return Collections.singleton(
-                new MultivaluedAttribute<T, String>("grantedPermissions", String.class)
+        return new HashSet<>(Arrays.asList(
+                new MultivaluedAttribute<T, String>("permissions", String.class)
                         .getter(MatrixAuthorizationStrategyConfigurator::getGrantedPermissions)
-                        .setter(MatrixAuthorizationStrategyConfigurator::setGrantedPermissions)
-        );
+                        .setter(MatrixAuthorizationStrategyConfigurator::setGrantedPermissions),
+
+                // support old style configuration options
+                new MultivaluedAttribute<T, String>("grantedPermissions", String.class)
+                        .getter(unused -> null)
+                        .setter(MatrixAuthorizationStrategyConfigurator::setGrantedPermissionsDeprecated)
+        ));
     }
 
     /**
@@ -57,4 +65,14 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
             container.add(permission, p.substring(i+1));
         });
     }
+
+    /**
+     * Like {@link #setGrantedPermissions(AuthorizationContainer, Collection)} but logs a deprecation warning
+     */
+    public static void setGrantedPermissionsDeprecated(AuthorizationContainer container, Collection<String> permissions) {
+        LOGGER.log(Level.WARNING, "Loading deprecated attribute 'assignedPermissions' for instance of '" + container.getClass().getName() +"'. Use 'permissions' instead.");
+        setGrantedPermissions(container, permissions);
+    }
+
+    private static final Logger LOGGER = Logger.getLogger(MatrixAuthorizationStrategyConfigurator.class.getName());
 }
