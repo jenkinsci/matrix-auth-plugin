@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.matrixauth.integrations;
+package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty;
@@ -17,15 +17,17 @@ import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import org.jvnet.hudson.test.LoggerRule;
 
+import java.util.logging.Level;
+
 import static org.junit.Assert.*;
 
-public class ConfigurationAsCodeTest {
+public class ImportTest {
 
     @Rule
     public JenkinsConfiguredWithCodeRule r = new JenkinsConfiguredWithCodeRule();
 
     @Rule
-    public LoggerRule l = new LoggerRule();
+    public LoggerRule l = new LoggerRule().record(MatrixAuthorizationStrategyConfigurator.class, Level.WARNING).capture(20);
 
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
@@ -59,6 +61,7 @@ public class ConfigurationAsCodeTest {
             assertTrue(property.hasExplicitPermission("authenticated", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.DISCONNECT));
         }
+        assertEquals("no warnings", 0, l.getMessages().size());
     }
 
     @Test
@@ -76,5 +79,8 @@ public class ConfigurationAsCodeTest {
             assertTrue("authenticated can delete jobs", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE));
             assertTrue("authenticated can administer", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER));
         }
+
+        assertTrue("at least one warning", 0 < l.getMessages().size()); // seems to be called twice?
+        assertTrue("correct message", l.getMessages().get(0).contains("Loading deprecated attribute 'grantedPermissions' for instance"));
     }
 }
