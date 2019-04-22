@@ -260,8 +260,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         public Set<Attribute<AuthorizationMatrixNodeProperty, ?>> describe() {
             return new HashSet<>(Arrays.asList(
                     new MultivaluedAttribute<AuthorizationMatrixNodeProperty, String>("permissions", String.class)
-                            .getter(MatrixAuthorizationStrategyConfigurator::getGrantedPermissions)
-                            .setter(MatrixAuthorizationStrategyConfigurator::setGrantedPermissions),
+                            .getter(MatrixAuthorizationStrategyConfigurator::getPermissions)
+                            .setter(MatrixAuthorizationStrategyConfigurator::setPermissions),
                     new DescribableAttribute<AuthorizationMatrixNodeProperty, InheritanceStrategy>("inheritanceStrategy", InheritanceStrategy.class)));
         }
     }

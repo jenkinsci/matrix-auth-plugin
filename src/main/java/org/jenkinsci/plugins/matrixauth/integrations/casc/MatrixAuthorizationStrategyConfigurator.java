@@ -14,7 +14,6 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,20 +34,20 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     public Set<Attribute<T, ?>> describe() {
         return new HashSet<>(Arrays.asList(
                 new MultivaluedAttribute<T, String>("permissions", String.class)
-                        .getter(MatrixAuthorizationStrategyConfigurator::getGrantedPermissions)
-                        .setter(MatrixAuthorizationStrategyConfigurator::setGrantedPermissions),
+                        .getter(MatrixAuthorizationStrategyConfigurator::getPermissions)
+                        .setter(MatrixAuthorizationStrategyConfigurator::setPermissions),
 
                 // support old style configuration options
                 new MultivaluedAttribute<T, String>("grantedPermissions", String.class)
                         .getter(unused -> null)
-                        .setter(MatrixAuthorizationStrategyConfigurator::setGrantedPermissionsDeprecated)
+                        .setter(MatrixAuthorizationStrategyConfigurator::setPermissionsDeprecated)
         ));
     }
 
     /**
      * Extract container's permissions as a List of "PERMISSION:sid"
      */
-    public static Collection<String> getGrantedPermissions(AuthorizationContainer container) {
+    public static Collection<String> getPermissions(AuthorizationContainer container) {
         return container.getGrantedPermissions().entrySet().stream()
                 .flatMap( e -> e.getValue().stream()
                         .map(v -> e.getKey().group.getId() + "/" + e.getKey().name + ":" + v))
@@ -58,7 +57,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     /**
      * Configure container's permissions from a List of "PERMISSION:sid"
      */
-    public static void setGrantedPermissions(AuthorizationContainer container, Collection<String> permissions) {
+    public static void setPermissions(AuthorizationContainer container, Collection<String> permissions) {
         permissions.forEach(p -> {
             final int i = p.indexOf(':');
             final Permission permission = PermissionFinder.findPermission(p.substring(0, i));
@@ -67,11 +66,11 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     }
 
     /**
-     * Like {@link #setGrantedPermissions(AuthorizationContainer, Collection)} but logs a deprecation warning
+     * Like {@link #setPermissions(AuthorizationContainer, Collection)} but logs a deprecation warning
      */
-    public static void setGrantedPermissionsDeprecated(AuthorizationContainer container, Collection<String> permissions) {
+    public static void setPermissionsDeprecated(AuthorizationContainer container, Collection<String> permissions) {
         LOGGER.log(Level.WARNING, "Loading deprecated attribute 'grantedPermissions' for instance of '" + container.getClass().getName() +"'. Use 'permissions' instead.");
-        setGrantedPermissions(container, permissions);
+        setPermissions(container, permissions);
     }
 
     private static final Logger LOGGER = Logger.getLogger(MatrixAuthorizationStrategyConfigurator.class.getName());
