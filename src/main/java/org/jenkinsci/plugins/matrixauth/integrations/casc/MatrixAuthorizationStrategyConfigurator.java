@@ -51,6 +51,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
         return container.getGrantedPermissions().entrySet().stream()
                 .flatMap( e -> e.getValue().stream()
                         .map(v -> e.getKey().group.getId() + "/" + e.getKey().name + ":" + v))
+                .sorted()
                 .collect(Collectors.toList());
     }
 
