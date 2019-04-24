@@ -32,6 +32,9 @@ import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
+
+import java.util.Collections;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -60,12 +63,12 @@ public class AuthorizationMatrixNodePropertyTest {
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
 
         Node node;
-        try (ACLContext ignored = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
             node = r.createSlave();
         }
 
         Assert.assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
-        Assert.assertTrue(node.getACL().hasPermission(User.get("alice").impersonate(), Computer.CONFIGURE));
-        Assert.assertFalse(node.getACL().hasPermission(User.get("bob").impersonate(), Computer.CONFIGURE));
+        Assert.assertTrue(node.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Computer.CONFIGURE));
+        Assert.assertFalse(node.getACL().hasPermission(User.get("bob", false, Collections.emptyMap()).impersonate(), Computer.CONFIGURE));
     }
 }

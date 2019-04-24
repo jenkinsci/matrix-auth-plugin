@@ -39,14 +39,14 @@ public class ProjectMatrixAuthorizationStrategyTest {
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
         
         Job<?, ?> job;
-        try (ACLContext ignored = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
             job = r.createFreeStyleProject();
         }
 
         Assert.assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission(User.get("bob", false, Collections.emptyMap()).impersonate(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.CONFIGURE));
     }
 
     @Test
@@ -59,10 +59,10 @@ public class ProjectMatrixAuthorizationStrategyTest {
         r.jenkins.setAuthorizationStrategy(new FullControlOnceLoggedInAuthorizationStrategy());
 
         // ensure logged in users are admins, but anon is not
-        try (ACLContext ignored = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
             Assert.assertTrue("alice is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
-        try (ACLContext ignored = ACL.as(User.get("bob"))) {
+        try (ACLContext ignored = ACL.as(User.get("bob", false, Collections.emptyMap()))) {
             Assert.assertTrue("bob is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
         Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission(Jenkins.ANONYMOUS, Jenkins.ADMINISTER));
@@ -79,11 +79,11 @@ public class ProjectMatrixAuthorizationStrategyTest {
         ((HtmlLabel)label).click();
         r.submit(form);
 
-        try (ACLContext ignored = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
             // ensure that the user submitting the empty matrix will be admin
             Assert.assertTrue("alice is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
-        try (ACLContext ignored = ACL.as(User.get("bob"))) {
+        try (ACLContext ignored = ACL.as(User.get("bob", false, Collections.emptyMap()))) {
             Assert.assertFalse("bob is not admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
         Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission(Jenkins.ANONYMOUS, Jenkins.ADMINISTER));
@@ -170,9 +170,9 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
         ACL acl = r.jenkins.getAuthorizationStrategy().getACL(aliceProjects);
 
-        Authentication alice = User.get("alice").impersonate();
-        Authentication admin = User.get("admin").impersonate();
-        Authentication bob = User.get("bob").impersonate();
+        Authentication alice = User.get("alice", false, Collections.emptyMap()).impersonate();
+        Authentication admin = User.get("admin", false, Collections.emptyMap()).impersonate();
+        Authentication bob = User.get("bob", false, Collections.emptyMap()).impersonate();
 
         Assert.assertTrue(acl.hasPermission(alice, Item.READ));
         Assert.assertTrue(acl.hasPermission(alice, Item.CONFIGURE));

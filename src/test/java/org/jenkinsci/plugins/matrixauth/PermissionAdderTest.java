@@ -5,6 +5,9 @@ import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.pages.SignupPage;
 import jenkins.model.Jenkins;
+
+import java.util.Collections;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,13 +38,13 @@ public class PermissionAdderTest {
                 signup.enterFullName("Alice User");
                 signup.submit(r.j);
 
-                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice").impersonate(), Jenkins.ADMINISTER));
+                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Jenkins.ADMINISTER));
             }
         });
         r.addStep(new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice").impersonate(), Jenkins.ADMINISTER));
+                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Jenkins.ADMINISTER));
             }
         });
     }

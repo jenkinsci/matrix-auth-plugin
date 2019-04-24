@@ -24,6 +24,7 @@ import org.springframework.dao.DataAccessException;
 import javax.annotation.Nonnull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatNonExistentUserGroupValidationResponse;
@@ -137,7 +138,7 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         try {
             try {
                 sr.loadUserByUsername(v);
-                User u = User.get(v);
+                User u = User.get(v, false, Collections.emptyMap());
                 if (ev.equals(u.getFullName())) {
                     return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("person.png", ev, "User", false));
                 }

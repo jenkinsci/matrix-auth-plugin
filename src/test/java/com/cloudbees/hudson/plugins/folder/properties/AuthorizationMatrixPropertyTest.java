@@ -34,6 +34,8 @@ import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
+
+import java.util.Collections;
 import java.util.logging.Level;
 
 import jenkins.model.Jenkins;
@@ -68,14 +70,14 @@ public class AuthorizationMatrixPropertyTest {
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
         
         Folder job;
-        try (ACLContext ignored = ACL.as(User.get("alice"))) {
+        try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
             job = r.createProject(Folder.class);
         }
 
         Assert.assertNotNull(job.getProperties().get(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission(User.get("bob", false, Collections.emptyMap()).impersonate(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.CONFIGURE));
     }
 
     @Test public void basics1() throws Exception {

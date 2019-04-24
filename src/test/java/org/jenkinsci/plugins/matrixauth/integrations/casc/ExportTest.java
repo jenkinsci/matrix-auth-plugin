@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
-import hudson.security.AuthorizationStrategy;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.Configurator;
@@ -33,10 +32,9 @@ public class ExportTest {
         ConfigurationContext context = new ConfigurationContext(registry);
 
         { // global configuration
-            AuthorizationStrategy authorizationStrategy = j.jenkins.getAuthorizationStrategy();
-            Configurator c = context.lookupOrFail(ProjectMatrixAuthorizationStrategy.class);
+            ProjectMatrixAuthorizationStrategy authorizationStrategy = (ProjectMatrixAuthorizationStrategy) j.jenkins.getAuthorizationStrategy();
+            Configurator<ProjectMatrixAuthorizationStrategy> c = context.lookupOrFail(ProjectMatrixAuthorizationStrategy.class);
 
-            @SuppressWarnings("unchecked")
             CNode node = c.describe(authorizationStrategy, context);
             assertNotNull(node);
             Mapping mapping = node.asMapping();
@@ -48,9 +46,10 @@ public class ExportTest {
         }
 
         { // node configuration
-            Configurator c = context.lookupOrFail(AuthorizationMatrixNodeProperty.class);
+            Configurator<AuthorizationMatrixNodeProperty> c = context.lookupOrFail(AuthorizationMatrixNodeProperty.class);
+            AuthorizationMatrixNodeProperty nodeProperty = j.jenkins.getNode("agent1").getNodeProperty(AuthorizationMatrixNodeProperty.class);
 
-            CNode node = c.describe(j.jenkins.getNode("agent1").getNodeProperty(AuthorizationMatrixNodeProperty.class), context);
+            CNode node = c.describe(nodeProperty, context);
             assertNotNull(node);
             Mapping mapping = node.asMapping();
 

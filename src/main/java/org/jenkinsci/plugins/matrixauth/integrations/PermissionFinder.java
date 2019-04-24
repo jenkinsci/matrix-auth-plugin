@@ -26,7 +26,6 @@ package org.jenkinsci.plugins.matrixauth.integrations;
 import hudson.security.Permission;
 import hudson.security.PermissionGroup;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.kohsuke.accmod.Restricted;
