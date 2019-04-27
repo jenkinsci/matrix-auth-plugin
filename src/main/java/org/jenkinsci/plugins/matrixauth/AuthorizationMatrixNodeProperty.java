@@ -87,7 +87,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     private InheritanceStrategy inheritanceStrategy = new InheritGlobalStrategy();
 
-    private AuthorizationMatrixNodeProperty() {
+    @Restricted(NoExternalUse.class)
+    public AuthorizationMatrixNodeProperty() {
     }
 
     public AuthorizationMatrixNodeProperty(Map<Permission, Set<String>> grantedPermissions) {
@@ -237,32 +238,6 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
                     }
                 }
             }
-        }
-    }
-
-    @Extension(optional = true)
-    @Restricted(NoExternalUse.class)
-    public static class Configurator extends BaseConfigurator<AuthorizationMatrixNodeProperty> {
-
-        @Override
-        public Class<AuthorizationMatrixNodeProperty> getTarget() {
-            return AuthorizationMatrixNodeProperty.class;
-        }
-
-        @Override
-        protected AuthorizationMatrixNodeProperty instance(Mapping mapping, ConfigurationContext context)
-                throws ConfiguratorException {
-            return new AuthorizationMatrixNodeProperty();
-        }
-
-        @Override
-        @Nonnull
-        public Set<Attribute<AuthorizationMatrixNodeProperty, ?>> describe() {
-            return new HashSet<>(Arrays.asList(
-                    new MultivaluedAttribute<AuthorizationMatrixNodeProperty, String>("permissions", String.class)
-                            .getter(MatrixAuthorizationStrategyConfigurator::getPermissions)
-                            .setter(MatrixAuthorizationStrategyConfigurator::setPermissions),
-                    new DescribableAttribute<AuthorizationMatrixNodeProperty, InheritanceStrategy>("inheritanceStrategy", InheritanceStrategy.class)));
         }
     }
 
