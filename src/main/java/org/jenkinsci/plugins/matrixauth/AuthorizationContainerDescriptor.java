@@ -138,7 +138,7 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         try {
             try {
                 sr.loadUserByUsername(v);
-                User u = User.get(v, false, Collections.emptyMap());
+                User u = User.get(v, true, Collections.emptyMap());
                 if (ev.equals(u.getFullName())) {
                     return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("person.png", ev, "User", false));
                 }
