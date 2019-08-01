@@ -50,6 +50,34 @@ public class ProjectMatrixAuthorizationStrategyTest {
     }
 
     @Test
+    @Issue("JENKINS-58703")
+    public void ensureNoJobPropertyDuplication() throws Exception {
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
+        realm.createAccount("alice","alice");
+        realm.createAccount("bob","bob");
+        r.jenkins.setSecurityRealm(realm);
+
+        ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
+        authorizationStrategy.add(Item.CREATE, "alice");
+        authorizationStrategy.add(Jenkins.READ, "alice");
+        authorizationStrategy.add(Jenkins.READ, "bob");
+        r.jenkins.setAuthorizationStrategy(authorizationStrategy);
+
+        Job<?, ?> job;
+        try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
+            r.jenkins.createProjectFromXML("job", getClass().getResourceAsStream(getClass().getSimpleName() + "/JENKINS-58703.xml"));
+            job = r.jenkins.getItem("job", r.jenkins, Job.class);
+        }
+
+        Assert.assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("bob", false, Collections.emptyMap()).impersonate(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.CONFIGURE));
+
+        Assert.assertEquals("one property", 1, job.getAllProperties().size());
+    }
+
+    @Test
     public void submitEmptyPropertyEnsuresPermissionsForSubmitter() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice","alice");

@@ -196,7 +196,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     /**
      * Persist {@link ProjectMatrixAuthorizationStrategy} as a list of IDs that
-     * represent {@link ProjectMatrixAuthorizationStrategy#grantedPermissions}.
+     * represent ProjectMatrixAuthorizationStrategy#grantedPermissions.
      */
     @Restricted(DoNotUse.class)
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
@@ -226,7 +226,8 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                 if (item instanceof AbstractFolder) {
                     AbstractFolder<?> folder = (AbstractFolder<?>) item;
                     AuthorizationMatrixProperty prop = folder.getProperties().get(AuthorizationMatrixProperty.class);
-                    if (prop == null) {
+                    boolean propIsNew = prop == null;
+                    if (propIsNew) {
                         prop = new AuthorizationMatrixProperty();
                     }
 
@@ -241,7 +242,11 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                     }
                     if (prop.getGrantedPermissions().size() > 0) {
                         try {
-                            folder.addProperty(prop);
+                            if (propIsNew) {
+                                folder.addProperty(prop);
+                            } else {
+                                folder.save();
+                            }
                         } catch (IOException ex) {
                             LOGGER.log(Level.WARNING, "Failed to grant creator permissions on folder " + item.getFullName(), ex);
                         }
