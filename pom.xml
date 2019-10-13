@@ -15,7 +15,7 @@
         <revision>2.4.3</revision>
         <changelist>-SNAPSHOT</changelist>
         <hpi.compatibleSinceVersion>2.0</hpi.compatibleSinceVersion>
-        <jenkins.version>2.138.3</jenkins.version>
+        <jenkins.version>2.138.4</jenkins.version>
         <java.level>8</java.level>
         <workflow-cps.version>2.30</workflow-cps.version>
         <configuration-as-code.version>1.12</configuration-as-code.version>

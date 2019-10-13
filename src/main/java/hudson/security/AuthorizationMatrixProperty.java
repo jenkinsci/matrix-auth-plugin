@@ -76,6 +76,7 @@ import org.kohsuke.stapler.verb.GET;
  * <p>
  * Once created (and initialized), this object becomes immutable.
  */
+// TODO attempt to make this OptionalJobProperty
 public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implements AuthorizationProperty {
 
     private final transient SidACL acl = new AclImpl();

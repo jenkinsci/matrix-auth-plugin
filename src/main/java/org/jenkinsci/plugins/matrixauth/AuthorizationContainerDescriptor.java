@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatNonExistentUserGroupValidationResponse;
 import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatUserGroupValidationResponse;
@@ -90,6 +91,17 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         }
         return groups;
     }
+
+    @Restricted(NoExternalUse.class) // Jelly
+    default String impliedByList(Permission p) {
+        List<Permission> impliedBys = new ArrayList<>();
+        while (p.impliedBy != null) {
+            p = p.impliedBy;
+            impliedBys.add(p);
+        }
+        return StringUtils.join(impliedBys.stream().map(Permission::getId).collect(Collectors.toList()), " ");
+    }
+
 
     @Restricted(DoNotUse.class) // Called from Jelly view
     default boolean showPermission(Permission p) {
