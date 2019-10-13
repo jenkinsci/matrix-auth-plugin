@@ -56,6 +56,18 @@ Some examples:
 
 ## Changelog
 
+### Upcoming changes
+
+* [JENKINS-58703](https://issues.jenkins-ci.org/browse/JENKINS-58703):
+  Creating items through the remote API (`createItem`) could result in duplicate XML elements.
+* [JENKINS-54568](https://issues.jenkins-ci.org/browse/JENKINS-54568):
+  Make `authorizationMatrix` work in declarative snippet generator.
+* [JENKINS-46914](https://issues.jenkins-ci.org/browse/JENKINS-46914):
+  Better indicate implied permissions in the checkbox grid by disabling implied permission checkboxes.
+* [JENKINS-47885](https://issues.jenkins-ci.org/browse/JENKINS-47885):
+  Make node property work in Kubernetes (and old versions of Docker) Plugin templates.
+* Move plugin documentation from the Jenkins wiki to GitHub.
+
 ### Version 2.4.2 (2019-05-02)
 
 * [JENKINS-57313](https://issues.jenkins-ci.org/browse/JENKINS-57313): Fix a bug introduced in 2.4 that could result in exception error messages shown on the configuration page when permissions are assigned to valid user accounts that have never logged in to Jenkins.
