@@ -225,21 +225,7 @@ THE SOFTWARE.
           }
         }
         e.onchange = function() {
-          var permissionId = findAncestor(this, "TD").getAttribute('data-permission-id');
-          var checked = this.checked;
-          var tr = findAncestor(this,"TR");
-          var inputs = tr.getElementsByTagName("INPUT");
-          for (var i=0; i < inputs.length; i++){
-            if(inputs[i].type === "checkbox") {
-              var td = findAncestor(inputs[i], "TD");
-              if (td !== null) {
-                var list = td.getAttribute('data-implied-by-list');
-                if (list.indexOf(permissionId) !== -1) {
-                  inputs[i].disabled = checked;
-                }
-              }
-            }
-          }
+          Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
           return true;
         };
         e = null; <!-- avoid memory leak -->
