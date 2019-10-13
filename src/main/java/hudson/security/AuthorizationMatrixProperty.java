@@ -244,7 +244,8 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
                 if (item instanceof Job) {
                     Job<?, ?> job = (Job<?, ?>) item;
                     AuthorizationMatrixProperty prop = job.getProperty(AuthorizationMatrixProperty.class);
-                    if (prop == null) {
+                    boolean propIsNew = prop == null;
+                    if (propIsNew) {
                         prop = new AuthorizationMatrixProperty();
                     }
 
@@ -259,7 +260,11 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
                     }
                     if (prop.getGrantedPermissions().size() > 0) {
                         try {
-                            job.addProperty(prop);
+                            if (propIsNew) {
+                                job.addProperty(prop);
+                            } else {
+                                job.save();
+                            }
                         } catch (IOException ex) {
                             LOGGER.log(Level.WARNING, "Failed to grant creator permissions on job " + item.getFullName(), ex);
                         }
