@@ -10,7 +10,7 @@
     <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <name>Matrix Authorization Strategy Plugin</name>
-    <url>https://wiki.jenkins-ci.org/display/JENKINS/Matrix+Authorization+Strategy+Plugin</url>
+    <url>https://github.com/jenkinsci/matrix-auth-plugin</url>
     <properties>
         <revision>2.4.3</revision>
         <changelist>-SNAPSHOT</changelist>
