@@ -50,8 +50,12 @@ THE SOFTWARE.
         <j:forEach var="g" items="${groups}">
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
-              <td width="*" data-implied-by-list="${descriptor.impliedByList(p)}" data-permission-id="${p.id}">
-                <f:checkbox name="[${p.id}]" tooltip="${p.group.title}/${p.name} for ${attrs.sid}" checked="${instance.hasExplicitPermission(attrs.sid,p)}"/>
+              <td width="*"
+                  data-implied-by-list="${descriptor.impliedByList(p)}"
+                  data-permission-id="${p.id}"
+                  data-tooltip-enabled="${%tooltip_enabled(p.group.title, p.name, attrs.sid)}"
+                  data-tooltip-disabled="${%tooltip_disabled(p.group.title, p.name, attrs.sid)}">
+                <f:checkbox name="[${p.id}]" checked="${instance.hasExplicitPermission(attrs.sid,p)}"/>
               </td>
             </j:if>
           </j:forEach>
@@ -146,16 +150,16 @@ THE SOFTWARE.
           var table = master.parentNode;
 
           <!-- when 'add' is clicked... -->
-          var name = prompt("${%User or group name:}");
+          var name = prompt("${%prompt}");
           if (name == null) {
             return;
           }
           if(name=="") {
-            alert("Please enter a user name or a group name");
+            alert("${%empty}");
             return;
           }
           if(findElementsBySelector(table,"TR").find(function(n){return n.getAttribute("name")=='['+name+']';})!=null) {
-            alert("Entry for '"+name+"' already exists");
+            alert("${%error}");
             return;
           }
 
@@ -167,6 +171,13 @@ THE SOFTWARE.
           copy.removeAttribute("style");
           copy.firstChild.innerHTML = name;
           copy.setAttribute("name",'['+name+']');
+
+          for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
+            if (child.hasAttribute('data-permission-id')) {
+              child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name));
+              child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name));
+            }
+          }
           findElementsBySelector(copy, ".stop img").each(function(item) {
             item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
           });
@@ -215,12 +226,14 @@ THE SOFTWARE.
         var impliedByList = impliedByString.split(" ");
         var tr = findAncestor(e,"TR");
         e.disabled = false;
+        e.setAttribute('tooltip', findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
         for (var i = 0; i < impliedByList.length; i++) {
           var permissionId = impliedByList[i];
           var reference = tr.querySelector("td[data-permission-id='" + permissionId + "'] input");
           if (reference !== null) {
             if (reference.checked) {
               e.disabled = true;
+              e.setAttribute('tooltip', findAncestor(e, "TD").getAttribute('data-tooltip-disabled'));
             }
           }
         }
