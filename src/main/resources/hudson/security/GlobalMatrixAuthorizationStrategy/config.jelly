@@ -50,7 +50,7 @@ THE SOFTWARE.
         <j:forEach var="g" items="${groups}">
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
-              <td width="*">
+              <td width="*" data-implied-by-list="${descriptor.impliedByList(p)}" data-permission-id="${p.id}">
                 <f:checkbox name="[${p.id}]" tooltip="${p.group.title}/${p.name} for ${attrs.sid}" checked="${instance.hasExplicitPermission(attrs.sid,p)}"/>
               </td>
             </j:if>
@@ -126,7 +126,7 @@ THE SOFTWARE.
 
       <!-- template row to be used for adding a new row -->
       <j:set var="id" value="${h.generateId()}"/>
-      <tr id="${id}" style="display:none" class="permission-row">
+      <tr id="${id}" style="display:none" class="permission-row" name="__unused__">
         <local:row sid="__SID__" />
       </tr>
     </table>
@@ -139,13 +139,12 @@ THE SOFTWARE.
      <f:helpArea />
     </table>
     <script>
-      (function() {
-        <!-- place master outside the DOM tree so that it won't creep into the submitted form -->
-        var master = document.getElementById('${id}');
-        var table = master.parentNode;
-        table.removeChild(master);
-      
+      //<![CDATA[
+      Behaviour.specify("#${id}button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
         makeButton($$('${id}button'), function (e) {
+          var master = document.getElementById('${id}');
+          var table = master.parentNode;
+
           <!-- when 'add' is clicked... -->
           var name = prompt("${%User or group name:}");
           if (name == null) {
@@ -177,7 +176,7 @@ THE SOFTWARE.
           table.appendChild(copy);
           Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
         });
-      })();
+      });
 
       Behaviour.specify("#${strategyid} TD.stop A.remove", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
           e.onclick = function() {
@@ -191,9 +190,10 @@ THE SOFTWARE.
           e.onclick = function() {
             var tr = findAncestor(this,"TR");
             var inputs = tr.getElementsByTagName("INPUT");
-            for(var i=0; i&lt;inputs.length; i++){
+            for(var i=0; i < inputs.length; i++){
                 if(inputs[i].type == "checkbox") inputs[i].checked = true;
             }
+            Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
             return false;
           };
           e = null; <!-- avoid memory leak -->
@@ -202,20 +202,64 @@ THE SOFTWARE.
           e.onclick = function() {
             var tr = findAncestor(this,"TR");
             var inputs = tr.getElementsByTagName("INPUT");
-            for(var i=0; i&lt;inputs.length; i++){
+            for(var i=0; i < inputs.length; i++){
                 if(inputs[i].type == "checkbox") inputs[i].checked = false;
             }
+            Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
             return false;
           };
           e = null; <!-- avoid memory leak -->
         });
+      Behaviour.specify("#${strategyid} td input", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+        var impliedByString = findAncestor(e, "TD").getAttribute('data-implied-by-list');
+        var impliedByList = impliedByString.split(" ");
+        var tr = findAncestor(e,"TR");
+        e.disabled = false;
+        for (var i = 0; i < impliedByList.length; i++) {
+          var permissionId = impliedByList[i];
+          var reference = tr.querySelector("td[data-permission-id='" + permissionId + "'] input");
+          if (reference !== null) {
+            if (reference.checked) {
+              e.disabled = true;
+            }
+          }
+        }
+        e.onchange = function() {
+          var permissionId = findAncestor(this, "TD").getAttribute('data-permission-id');
+          var checked = this.checked;
+          var tr = findAncestor(this,"TR");
+          var inputs = tr.getElementsByTagName("INPUT");
+          for (var i=0; i < inputs.length; i++){
+            if(inputs[i].type === "checkbox") {
+              var td = findAncestor(inputs[i], "TD");
+              if (td !== null) {
+                var list = td.getAttribute('data-implied-by-list');
+                if (list.indexOf(permissionId) !== -1) {
+                  inputs[i].disabled = checked;
+                }
+              }
+            }
+          }
+          return true;
+        };
+        e = null; <!-- avoid memory leak -->
+      });
+      //]]>
         <j:if test="${empty(descriptorPath)}">
           <j:set var="descriptorPath" value="${descriptor.descriptorFullUrl}"/>
         </j:if>
+      //<![CDATA[
         <!-- validates the name -->
         Behaviour.specify("#${strategyid} TR.permission-row", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
-          FormChecker.delayedCheck("${descriptorPath}/checkName?value="+encodeURIComponent(e.getAttribute("name")),"GET",e.firstChild);
+          if (e.getAttribute('name') === '__unused__') {
+            return;
+          }
+          if (!e.hasAttribute('data-checked')) {
+            FormChecker.delayedCheck("${descriptorPath}/checkName?value="+encodeURIComponent(e.getAttribute("name")),"GET",e.firstChild);
+            e.setAttribute('data-checked', 'true');
+          }
         });
+        //]]>
     </script>
   </f:block>
 </j:jelly>
