@@ -1,5 +1,9 @@
 # Matrix Authorization Strategy Plugin
 
+[![Build Status](https://ci.jenkins.io/job/Plugins/job/matrix-auth-plugin/job/master/badge/icon.svg)](https://ci.jenkins.io/job/Plugins/job/matrix-auth-plugin/job/master/)
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/matrix-auth.svg)](https://plugins.jenkins.io/matrix-auth)
+[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/matrix-auth.svg)](https://plugins.jenkins.io/matrix-auth)
+
 Implement fine-grained access control in Jenkins with this plugin.
 
 For a basic introduction, see [the section on Matrix Authorization in the Jenkins handbook](https://jenkins.io/doc/book/managing/security/#authorization).
