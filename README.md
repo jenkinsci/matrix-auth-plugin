@@ -56,6 +56,10 @@ Some examples:
 
 ## Changelog
 
+### Upcoming Changes
+
+* Increase minimum required Jenkins version to 2.164.1
+
 ### Version 2.5 (2019-10-14)
 
 * [JENKINS-58703](https://issues.jenkins-ci.org/browse/JENKINS-58703):
