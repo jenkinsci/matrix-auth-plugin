@@ -56,7 +56,7 @@ Some examples:
 
 ## Changelog
 
-### Upcoming changes
+### Version 2.5 (2019-10-14)
 
 * [JENKINS-58703](https://issues.jenkins-ci.org/browse/JENKINS-58703):
   Creating items through the remote API (`createItem`) could result in duplicate XML elements.
