@@ -132,6 +132,7 @@ public interface AuthorizationContainer {
      */
     default boolean hasPermission(String sid, Permission p) {
         if (!GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS
+                && Jenkins.RUN_SCRIPTS != Jenkins.ADMINISTER
                 && GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p)) {
             return hasPermission(sid, Jenkins.ADMINISTER);
         }
@@ -163,6 +164,7 @@ public interface AuthorizationContainer {
      */
     default boolean hasPermission(String sid, Permission p, boolean principal) {
         if (!GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS
+                && Jenkins.RUN_SCRIPTS != Jenkins.ADMINISTER
                 && GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p)) {
             return hasPermission(sid, Jenkins.ADMINISTER, principal);
         }
