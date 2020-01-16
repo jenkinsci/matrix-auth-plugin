@@ -77,7 +77,7 @@
             <!-- requireUpperBoundDeps -->
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>structs</artifactId>
-            <version>1.13</version>
+            <version>1.19</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -89,7 +89,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>job-dsl</artifactId>
-            <version>1.72</version>
+            <version>1.76</version>
             <scope>test</scope>
             <exclusions>
                 <!-- needed for -Djenkins.version=2.164.1 -->
