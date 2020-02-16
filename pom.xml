@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.50</version>
+        <version>3.55</version>
     </parent>
     <artifactId>matrix-auth</artifactId>
     <version>${revision}${changelist}</version>
@@ -18,7 +18,7 @@
         <jenkins.version>2.164.1</jenkins.version>
         <java.level>8</java.level>
         <workflow-cps.version>2.30</workflow-cps.version>
-        <configuration-as-code.version>1.12</configuration-as-code.version>
+        <configuration-as-code.version>1.35</configuration-as-code.version>
     </properties>
     <licenses>
         <license>
@@ -77,27 +77,19 @@
             <!-- requireUpperBoundDeps -->
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>structs</artifactId>
-            <version>1.13</version>
+            <version>1.19</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.jenkins.configuration-as-code</groupId>
-            <artifactId>configuration-as-code-support</artifactId>
+            <artifactId>test-harness</artifactId>
             <version>${configuration-as-code.version}</version>
-            <optional>true</optional>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins</groupId>
-            <artifactId>configuration-as-code</artifactId>
-            <version>${configuration-as-code.version}</version>
-            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>job-dsl</artifactId>
-            <version>1.72</version>
+            <version>1.76</version>
             <scope>test</scope>
             <exclusions>
                 <!-- needed for -Djenkins.version=2.164.1 -->
