@@ -58,7 +58,7 @@ Some examples:
 
 ### Upcoming Changes
 
-* Increase minimum required Jenkins version to 2.164.1
+* Increase minimum required Jenkins version to 2.190.1 to have fewer implied plugin dependencies
 
 ### Version 2.5 (2019-10-14)
 
