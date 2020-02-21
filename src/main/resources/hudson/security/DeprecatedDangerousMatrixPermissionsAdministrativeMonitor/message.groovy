@@ -25,7 +25,7 @@
 package hudson.security.DeprecatedDangerousMatrixPermissionsAdministrativeMonitor
 
 def f = namespace(lib.FormTagLib)
-def foo = it
+def url = it.url
 div(class: "alert alert-danger", role: "alert") {
         raw(_("blurb"))
 
@@ -39,7 +39,7 @@ div(class: "alert alert-danger", role: "alert") {
             text(_("Learn more"))
         }
 
-        form(method: "post", action: "${rootURL}/${foo.url}/act") {
+        form(method: "post", action: "${rootURL}/${url}/act") {
             div {
                 f.submit(name: 'yes', value: _("Review Permissions"))
             }
