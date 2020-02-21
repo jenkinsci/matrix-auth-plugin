@@ -38,7 +38,7 @@ import jenkins.model.Jenkins;
 
 /**
  * Administrative monitor that shows up when 'dangerous' permissions are enabled.
- * These permissions are being deprecated and this monitor informs the user of that
+ * These permissions are being deprecated and this monitor informs the user of that.
  * Those are permissions that could be used to grant themselves administer permissions.
  *
  * See also https://jenkins.io/security/advisory/2017-04-10/#matrix-authorization-strategy-plugin-allowed-configuring-dangerous-permissions
