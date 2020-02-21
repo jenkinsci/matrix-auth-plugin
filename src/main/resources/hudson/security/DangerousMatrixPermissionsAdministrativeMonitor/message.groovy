@@ -25,21 +25,23 @@
 package hudson.security.DangerousMatrixPermissionsAdministrativeMonitor
 
 def f = namespace(lib.FormTagLib)
-
-div(class: "error") {
+def foo = it
+div(class: "alert alert-danger", role: "alert") {
     raw(_("blurb"))
+
     ul {
         my.sidsWithDangerousPermissions.each {
             li(it)
         }
     }
+
     a(href: "https://jenkins.io/redirect/dangerous-permissions") {
         text(_("Learn more"))
     }
-}
 
-form(method: "post", action: "${rootURL}/${it.url}/act") {
-    div {
-        f.submit(name: 'yes', value: _("Review Permissions"))
+    form(method: "post", action: "${rootURL}/${foo.url}/act") {
+        div {
+            f.submit(name: 'yes', value: _("Review Permissions"))
+        }
     }
 }
