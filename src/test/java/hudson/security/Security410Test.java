@@ -55,7 +55,11 @@ public class Security410Test {
 
             assertTrue("show dangerous permissions in config", ((GlobalMatrixAuthorizationStrategy.DescriptorImpl)strategy.getDescriptor()).showPermission(Jenkins.RUN_SCRIPTS));
             assertTrue("grant permission to bob", strategy.hasPermission("bob", Jenkins.RUN_SCRIPTS));
-            assertFalse("disabled admin monitor", j.jenkins.getAdministrativeMonitor(DangerousMatrixPermissionsAdministrativeMonitor.class.getName()).isActivated());
+            assertTrue("enabled admin monitor",
+                    j.jenkins.getAdministrativeMonitor(DangerousMatrixPermissionsAdministrativeMonitor.class.getName()).isActivated());
+            GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS = false;
+            assertTrue("enabled admin monitor",
+                       j.jenkins.getAdministrativeMonitor(DangerousMatrixPermissionsAdministrativeMonitor.class.getName()).isActivated());
         } finally {
             GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS = false;
         }
