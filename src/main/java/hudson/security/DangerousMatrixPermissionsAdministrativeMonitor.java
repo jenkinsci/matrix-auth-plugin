@@ -48,7 +48,8 @@ import java.util.List;
 public class DangerousMatrixPermissionsAdministrativeMonitor extends AdministrativeMonitor {
     @Override
     public boolean isActivated() {
-        return !GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS && !getSidsWithDangerousPermissions().isEmpty();
+        return ((!GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS && !getSidsWithDangerousPermissions().isEmpty()) ||
+            (GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS));
     }
 
     @RequirePOST
