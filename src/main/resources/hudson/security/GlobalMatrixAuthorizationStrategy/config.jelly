@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:f="/lib/form" xmlns:l="/lib/layout">
   <f:block xmlns:local="local">
     <j:set var="groups" value="${descriptor.allGroups}"/>
     <d:taglib uri="local">
@@ -60,19 +60,21 @@ THE SOFTWARE.
             </j:if>
           </j:forEach>
         </j:forEach>
-        <td class="stop" style="text-align:left;">
-          <a href="#" class="selectall">
-            <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
-          </a>
-          <a href="#" class="unselectall">
-            <img alt="${%Unselect all}" title="${%unselectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/unselect-all.png" height="16" width="16"/>
-          </a>
-          <j:if test="${attrs.sid!='anonymous' and attrs.sid!='authenticated'}">
-            <a href="#" class="remove">
-              <img alt="${%Remove user/group}" title="${%remove(attrs.sid)}" src="${imagesURL}/16x16/stop.png" height="16" width="16"/>
+        <l:isAdmin>
+          <td class="stop" style="text-align:left;">
+            <a href="#" class="selectall">
+              <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
             </a>
-          </j:if>
-        </td>
+            <a href="#" class="unselectall">
+              <img alt="${%Unselect all}" title="${%unselectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/unselect-all.png" height="16" width="16"/>
+            </a>
+            <j:if test="${attrs.sid!='anonymous' and attrs.sid!='authenticated'}">
+              <a href="#" class="remove">
+                <img alt="${%Remove user/group}" title="${%remove(attrs.sid)}" src="${imagesURL}/16x16/stop.png" height="16" width="16"/>
+              </a>
+            </j:if>
+          </td>
+        </l:isAdmin>
       </d:tag>
     </d:taglib>
     <link rel="stylesheet" href="${rootURL}${app.VIEW_RESOURCE_PATH}/hudson/security/table.css" type="text/css" />
@@ -135,9 +137,13 @@ THE SOFTWARE.
       </tr>
     </table>
     <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
-     <tr><td colspan="3">
-      <input type="button" value="${%Add user or group…}" id="${id}button"/>
-     </td><td align="right">
+     <tr>
+       <td colspan="2">
+         <l:isAdmin>
+            <input type="button" value="${%Add user or group…}" id="${id}button"/>
+          </l:isAdmin>
+       </td>
+       <td align="right">
       <a href="#" class="help-button" helpURL="${rootURL}${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"><img src="${imagesURL}/16x16/help.png" alt="[help]" height="16" width="16"/></a>
      </td></tr>
      <f:helpArea />
@@ -227,6 +233,12 @@ THE SOFTWARE.
         var tr = findAncestor(e,"TR");
         e.disabled = false;
         e.setAttribute('tooltip', findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
+
+        var readOnlyMode = document.getElementById("readOnlyMode");
+        if (readOnlyMode && readOnlyMode.value === "true") {
+            e.disabled = true;
+            return;
+        }
         for (var i = 0; i < impliedByList.length; i++) {
           var permissionId = impliedByList[i];
           var reference = tr.querySelector("td[data-permission-id='" + permissionId + "'] input");
