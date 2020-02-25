@@ -234,8 +234,8 @@ THE SOFTWARE.
         e.disabled = false;
         e.setAttribute('tooltip', findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
 
-        var readOnlyMode = document.getElementById("readOnlyMode");
-        if (readOnlyMode && readOnlyMode.value === "true") {
+        var submitButtonPresent = document.getElementsByClassName("submit-button").length > 0;
+        if (!submitButtonPresent) { // readonly mode if there's no submit button
             e.disabled = true;
             return;
         }
