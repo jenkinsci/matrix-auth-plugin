@@ -235,7 +235,7 @@ THE SOFTWARE.
         e.setAttribute('tooltip', findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
 
         var submitButtonPresent = document.getElementsByClassName("submit-button").length > 0;
-        if (!submitButtonPresent) { // readonly mode if there's no submit button
+        if (!submitButtonPresent) { // readonly mode if there's no submit button (Jenkins 2.222+)
             e.disabled = true;
             return;
         }
