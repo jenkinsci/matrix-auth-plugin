@@ -136,18 +136,18 @@ THE SOFTWARE.
         <local:row sid="__SID__" />
       </tr>
     </table>
-    <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
-     <tr>
-       <td colspan="2">
-         <l:isAdmin>
-            <input type="button" value="${%Add user or group…}" id="${id}button"/>
-          </l:isAdmin>
-       </td>
-       <td align="right">
-      <a href="#" class="help-button" helpURL="${rootURL}${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"><img src="${imagesURL}/16x16/help.png" alt="[help]" height="16" width="16"/></a>
-     </td></tr>
-     <f:helpArea />
-    </table>
+    <l:isAdmin>
+      <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
+       <tr>
+         <td colspan="3">
+              <input type="button" value="${%Add user or group…}" id="${id}button"/>
+         </td>
+         <td align="right">
+        <a href="#" class="help-button" helpURL="${rootURL}${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"><img src="${imagesURL}/16x16/help.png" alt="[help]" height="16" width="16"/></a>
+       </td></tr>
+       <f:helpArea />
+      </table>
+    </l:isAdmin>
     <script>
       //<![CDATA[
       Behaviour.specify("#${id}button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
