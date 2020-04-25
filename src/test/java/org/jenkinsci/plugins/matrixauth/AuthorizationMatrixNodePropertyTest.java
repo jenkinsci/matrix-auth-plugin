@@ -58,7 +58,6 @@ public class AuthorizationMatrixNodePropertyTest {
 
         { // createSlave uses CommandLauncher, which requires RUN_SCRIPTS since 2.73.2
             authorizationStrategy.add(Jenkins.RUN_SCRIPTS, "alice");
-            ProjectMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS = true;
         }
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
 

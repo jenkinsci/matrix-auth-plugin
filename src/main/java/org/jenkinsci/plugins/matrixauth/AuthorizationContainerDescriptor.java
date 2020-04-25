@@ -115,20 +115,8 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
             return false;
         }
 
-        if (GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS || !GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p)) {
-            // we allow assignment of dangerous permissions, or it's a safe permission, so show it
-            return true;
-        }
-
-        // if we grant any dangerous permission, show them all
-        AuthorizationStrategy strategy = Jenkins.get().getAuthorizationStrategy();
-        if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
-            GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = (GlobalMatrixAuthorizationStrategy) strategy;
-            return globalMatrixAuthorizationStrategy.isAnyRelevantDangerousPermissionExplicitlyGranted();
-        }
-
-        // don't show by default, i.e. when initially configuring the authorization strategy
-        return false;
+        // do not allow dangerous permissions to be set explicitly
+        return !GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p);
     }
 
 
