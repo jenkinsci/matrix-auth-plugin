@@ -52,7 +52,6 @@
 .global-matrix-authorization-strategy-table TD.left-most {
   text-align: left;
   border-left: none;
-  white-space: nowrap;
 }
 
 .global-matrix-authorization-strategy-table TD.stop {
