@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.56</version>
+        <version>3.57</version>
     </parent>
     <artifactId>matrix-auth</artifactId>
     <version>${revision}${changelist}</version>
@@ -17,7 +17,7 @@
         <hpi.compatibleSinceVersion>2.0</hpi.compatibleSinceVersion>
         <jenkins.version>2.190.1</jenkins.version>
         <java.level>8</java.level>
-        <workflow-cps.version>2.30</workflow-cps.version>
+        <workflow-cps.version>2.31</workflow-cps.version>
         <configuration-as-code.version>1.35</configuration-as-code.version>
     </properties>
     <licenses>
