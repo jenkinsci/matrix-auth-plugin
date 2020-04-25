@@ -58,7 +58,11 @@ Some examples:
 
 ### Upcoming Changes
 
-* Increase minimum required Jenkins version to 2.190.1 to have fewer implied plugin dependencies
+* Increase minimum required Jenkins version to 2.190.1 to have fewer implied plugin dependencies.
+* Add support for Overall/System Read permission (global configuration is rendered with disabled checkboxes).
+* [JENKINS-36625](https://issues.jenkins-ci.org/browse/JENKINS-36625):
+  Allow wrapping long user and group names to limit width of the configuration table.
+* Internal: Parent POM update, update test dependencies (Pipeline: Groovy Plugin, JCasC test harness).
 
 ### Version 2.5 (2019-10-14)
 
