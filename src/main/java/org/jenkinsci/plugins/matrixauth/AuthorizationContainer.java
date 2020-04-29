@@ -107,34 +107,10 @@ public interface AuthorizationContainer {
         return Arrays.asList(data);
     }
 
-    @Restricted(NoExternalUse.class)
-    default boolean isAnyRelevantDangerousPermissionExplicitlyGranted() {
-        for (String sid : getAllSIDs()) {
-            if (isAnyRelevantDangerousPermissionExplicitlyGranted(sid)) {
-                return true;
-            }
-        }
-        return isAnyRelevantDangerousPermissionExplicitlyGranted("anonymous");
-    }
-
-    @Restricted(NoExternalUse.class)
-    default boolean isAnyRelevantDangerousPermissionExplicitlyGranted(String sid) {
-        for (Permission p : GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS) {
-            if (!hasPermission(sid, Jenkins.ADMINISTER) && hasExplicitPermission(sid, p)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Checks if the given SID has the given permission.
      */
     default boolean hasPermission(String sid, Permission p) {
-        if (!GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS
-                && GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p)) {
-            return hasPermission(sid, Jenkins.ADMINISTER);
-        }
         final SecurityRealm securityRealm = Jenkins.get().getSecurityRealm();
         final IdStrategy groupIdStrategy = securityRealm.getGroupIdStrategy();
         final IdStrategy userIdStrategy = securityRealm.getUserIdStrategy();
@@ -162,10 +138,6 @@ public interface AuthorizationContainer {
      * Checks if the given SID has the given permission.
      */
     default boolean hasPermission(String sid, Permission p, boolean principal) {
-        if (!GlobalMatrixAuthorizationStrategy.ENABLE_DANGEROUS_PERMISSIONS
-                && GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p)) {
-            return hasPermission(sid, Jenkins.ADMINISTER, principal);
-        }
         final SecurityRealm securityRealm = Jenkins.get().getSecurityRealm();
         final IdStrategy strategy = principal ? securityRealm.getUserIdStrategy() : securityRealm.getGroupIdStrategy();
         for (; p != null; p = p.impliedBy) {

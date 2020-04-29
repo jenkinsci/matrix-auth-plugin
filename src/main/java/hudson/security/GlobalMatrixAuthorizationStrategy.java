@@ -73,7 +73,8 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
     private final Map<Permission,Set<String>> grantedPermissions = new HashMap<>();
 
     /**
-     * List of permissions considered dangerous to grant to non-admin users
+     * List of permissions considered dangerous to grant to non-admin users.
+     * These are also all deprecated from Jenkins 2.222.
      */
     @Restricted(NoExternalUse.class)
     public static final List<Permission> DANGEROUS_PERMISSIONS = Collections.unmodifiableList(Arrays.asList(
@@ -244,14 +245,5 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
     }
 
     private static final Logger LOGGER = Logger.getLogger(GlobalMatrixAuthorizationStrategy.class.getName());
-
-    /**
-     * Backwards compatibility: Enable granting dangerous permissions independently of Administer access.
-     *
-     * @since 1.5
-     */
-    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
-    @Restricted(NoExternalUse.class)
-    public static /* allow script access */ boolean ENABLE_DANGEROUS_PERMISSIONS = Boolean.getBoolean(GlobalMatrixAuthorizationStrategy.class.getName() + ".dangerousPermissions");
 }
 
