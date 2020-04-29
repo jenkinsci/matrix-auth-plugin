@@ -58,7 +58,10 @@ Some examples:
 
 ### Upcoming Changes
 
-* Increase minimum required Jenkins version to 2.190.1 to have fewer implied plugin dependencies.
+* Increase minimum required Jenkins version to 2.222.1.
+* Remove support for setting "dangerous permissions" as they are deprecated from Jenkins 2.222.x anyway.
+  ([Jenkins LTS upgrade guide](https://www.jenkins.io/doc/upgrade-guide/2.222/#dangerous-permissions-deprecation),
+  [SECURITY-410 in the 2017-04-10 security advisory](https://www.jenkins.io/security/advisory/2017-04-10/#matrix-authorization-strategy-plugin-allowed-configuring-dangerous-permissions))
 * Add support for Overall/System Read permission (global configuration is rendered with disabled checkboxes).
 * [JENKINS-36625](https://issues.jenkins-ci.org/browse/JENKINS-36625):
   Allow wrapping long user and group names to limit width of the configuration table.
