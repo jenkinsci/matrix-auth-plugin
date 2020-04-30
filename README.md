@@ -56,7 +56,7 @@ Some examples:
 
 ## Changelog
 
-### Upcoming Changes
+### Version 2.6 (2020-04-30)
 
 * Increase minimum required Jenkins version to 2.222.1.
 * Remove support for setting "dangerous permissions" as they are deprecated from Jenkins 2.222.x anyway.
