@@ -145,6 +145,11 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         return Collections.unmodifiableMap(grantedPermissions);
     }
 
+    @Override
+    public Permission getEditingPermission() {
+        return Item.CONFIGURE;
+    }
+
     /**
      * Adds to {@link #grantedPermissions}. Use of this method should be limited
      * during construction, as this object itself is considered immutable once

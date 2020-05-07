@@ -60,7 +60,7 @@ THE SOFTWARE.
             </j:if>
           </j:forEach>
         </j:forEach>
-        <l:isAdmin>
+        <l:hasPermission permission="${instance.getEditingPermission()}">
           <td class="stop" style="text-align:left;">
             <a href="#" class="selectall">
               <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
@@ -74,7 +74,7 @@ THE SOFTWARE.
               </a>
             </j:if>
           </td>
-        </l:isAdmin>
+        </l:hasPermission>
       </d:tag>
     </d:taglib>
     <link rel="stylesheet" href="${rootURL}${app.VIEW_RESOURCE_PATH}/hudson/security/table.css" type="text/css" />
@@ -98,7 +98,9 @@ THE SOFTWARE.
             ${g.title}
           </td>
         </j:forEach>
-        <td rowspan="2" class="stop" />
+        <l:hasPermission permission="${instance.getEditingPermission()}">
+          <td rowspan="2" class="stop" />
+        </l:hasPermission>
       </tr>
       <!-- The second row for individual permission -->
       <tr class="caption-row">
@@ -136,7 +138,7 @@ THE SOFTWARE.
         <local:row sid="__SID__" />
       </tr>
     </table>
-    <l:isAdmin>
+    <l:hasPermission permission="${instance.getEditingPermission()}">
       <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
        <tr>
          <td colspan="3">
@@ -147,7 +149,7 @@ THE SOFTWARE.
        </td></tr>
        <f:helpArea />
       </table>
-    </l:isAdmin>
+    </l:hasPermission>
     <script>
       //<![CDATA[
       Behaviour.specify("#${id}button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {

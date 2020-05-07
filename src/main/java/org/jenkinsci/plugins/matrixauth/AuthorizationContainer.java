@@ -91,6 +91,9 @@ public interface AuthorizationContainer {
         add(p, shortForm.substring(idx + 1));
     }
 
+    @Restricted(NoExternalUse.class)
+    Permission getEditingPermission();
+
     /**
      * Returns all SIDs configured in this matrix, minus "anonymous"
      *

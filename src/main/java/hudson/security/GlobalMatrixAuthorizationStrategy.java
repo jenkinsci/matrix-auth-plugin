@@ -107,6 +107,11 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
     }
 
     @Override
+    public Permission getEditingPermission() {
+        return Jenkins.ADMINISTER;
+    }
+
+    @Override
     @Nonnull
     public ACL getRootACL() {
         return acl;

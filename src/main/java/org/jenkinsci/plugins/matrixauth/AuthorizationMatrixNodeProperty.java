@@ -103,6 +103,11 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         return Collections.unmodifiableMap(grantedPermissions);
     }
 
+    @Override
+    public Permission getEditingPermission() {
+        return Computer.CONFIGURE;
+    }
+
     public void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy) {
         this.inheritanceStrategy = inheritanceStrategy;
     }
