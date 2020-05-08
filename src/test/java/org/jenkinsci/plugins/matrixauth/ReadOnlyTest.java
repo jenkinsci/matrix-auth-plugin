@@ -104,9 +104,9 @@ public class ReadOnlyTest {
     }
 
     @Test
-    @Ignore
+    @Ignore // TODO this form is only accessible to Agent/ExtendedRead users from https://github.com/jenkinsci/jenkins/pull/4531
     public void testAgentConfiguration() throws Exception {
-        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.234"))); // TODO this form is only accessible to Agent/ExtendedRead users from https://github.com/jenkinsci/jenkins/pull/4531
+        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.234"))); // TODO fix version
         final Slave agent = j.createSlave();
         agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
         assertPresentAndReadOnly( "computer/" + agent.getNodeName() + "/configure");
