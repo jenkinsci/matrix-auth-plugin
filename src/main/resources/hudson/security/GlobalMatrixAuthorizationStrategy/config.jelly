@@ -44,7 +44,7 @@ THE SOFTWARE.
 
               In that case, check for the applicable permission.
               -->
-            <d:invokeBody/>
+              <d:invokeBody/>
             </l:hasPermission>
           </j:when>
           <j:when test="${not readOnlyMode}">
@@ -170,7 +170,7 @@ THE SOFTWARE.
       <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
        <tr>
          <td colspan="3">
-              <input type="button" value="${%Add user or group…}" id="${id}button"/>
+            <input type="button" class="matrix-auth-add-user-button" value="${%Add user or group…}" id="${id}button"/>
          </td>
          <td align="right">
         <a href="#" class="help-button" helpURL="${rootURL}${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"><img src="${imagesURL}/16x16/help.png" alt="[help]" height="16" width="16"/></a>
