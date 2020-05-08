@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 2.6.1 (TBD)
+## Version 2.6.1 (2020-05-08)
 
 * [JENKINS-62202](https://issues.jenkins-ci.org/browse/JENKINS-62202):
   Fix regression introduced in 2.6 that disabled per-job/folder/agent configuration UI for users without Overall/Administer.
