@@ -127,6 +127,11 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         return Collections.unmodifiableMap(grantedPermissions);
     }
 
+    @Override
+    public Permission getEditingPermission() {
+        return Item.CONFIGURE;
+    }
+
     /**
      * Adds to {@link #grantedPermissions}. Use of this method should be limited
      * during construction, as this object itself is considered immutable once
