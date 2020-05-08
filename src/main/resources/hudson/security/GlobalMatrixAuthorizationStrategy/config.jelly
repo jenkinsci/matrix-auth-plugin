@@ -27,6 +27,26 @@ THE SOFTWARE.
     <j:set var="groups" value="${descriptor.allGroups}"/>
     <d:taglib uri="local">
       <!-- generate one row for the sid name @sid -->
+      <d:tag name="isEditable">
+        <l:hasPermission permission="${instance.getEditingPermission()}">
+          <j:if test="${readOnlyMode == null or not readOnlyMode}">
+            <!--
+            While the permission check should be good enough, we do both checks to catch exceptions like node
+            properties configured for cloud templates (once https://github.com/jenkinsci/jenkins/pull/4531 is merged):
+            A user with Overall/SystemRead can view the form and with global Computer/Configure the user also passes the
+            permission check. The user still isn't able to configure the cloud, so we want this to be disabled anyway.
+
+            readOnlyMode is null when the form doesn't set the flag:
+
+              - regular (freestyle) job configuration forms before Jenkins 2.223.
+              - folder configuration at least up to cloudbees-folder 6.12 (JENKINS-62218)
+
+            In that case, show the UI element.
+            -->
+            <d:invokeBody/>
+          </j:if>
+        </l:hasPermission>
+      </d:tag>
       <d:tag name="row">
         <j:choose>
           <j:when test="${attrs.sid == 'authenticated'}">
@@ -60,7 +80,7 @@ THE SOFTWARE.
             </j:if>
           </j:forEach>
         </j:forEach>
-        <l:hasPermission permission="${instance.getEditingPermission()}">
+        <local:isEditable>
           <td class="stop" style="text-align:left;">
             <a href="#" class="selectall">
               <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
@@ -74,7 +94,7 @@ THE SOFTWARE.
               </a>
             </j:if>
           </td>
-        </l:hasPermission>
+        </local:isEditable>
       </d:tag>
     </d:taglib>
     <link rel="stylesheet" href="${rootURL}${app.VIEW_RESOURCE_PATH}/hudson/security/table.css" type="text/css" />
@@ -98,9 +118,9 @@ THE SOFTWARE.
             ${g.title}
           </td>
         </j:forEach>
-        <l:hasPermission permission="${instance.getEditingPermission()}">
+        <local:isEditable>
           <td rowspan="2" class="stop" />
-        </l:hasPermission>
+        </local:isEditable>
       </tr>
       <!-- The second row for individual permission -->
       <tr class="caption-row">
@@ -138,7 +158,7 @@ THE SOFTWARE.
         <local:row sid="__SID__" />
       </tr>
     </table>
-    <l:hasPermission permission="${instance.getEditingPermission()}">
+    <local:isEditable>
       <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
        <tr>
          <td colspan="3">
@@ -149,8 +169,7 @@ THE SOFTWARE.
        </td></tr>
        <f:helpArea />
       </table>
-    </l:hasPermission>
-    <script>
+      <script>
       //<![CDATA[
       Behaviour.specify("#${id}button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
         makeButton($$('${id}button'), function (e) {
@@ -236,11 +255,6 @@ THE SOFTWARE.
         e.disabled = false;
         e.setAttribute('tooltip', findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
 
-        var submitButtonPresent = document.getElementsByClassName("submit-button").length > 0;
-        if (!submitButtonPresent) { // readonly mode if there's no submit button (Jenkins 2.222+)
-            e.disabled = true;
-            return;
-        }
         for (var i = 0; i < impliedByList.length; i++) {
           var permissionId = impliedByList[i];
           var reference = tr.querySelector("td[data-permission-id='" + permissionId + "'] input");
@@ -273,6 +287,7 @@ THE SOFTWARE.
           }
         });
         //]]>
-    </script>
+      </script>
+    </local:isEditable>
   </f:block>
 </j:jelly>
