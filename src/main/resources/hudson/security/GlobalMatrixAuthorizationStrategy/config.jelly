@@ -28,24 +28,32 @@ THE SOFTWARE.
     <d:taglib uri="local">
       <!-- generate one row for the sid name @sid -->
       <d:tag name="isEditable">
-        <l:hasPermission permission="${instance.getEditingPermission()}">
-          <j:if test="${readOnlyMode == null or not readOnlyMode}">
+        <j:choose>
+          <j:when test="${readOnlyMode == null}">
+            <l:hasPermission permission="${instance.getEditingPermission()}">
+              <!--
+              While a permission check should be good enough, we prefer readOnlyMode to catch exceptions like node
+              properties configured for cloud templates (once https://github.com/jenkinsci/jenkins/pull/4531 is merged):
+              A user with Overall/SystemRead can view the form and with global Computer/Configure the user also passes the
+              permission check. The user still isn't able to configure the cloud, so we want this to be disabled anyway.
+
+              readOnlyMode is null when the form doesn't set the flag:
+
+                - regular (freestyle) job configuration forms before Jenkins 2.223.
+                - folder configuration at least up to cloudbees-folder 6.12 (JENKINS-62218)
+
+              In that case, check for the applicable permission.
+              -->
+            <d:invokeBody/>
+            </l:hasPermission>
+          </j:when>
+          <j:when test="${not readOnlyMode}">
             <!--
-            While the permission check should be good enough, we do both checks to catch exceptions like node
-            properties configured for cloud templates (once https://github.com/jenkinsci/jenkins/pull/4531 is merged):
-            A user with Overall/SystemRead can view the form and with global Computer/Configure the user also passes the
-            permission check. The user still isn't able to configure the cloud, so we want this to be disabled anyway.
-
-            readOnlyMode is null when the form doesn't set the flag:
-
-              - regular (freestyle) job configuration forms before Jenkins 2.223.
-              - folder configuration at least up to cloudbees-folder 6.12 (JENKINS-62218)
-
-            In that case, show the UI element.
+            Allow explicitly setting readOnlyMode = false to render with editing controls despite possible lack of permissions.
             -->
             <d:invokeBody/>
-          </j:if>
-        </l:hasPermission>
+          </j:when>
+        </j:choose>
       </d:tag>
       <d:tag name="row">
         <j:choose>
