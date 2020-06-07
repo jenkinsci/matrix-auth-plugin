@@ -14,6 +14,7 @@ f.nested {
     
 }
 
+// TODO remove this once https://github.com/jenkinsci/jenkins/pull/3895 is in the core baseline
 def blockWrapper(Closure closure) {
     if (context.getVariableWithDefaultValue("divBasedFormLayout", "false") == "true") {
         div() {
