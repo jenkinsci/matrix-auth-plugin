@@ -71,7 +71,7 @@
 ### Important upgrade notes
 
 * This release requires **Jenkins 2.60.1** or newer as it makes extensive use of Java 8 features (and there's currently no way to declare a minimum needed Java version other than to depend on a core that requires that Java release).
-* This release uses a **new on-disk format** for permissions inheritance options. Existing options will be retained when upgrading, but **do****wngrading to older versions may result in failures to load job or folder permission data, or different (typically additional) permissions being granted after the downgrade.**
+* This release uses a **new on-disk format** for permissions inheritance options. Existing options will be retained when upgrading, but **downgrading to older versions may result in failures to load job or folder permission data, or different (typically additional) permissions being granted after the downgrade.**
 * Support for loading permissions last saved before Jenkins 1.300 (April 2009) has been dropped from this release.
 
 ### Notable changes since 1.7
