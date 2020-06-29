@@ -7,12 +7,12 @@
         <version>3.50</version>
     </parent>
     <artifactId>matrix-auth</artifactId>
-    <version>2.5.1</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <name>Matrix Authorization Strategy Plugin</name>
     <url>https://github.com/jenkinsci/matrix-auth-plugin</url>
     <properties>
-        <revision>2.6</revision>
+        <revision>2.5.2</revision>
         <changelist>-SNAPSHOT</changelist>
         <hpi.compatibleSinceVersion>2.0</hpi.compatibleSinceVersion>
         <jenkins.version>2.138.4</jenkins.version>
@@ -30,7 +30,7 @@
         <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-      <tag>matrix-auth-2.5.1</tag>
+      <tag>${scmTag}</tag>
   </scm>
     <dependencies>
         <!-- optional plugin dependencies -->
