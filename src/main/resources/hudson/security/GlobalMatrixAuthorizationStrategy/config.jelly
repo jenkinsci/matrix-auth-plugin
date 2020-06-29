@@ -169,7 +169,7 @@ THE SOFTWARE.
             copy = master.cloneNode(true); <!-- for IE -->
           copy.removeAttribute("id");
           copy.removeAttribute("style");
-          copy.firstChild.innerHTML = name;
+          copy.firstChild.innerHTML = YAHOO.lang.escapeHTML(name); // TODO consider setting innerText
           copy.setAttribute("name",'['+name+']');
 
           for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
@@ -226,14 +226,14 @@ THE SOFTWARE.
         var impliedByList = impliedByString.split(" ");
         var tr = findAncestor(e,"TR");
         e.disabled = false;
-        e.setAttribute('tooltip', findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
+        e.setAttribute('tooltip', YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled')));
         for (var i = 0; i < impliedByList.length; i++) {
           var permissionId = impliedByList[i];
           var reference = tr.querySelector("td[data-permission-id='" + permissionId + "'] input");
           if (reference !== null) {
             if (reference.checked) {
               e.disabled = true;
-              e.setAttribute('tooltip', findAncestor(e, "TD").getAttribute('data-tooltip-disabled'));
+              e.setAttribute('tooltip', YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled')));
             }
           }
         }
