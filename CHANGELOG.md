@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.6.2 (2020-07-15)
+
+* Fix [SECURITY-1909](https://www.jenkins.io/security/advisory/2020-07-15/#SECURITY-1909)
+
 ## Version 2.6.1 (2020-05-08)
 
 * [JENKINS-62202](https://issues.jenkins-ci.org/browse/JENKINS-62202):
@@ -15,6 +19,10 @@
 * [JENKINS-36625](https://issues.jenkins-ci.org/browse/JENKINS-36625):
   Allow wrapping long user and group names to limit width of the configuration table.
 * Internal: Parent POM update, update test dependencies (Pipeline: Groovy Plugin, JCasC test harness).
+
+## Version 2.5.1 (2020-07-15)
+
+* Fix [SECURITY-1909](https://www.jenkins.io/security/advisory/2020-07-15/#SECURITY-1909) (backport)
 
 ## Version 2.5 (2019-10-14)
 
