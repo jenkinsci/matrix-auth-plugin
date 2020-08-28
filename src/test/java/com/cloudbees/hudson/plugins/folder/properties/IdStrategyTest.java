@@ -7,7 +7,6 @@ import hudson.model.Item;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.IdStrategy;
-import org.acegisecurity.AccessDeniedException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -73,8 +72,8 @@ public class IdStrategyTest {
             try {
                 foo.checkPermission(Item.DELETE);
                 fail("access should be denied");
-            } catch (AccessDeniedException e) {
-                // expected
+            } catch (RuntimeException x) {
+                assertEquals(hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"), x.getMessage());
             }
             return null;
         });
@@ -95,9 +94,9 @@ public class IdStrategyTest {
             foo.checkPermission(Item.BUILD);
             try {
                 foo.checkPermission(Item.DELETE);
-                fail("acecss should be denied");
-            } catch (AccessDeniedException e) {
-                // expected
+                fail("access should be denied");
+            } catch (RuntimeException x) {
+                assertEquals(hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"), x.getMessage());
             }
             return null;
         });
@@ -125,8 +124,8 @@ public class IdStrategyTest {
             try {
                 foo.checkPermission(Item.DELETE);
                 fail("access should be denied");
-            } catch (AccessDeniedException e) {
-                // expected
+            } catch (RuntimeException x) {
+                assertEquals(hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"), x.getMessage());
             }
             return null;
         });

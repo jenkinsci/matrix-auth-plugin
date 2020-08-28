@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.logging.Level;
 
 import jenkins.model.Jenkins;
-import org.acegisecurity.AccessDeniedException;
 import static org.junit.Assert.*;
 
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
@@ -118,8 +117,8 @@ public class AuthorizationMatrixPropertyTest {
             try {
                 foo.checkPermission(Item.DELETE);
                 fail("access should be denied");
-            } catch (AccessDeniedException e) {
-                // expected
+            } catch (RuntimeException x) {
+                assertEquals(hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"), x.getMessage());
             }
             return null;
         });
