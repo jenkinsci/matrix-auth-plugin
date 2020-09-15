@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.6.3 (2020-09-15)
+
+* [JENKINS-56109](https://issues.jenkins-ci.org/browse/JENKINS-56109): Make the plugin compatible with upcoming div-based form layout.
+* Open links from job, folder, and agent configurations to the Global Security Configuration in a new window.
+* Internal: Parent POM update, make test assertions compatible with JEP-295
+
 ## Version 2.6.2 (2020-07-15)
 
 * Fix [SECURITY-1909](https://www.jenkins.io/security/advisory/2020-07-15/#SECURITY-1909)
