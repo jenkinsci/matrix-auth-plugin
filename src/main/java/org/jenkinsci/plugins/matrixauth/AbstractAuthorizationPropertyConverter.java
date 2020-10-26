@@ -25,6 +25,7 @@ package org.jenkinsci.plugins.matrixauth;
 
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.ExtendedHierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
@@ -58,13 +59,13 @@ public abstract class AbstractAuthorizationPropertyConverter<T extends Authoriza
 
     @Override
     protected void unmarshalContainer(T container, HierarchicalStreamReader reader, UnmarshallingContext context) {
-        String prop = reader.peekNextChild();
+        String prop = ((ExtendedHierarchicalStreamReader) reader).peekNextChild();
 
         if (prop!=null && prop.equals("useProjectSecurity")) {
             reader.moveDown();
             reader.getValue(); // we used to use this but not any more.
             reader.moveUp();
-            prop = reader.peekNextChild(); // We check the next field
+            prop = ((ExtendedHierarchicalStreamReader) reader).peekNextChild(); // We check the next field
         }
         if ("blocksInheritance".equals(prop)) {
             reader.moveDown();
