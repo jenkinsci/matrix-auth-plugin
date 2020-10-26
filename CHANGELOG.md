@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.6.4 (2020-10-26)
+
+* Compatibility with future [Jenkins core change](https://github.com/jenkinsci/jenkins/pull/4944) implementing [JEP-228](https://github.com/jenkinsci/jep/blob/master/jep/228/README.adoc).
+
 ## Version 2.6.3 (2020-09-15)
 
 * [JENKINS-56109](https://issues.jenkins-ci.org/browse/JENKINS-56109): Make the plugin compatible with upcoming div-based form layout.
