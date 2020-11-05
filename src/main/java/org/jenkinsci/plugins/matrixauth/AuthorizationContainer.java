@@ -125,7 +125,7 @@ public interface AuthorizationContainer {
             if (set == null) {
                 continue;
             }
-            if (set.contains(sid)) {
+            if (set.stream().anyMatch(sid.trim()::equalsIgnoreCase)) {
                 return true;
             }
             for (String s: set) {
