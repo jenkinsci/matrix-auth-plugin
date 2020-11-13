@@ -36,9 +36,11 @@ public class PermissionAdderTest {
                 signup.enterUsername("alice");
                 signup.enterPassword("alice");
                 signup.enterFullName("Alice User");
+                signup.enterEmail("alice@nowhere.net");
                 signup.submit(r.j);
-
-                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Jenkins.ADMINISTER));
+                User alice = User.get("alice", false, Collections.emptyMap());
+                Assert.assertNotNull(alice);
+                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(alice.impersonate(), Jenkins.ADMINISTER));
             }
         });
         r.addStep(new Statement() {
