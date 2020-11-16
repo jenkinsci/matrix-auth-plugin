@@ -8,6 +8,7 @@ import jenkins.model.Jenkins;
 
 import java.util.Collections;
 
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,7 +37,11 @@ public class PermissionAdderTest {
                 signup.enterUsername("alice");
                 signup.enterPassword("alice");
                 signup.enterFullName("Alice User");
-                signup.enterEmail("alice@nowhere.net");
+                try {
+                    signup.enterEmail("alice@nowhere.net");
+                } catch (ElementNotFoundException x) {
+                    // mailer plugin not installed, fine
+                }
                 signup.submit(r.j);
                 User alice = User.get("alice", false, Collections.emptyMap());
                 Assert.assertNotNull(alice);
