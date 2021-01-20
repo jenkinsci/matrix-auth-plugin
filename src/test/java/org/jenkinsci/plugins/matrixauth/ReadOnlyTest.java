@@ -104,21 +104,26 @@ public class ReadOnlyTest {
     }
 
     @Test
-    @Ignore // TODO this form is only accessible to Agent/ExtendedRead users from https://github.com/jenkinsci/jenkins/pull/4531
-    public void testAgentConfiguration() throws Exception {
-        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.234"))); // TODO fix version
+    public void testAgentConfigurationGlobally() throws Exception {
+        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.238")));
         final Slave agent = j.createSlave();
         agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
-        assertPresentAndReadOnly( "computer/" + agent.getNodeName() + "/configure");
+        assertPresentAndReadOnly("computer/" + agent.getNodeName() + "/configure");
 
-        // Grant permission globally -- works with https://github.com/jenkinsci/jenkins/pull/4531 before https://github.com/jenkinsci/jenkins/pull/4531#pullrequestreview-408283044
-        ((ProjectMatrixAuthorizationStrategy)Jenkins.get().getAuthorizationStrategy()).add(Computer.CONFIGURE, "anonymous");
+        ((ProjectMatrixAuthorizationStrategy) Jenkins.get().getAuthorizationStrategy()).add(Computer.CONFIGURE, Jenkins.ANONYMOUS.getName());
+        assertPresentAndEditable("computer/" + agent.getNodeName() + "/configure");
+    }
 
-        // Grant per-agent permission -- https://github.com/jenkinsci/jenkins/pull/4531#pullrequestreview-408283044 prevents this so far
-// TODO use this once it works upstream
-//        final AuthorizationMatrixNodeProperty prop = new AuthorizationMatrixNodeProperty();
-//        prop.add(Computer.CONFIGURE, Jenkins.ANONYMOUS.getName());
-//        agent.setNodeProperties(Collections.singletonList(prop));
+    @Test
+    public void testAgentConfigurationPerAgent() throws Exception {
+        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.238")));
+        final Slave agent = j.createSlave();
+        agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
+        assertPresentAndReadOnly("computer/" + agent.getNodeName() + "/configure");
+
+        final AuthorizationMatrixNodeProperty prop = new AuthorizationMatrixNodeProperty();
+        prop.add(Computer.CONFIGURE, Jenkins.ANONYMOUS.getName());
+        agent.setNodeProperties(Collections.singletonList(prop));
         assertPresentAndEditable( "computer/" + agent.getNodeName() + "/configure");
     }
 }
