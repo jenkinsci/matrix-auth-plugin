@@ -239,10 +239,10 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                     User current = User.current();
                     String sid = current == null ? "anonymous" : current.getId();
 
-                    if (!strategy.getACL((AbstractItem) folder).hasPermission(Jenkins.getAuthentication(), Item.READ)) {
+                    if (!strategy.getACL((AbstractItem) folder).hasPermission2(Jenkins.getAuthentication2(), Item.READ)) {
                         prop.add(Item.READ, sid);
                     }
-                    if (!strategy.getACL((AbstractItem) folder).hasPermission(Jenkins.getAuthentication(), Item.CONFIGURE)) {
+                    if (!strategy.getACL((AbstractItem) folder).hasPermission2(Jenkins.getAuthentication2(), Item.CONFIGURE)) {
                         prop.add(Item.CONFIGURE, sid);
                     }
                     if (prop.getGrantedPermissions().size() > 0) {

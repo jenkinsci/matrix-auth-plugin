@@ -74,9 +74,9 @@ public class AuthorizationMatrixPropertyTest {
         }
 
         Assert.assertNotNull(job.getProperties().get(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission(User.get("bob", false, Collections.emptyMap()).impersonate(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL().hasPermission2(User.get("alice", false, Collections.emptyMap()).impersonate2(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission2(User.get("bob", false, Collections.emptyMap()).impersonate2(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission2(User.get("alice", false, Collections.emptyMap()).impersonate2(), Item.CONFIGURE));
     }
 
     @Test public void basics1() throws Exception {

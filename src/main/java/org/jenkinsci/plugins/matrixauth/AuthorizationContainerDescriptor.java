@@ -4,27 +4,24 @@ import hudson.Functions;
 import hudson.Util;
 import hudson.model.User;
 import hudson.security.AccessControlled;
-import hudson.security.AuthorizationStrategy;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.PermissionGroup;
 import hudson.security.PermissionScope;
 import hudson.security.SecurityRealm;
-import hudson.security.UserMayOrMayNotExistException;
+import hudson.security.UserMayOrMayNotExistException2;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
-import org.acegisecurity.AuthenticationException;
-import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.springframework.dao.DataAccessException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import javax.annotation.Nonnull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -137,16 +134,16 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
 
         try {
             try {
-                sr.loadUserByUsername(v);
+                sr.loadUserByUsername2(v);
                 User u = User.get(v); // TODO fix deprecated call while not loading users for this form validation
                 if (ev.equals(u.getFullName())) {
                     return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("person.png", ev, "User", false));
                 }
                 return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("person.png", Util.escape(StringUtils.abbreviate(u.getFullName(), 50)), "User " + ev, false));
-            } catch (UserMayOrMayNotExistException e) {
+            } catch (UserMayOrMayNotExistException2 e) {
                 // undecidable, meaning the user may exist
                 return FormValidation.respond(FormValidation.Kind.OK, ev);
-            } catch (UsernameNotFoundException |DataAccessException e) {
+            } catch (UsernameNotFoundException e) {
                 // fall through next
             } catch (AuthenticationException e) {
                 // other seemingly unexpected error.
@@ -154,12 +151,12 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
             }
 
             try {
-                sr.loadGroupByGroupname(v);
+                sr.loadGroupByGroupname2(v, false);
                 return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("user.png", ev, "Group", false));
-            } catch (UserMayOrMayNotExistException e) {
+            } catch (UserMayOrMayNotExistException2 e) {
                 // undecidable, meaning the group may exist
                 return FormValidation.respond(FormValidation.Kind.OK, ev);
-            } catch (UsernameNotFoundException|DataAccessException e) {
+            } catch (UsernameNotFoundException e) {
                 // fall through next
             } catch (AuthenticationException e) {
                 // other seemingly unexpected error.

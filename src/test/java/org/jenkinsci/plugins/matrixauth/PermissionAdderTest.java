@@ -45,13 +45,13 @@ public class PermissionAdderTest {
                 signup.submit(r.j);
                 User alice = User.get("alice", false, Collections.emptyMap());
                 Assert.assertNotNull(alice);
-                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(alice.impersonate(), Jenkins.ADMINISTER));
+                Assert.assertTrue(r.j.jenkins.getACL().hasPermission2(alice.impersonate2(), Jenkins.ADMINISTER));
             }
         });
         r.addStep(new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                Assert.assertTrue(r.j.jenkins.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Jenkins.ADMINISTER));
+                Assert.assertTrue(r.j.jenkins.getACL().hasPermission2(User.get("alice", false, Collections.emptyMap()).impersonate2(), Jenkins.ADMINISTER));
             }
         });
     }

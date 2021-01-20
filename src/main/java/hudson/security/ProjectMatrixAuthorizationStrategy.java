@@ -32,12 +32,12 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Job;
 import hudson.Extension;
-import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.Messages;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.springframework.security.core.Authentication;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
@@ -70,8 +70,8 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
         return new ACL() {
             @Override
-            public boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission) {
-                return a.equals(SYSTEM) || child.hasPermission(a, permission) || parent.hasPermission(a, permission);
+            public boolean hasPermission2(@Nonnull Authentication a, @Nonnull Permission permission) {
+                return a.equals(SYSTEM2) || child.hasPermission2(a, permission) || parent.hasPermission2(a, permission);
             }
         };
     }

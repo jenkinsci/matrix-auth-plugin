@@ -28,9 +28,9 @@ import hudson.security.ACL;
 import hudson.security.AccessControlled;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
-import org.acegisecurity.Authentication;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.springframework.security.core.Authentication;
 
 import javax.annotation.Nonnull;
 
@@ -49,7 +49,7 @@ public class NonInheritingStrategy extends InheritanceStrategy {
         final ACL rootACL = Jenkins.get().getAuthorizationStrategy().getRootACL();
         return new ACL() {
             @Override
-            public boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission) {
+            public boolean hasPermission2(@Nonnull Authentication a, @Nonnull Permission permission) {
                 /*
                     I see two possible approaches here:
                     One would be to just grant every permission if the root ACL grants Administer.
@@ -59,7 +59,7 @@ public class NonInheritingStrategy extends InheritanceStrategy {
                     Administer, and, if so, grants it if the user has Administer.
                     As this is a tree, any permission implication rooted in Administer should then be granted to administrators.
                      */
-                return isUltimatelyImpliedByAdminister(permission) && rootACL.hasPermission(a, Jenkins.ADMINISTER) || acl.hasPermission(a, permission);
+                return isUltimatelyImpliedByAdminister(permission) && rootACL.hasPermission2(a, Jenkins.ADMINISTER) || acl.hasPermission2(a, permission);
             }
 
             private boolean isUltimatelyImpliedByAdminister(Permission permission) {

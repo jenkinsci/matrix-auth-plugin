@@ -67,7 +67,7 @@ public class AuthorizationMatrixNodePropertyTest {
         }
 
         Assert.assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
-        Assert.assertTrue(node.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Computer.CONFIGURE));
-        Assert.assertFalse(node.getACL().hasPermission(User.get("bob", false, Collections.emptyMap()).impersonate(), Computer.CONFIGURE));
+        Assert.assertTrue(node.getACL().hasPermission2(User.get("alice", false, Collections.emptyMap()).impersonate2(), Computer.CONFIGURE));
+        Assert.assertFalse(node.getACL().hasPermission2(User.get("bob", false, Collections.emptyMap()).impersonate2(), Computer.CONFIGURE));
     }
 }

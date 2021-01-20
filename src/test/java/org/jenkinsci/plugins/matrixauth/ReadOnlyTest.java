@@ -89,7 +89,7 @@ public class ReadOnlyTest {
         assertPresentAndReadOnly(job.getUrl() + "configure");
 
         job.removeProperty(AuthorizationMatrixProperty.class);
-        job.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(Jenkins.ANONYMOUS.getName()))));
+        job.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(Jenkins.ANONYMOUS2.getName()))));
         assertPresentAndEditable(job.getUrl() + "configure");
     }
 
@@ -99,7 +99,7 @@ public class ReadOnlyTest {
         folder.addProperty(new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.emptyMap()));
         assertPresentAndReadOnly(folder.getUrl() + "configure");
 
-        folder.getProperties().replace(new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(Jenkins.ANONYMOUS.getName()))));
+        folder.getProperties().replace(new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(Jenkins.ANONYMOUS2.getName()))));
         assertPresentAndEditable(folder.getUrl() + "configure");
     }
 

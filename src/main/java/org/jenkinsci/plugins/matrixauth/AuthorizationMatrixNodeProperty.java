@@ -223,7 +223,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
                 User current = User.current();
                 String sid = current == null ? "anonymous" : current.getId();
 
-                if (!strategy.getACL(node).hasPermission(Jenkins.getAuthentication(), Computer.CONFIGURE)) {
+                if (!strategy.getACL(node).hasPermission2(Jenkins.getAuthentication2(), Computer.CONFIGURE)) {
                     prop.add(Computer.CONFIGURE, sid);
                 }
                 if (prop.getGrantedPermissions().size() > 0) {
