@@ -2,11 +2,11 @@
 
 ## Version 2.6.4 (2020-10-26)
 
-* Compatibility with future [Jenkins core change](https://github.com/jenkinsci/jenkins/pull/4944) implementing [JEP-228](https://github.com/jenkinsci/jep/blob/master/jep/228/README.adoc).
+* Compatibility with [JEP-228](https://github.com/jenkinsci/jep/blob/master/jep/228/README.adoc) in Jenkins 2.266 and newer.
 
 ## Version 2.6.3 (2020-09-15)
 
-* [JENKINS-56109](https://issues.jenkins-ci.org/browse/JENKINS-56109): Make the plugin compatible with upcoming div-based form layout.
+* [JENKINS-56109](https://issues.jenkins-ci.org/browse/JENKINS-56109): Make the plugin compatible with new form layout in Jenkins 2.264 and newer.
 * Open links from job, folder, and agent configurations to the Global Security Configuration in a new window.
 * Internal: Parent POM update, make test assertions compatible with JEP-295
 
