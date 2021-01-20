@@ -177,7 +177,8 @@
 
 ## Version 1.3 (Feb 22, 2016)
 
-* Inverted dependency so this plugin now depends on the [CloudBees Folders Plugin](/display/JENKINS/CloudBees+Folders+Plugin). **If you accept this update, you must also update the** **[Icon Shim Plugin](/display/JENKINS/Icon+Shim+Plugin)** **(to 2.0.3 or later).**
+* Inverted dependency so this plugin now depends on the [CloudBees Folders Plugin](https://plugins.jenkins.io/cloudbees-folder/).
+  **If you accept this update, you must also update the [Icon Shim Plugin](https://plugins.jenkins.io/icon-shim/) (to 2.0.3 or later).**
 * Extended diagnostic fix made in 1.1.
 * Silently ignore unknown permissions instead of throwing an `IllegalArgumentException`.
 * [JENKINS-29527](https://issues.jenkins.io/browse/JENKINS-29527) Fixed bug in inheritance blocking.
