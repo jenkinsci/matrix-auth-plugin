@@ -3,7 +3,6 @@
 ## Version 2.6.5 (2021-01-21)
 
 * [JENKINS-64661](https://issues.jenkins.io/browse/JENKINS-64661): Do not break `properties` in the global Pipeline snippet generator.
-* Internal: Make test pass in Plugin Compatibility Tester.
 
 ## Version 2.6.4 (2020-10-26)
 
