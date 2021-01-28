@@ -19,6 +19,8 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.verb.GET;
+import org.kohsuke.stapler.verb.POST;
 import org.springframework.dao.DataAccessException;
 
 import javax.annotation.Nonnull;
@@ -122,6 +124,8 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
 
     // Not used directly by Stapler due to the trailing _ (this prevented method confusion around 1.415).
     @Restricted(NoExternalUse.class)
+    @GET
+    @POST
     default FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, @Nonnull Permission permission) {
 
         final String v = value.substring(1,value.length()-1);

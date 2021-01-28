@@ -42,6 +42,8 @@ import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.GET;
+import org.kohsuke.stapler.verb.POST;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -224,6 +226,8 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
         }
 
         @Restricted(NoExternalUse.class)
+        @GET
+        @POST
         public FormValidation doCheckName(@QueryParameter String value ) {
             return doCheckName_(value, Jenkins.get(), Jenkins.ADMINISTER);
         }
