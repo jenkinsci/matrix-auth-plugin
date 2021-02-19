@@ -12,7 +12,7 @@
 
 * [JENKINS-56109](https://issues.jenkins.io/browse/JENKINS-56109): Make the plugin compatible with new form layout in Jenkins 2.264 and newer.
 * Open links from job, folder, and agent configurations to the Global Security Configuration in a new window.
-* Internal: Parent POM update, make test assertions compatible with JEP-295
+* Internal: Parent POM update, make test assertions compatible with [JEP-295](https://github.com/jenkinsci/jep/blob/master/jep/295/README.adoc)
 
 ## Version 2.6.2 (2020-07-15)
 
@@ -69,7 +69,6 @@
 ## Version 2.3 (2018-07-10)
 
 * [JENKINS-52167](https://issues.jenkins.io/browse/JENKINS-52167): Rotate column headers in Google Chrome
-
 * [JENKINS-47424](https://issues.jenkins.io/browse/JENKINS-47424): Don't show 'Implied by' note for the Overall/Administer permission
 * [JENKINS-28668](https://issues.jenkins.io/browse/JENKINS-28668): Use a modal dialog to add users/groups to the list to prevent accidental form submissions
 
@@ -105,9 +104,9 @@
 * **Allow configuring per-agent permissions.** This allows e.g. restricting per-agent build permissions when using the Authorize Project plugin ([JENKINS-46654](https://issues.jenkins.io/browse/JENKINS-46654))
 * **Prevent accidental lockouts and unexpected lack of permissions**  
     * Improvement: When submitting a global matrix auth configuration that does not specify an administrator (often happening in accidental/premature form submissions), give the submitting user Administer permission. Note that this could mean that the 'anonymous' may still have admin permission if the form is submitted as an anonymous user. ([JENKINS-46832](https://issues.jenkins.io/browse/JENKINS-46832) / [JENKINS-10871](https://issues.jenkins.io/browse/JENKINS-10871))
-    * Bug: Ensure that users creating a new job, folder, or node have read and configure access when using the project-based matrix authorization strategy. (<span class="js-issue-title">JENKINS-5277</span>)
+    * Bug: Ensure that users creating a new job, folder, or node have read and configure access when using the project-based matrix authorization strategy. ([JENKINS-5277](https://issues.jenkins.io/browse/JENKINS-5277))
     * Bug: Save the global security configuration after granting administer permission to the first user to sign up. ([JENKINS-20520](https://issues.jenkins.io/browse/JENKINS-20520))
-    * Bug: Ensure 'empty' matrix permission configurations can be loaded in case this is needed (e.g. programmatically defined). The fix for [JENKINS-10871](https://issues.jenkins.io/browse/JENKINS-10871) will prevent this from happening accidentally. (JENKINS-9774)
+    * Bug: Ensure 'empty' matrix permission configurations can be loaded in case this is needed (e.g. programmatically defined). The fix for [JENKINS-10871](https://issues.jenkins.io/browse/JENKINS-10871) will prevent this from happening accidentally. ([JENKINS-9774](https://issues.jenkins.io/browse/JENKINS-9774))
     * Bug: When using container-based authentication and project-based matrix authorization, permissions granted to groups in items inside folders only may not have been granted to members of those groups.
 * **UX improvements for the matrix configuration table**  
     * Improvement: Indicate whether a permission is implied by another permission in the tool tip, and also indicate when a permission is not implied by Overall/Administer (which is unusual). ([JENKINS-32506](https://issues.jenkins.io/browse/JENKINS-32506))
