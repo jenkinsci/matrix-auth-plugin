@@ -24,15 +24,17 @@
 package org.jenkinsci.plugins.matrixauth.inheritance;
 
 import hudson.Extension;
+import hudson.model.Item;
 import hudson.security.ACL;
-import hudson.security.AccessControlled;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import org.acegisecurity.Authentication;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 
 /**
  * Strategy that disables inheritance except for the globally defined Administer permission.
@@ -45,30 +47,39 @@ public class NonInheritingStrategy extends InheritanceStrategy {
     }
 
     @Override
-    public ACL getEffectiveACL(ACL acl, AccessControlled subject) {
-        final ACL rootACL = Jenkins.get().getAuthorizationStrategy().getRootACL();
-        return new ACL() {
-            @Override
-            public boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission) {
-                /*
-                    I see two possible approaches here:
-                    One would be to just grant every permission if the root ACL grants Administer.
-                    This could result in weird situations where disabling inheritance would grant permissions like the optional
-                    Run/Artifacts permission not implied by anything else.
-                    The chosen, second approach checks whether the given permission is ultimately (transitively) implied by
-                    Administer, and, if so, grants it if the user has Administer.
-                    As this is a tree, any permission implication rooted in Administer should then be granted to administrators.
-                     */
-                return isUltimatelyImpliedByAdminister(permission) && rootACL.hasPermission(a, Jenkins.ADMINISTER) || acl.hasPermission(a, permission);
-            }
+    protected boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
+        if (a.equals(ACL.SYSTEM)) {
+            return true;
+        }
+        if (isUltimatelyImpliedByAdminister(permission) && root.hasPermission(a, Jenkins.ADMINISTER)) {
+            /*
+             * I see two possible approaches here:
+             * One would be to just grant every permission if the root ACL grants Administer.
+             * This could result in weird situations where disabling inheritance would grant permissions like the optional
+             * Run/Artifacts permission not implied by anything else.
+             * The chosen, second approach checks whether the given permission is ultimately (transitively) implied by
+             * Administer, and, if so, grants it if the user has Administer.
+             * As this is a tree, any permission implication rooted in Administer should then be granted to administrators.
+             */
+            return true;
+        }
+        if (isParentReadPermissionRequired() && parent != null && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
+            /*
+             * We are not inheriting permissions from the parent, but we only grant Read permission if the parent
+             * also has Read permission.
+             */
+            return parent.hasPermission(a, permission) && child.hasPermission(a, permission);
+        } else {
+            /* Only grant permission if it is explicitly granted here. */
+            return child.hasPermission(a, permission);
+        }
+    }
 
-            private boolean isUltimatelyImpliedByAdminister(Permission permission) {
-                while (permission.impliedBy != null) {
-                    permission = permission.impliedBy;
-                }
-                return permission == Jenkins.ADMINISTER;
-            }
-        };
+    private static boolean isUltimatelyImpliedByAdminister(Permission permission) {
+        while (permission.impliedBy != null) {
+            permission = permission.impliedBy;
+        }
+        return permission == Jenkins.ADMINISTER;
     }
 
     @Symbol("nonInheriting")
