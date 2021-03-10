@@ -64,6 +64,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     }
 
     @Restricted(NoExternalUse.class)
+    @Deprecated // Unused since SECURITY-2180 fix, TODO insert specific versions
     public static ACL inheritingACL(final ACL parent, final ACL child) {
         if (parent instanceof SidACL && child instanceof SidACL) {
             return ((SidACL) child).newInheritingACL((SidACL) parent);

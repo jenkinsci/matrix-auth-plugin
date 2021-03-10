@@ -25,14 +25,52 @@ package org.jenkinsci.plugins.matrixauth.inheritance;
 
 import hudson.ExtensionPoint;
 import hudson.model.AbstractDescribableImpl;
+import hudson.model.AbstractItem;
+import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import hudson.security.AccessControlled;
+import hudson.security.Permission;
+import jenkins.model.Jenkins;
+import org.acegisecurity.Authentication;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 public abstract class InheritanceStrategy extends AbstractDescribableImpl<InheritanceStrategy> implements ExtensionPoint {
+    @Restricted(NoExternalUse.class)
+    /* package */ static boolean isParentReadPermissionRequired() {
+        // TODO Switch to SystemProperties in 2.236+
+        String propertyName = hudson.security.AuthorizationMatrixProperty.class.getName() + ".checkParentPermissions";
+        String value = System.getProperty(propertyName);
+        if (value == null) {
+            return true;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
     @Override
     public InheritanceStrategyDescriptor getDescriptor() {
         return (InheritanceStrategyDescriptor) super.getDescriptor();
     }
 
-    public abstract ACL getEffectiveACL(ACL acl, AccessControlled subject);
+    @CheckForNull
+    private ACL getParentItemACL(AccessControlled accessControlled) {
+        ACL parentACL = null;
+        if (accessControlled instanceof AbstractItem) {
+            AbstractItem item = (AbstractItem) accessControlled;
+            ItemGroup<?> parent = item.getParent();
+            if (parent instanceof AbstractItem) {
+                parentACL = Jenkins.get().getAuthorizationStrategy().getACL((AbstractItem) parent);
+            }
+        }
+        return parentACL;
+    }
+
+    public ACL getEffectiveACL(final ACL acl, final AccessControlled subject) {
+        return ACL.lambda((a, p) -> hasPermission(a, p, acl, getParentItemACL(subject), Jenkins.get().getAuthorizationStrategy().getRootACL()));
+    }
+
+    protected abstract boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission, ACL child, @CheckForNull ACL parent, ACL root);
 }
