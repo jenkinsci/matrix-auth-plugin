@@ -31,6 +31,7 @@ import hudson.security.ACL;
 import hudson.security.AccessControlled;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
+import jenkins.util.SystemProperties;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.springframework.security.core.Authentication;
@@ -41,13 +42,7 @@ import javax.annotation.Nonnull;
 public abstract class InheritanceStrategy extends AbstractDescribableImpl<InheritanceStrategy> implements ExtensionPoint {
     @Restricted(NoExternalUse.class)
     /* package */ static boolean isParentReadPermissionRequired() {
-        // TODO Switch to SystemProperties in 2.236+
-        String propertyName = hudson.security.AuthorizationMatrixProperty.class.getName() + ".checkParentPermissions";
-        String value = System.getProperty(propertyName);
-        if (value == null) {
-            return true;
-        }
-        return Boolean.parseBoolean(value);
+        return SystemProperties.getBoolean(hudson.security.AuthorizationMatrixProperty.class.getName() + ".checkParentPermissions", true);
     }
 
     @Override
