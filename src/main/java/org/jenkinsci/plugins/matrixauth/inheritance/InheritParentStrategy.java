@@ -25,14 +25,14 @@ package org.jenkinsci.plugins.matrixauth.inheritance;
 
 import hudson.Extension;
 import hudson.model.AbstractItem;
-import hudson.model.ItemGroup;
+import hudson.model.Item;
 import hudson.security.ACL;
-import hudson.security.AccessControlled;
-import hudson.security.ProjectMatrixAuthorizationStrategy;
-import jenkins.model.Jenkins;
+import hudson.security.Permission;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.springframework.security.core.Authentication;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -48,19 +48,28 @@ public class InheritParentStrategy extends InheritanceStrategy {
     }
 
     @Override
-    public ACL getEffectiveACL(ACL acl, AccessControlled subject) {
-        if (subject instanceof AbstractItem) {
-            AbstractItem item = (AbstractItem) subject;
-            ItemGroup<?> parent = item.getParent();
-            final ACL parentACL;
-            if (parent instanceof AbstractItem) {
-                parentACL = Jenkins.get().getAuthorizationStrategy().getACL((AbstractItem) parent);
-            } else {
-                parentACL = Jenkins.get().getAuthorizationStrategy().getRootACL();
-            }
-            return ProjectMatrixAuthorizationStrategy.inheritingACL(parentACL, acl);
+    protected boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
+        if (a.equals(ACL.SYSTEM2)) {
+            return true;
+        }
+        if (isParentReadPermissionRequired() && parent != null && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
+            /*
+             * If we have an item parent, only grant Item/Read and Item/Discover if it's granted on the parent.
+             * In this case, it doesn't even matter whether it's explicitly granted on the child.
+             */
+            return parent.hasPermission2(a, permission);
+        }
+        if (parent == null) {
+            /*
+             * Without an item parent (i.e. topmost level item) we need to check both grants on this item, as
+             * well as grants on the root (parent) ACL:
+             * - Explicitly granted here but possibly not globally (on root): That's OK
+             * - NOT explicitly granted here, but globally: That's also OK
+             */
+            return root.hasPermission2(a, permission) || child.hasPermission2(a, permission);
         } else {
-            throw new IllegalArgumentException("Expected subject to be AbstractItem, but got " + subject);
+            /* If we have an item parent, check both explicit grants here and inherited permissions from parent. */
+            return parent.hasPermission2(a, permission) || child.hasPermission2(a, permission);
         }
     }
 
