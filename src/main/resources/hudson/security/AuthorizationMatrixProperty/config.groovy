@@ -1,5 +1,6 @@
 package hudson.security.AuthorizationMatrixProperty
 
+import hudson.model.Item
 import lib.FormTagLib
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategyDescriptor
 
@@ -10,7 +11,7 @@ f.optionalBlock(name: 'useProjectSecurity', checked: instance != null, title: _(
     f.nested {
         div {
             // It is unclear whether we can expect every Item to be an AbstractItem. While I've been unsuccessful finding one in a quick search, better be safe here and just offer fewer options if necessary.
-            f.dropdownDescriptorSelector(title: _("Inheritance Strategy"), descriptors: InheritanceStrategyDescriptor.getApplicableDescriptors(my?.class?:hudson.model.Item.class), field: 'inheritanceStrategy')
+            f.dropdownDescriptorSelector(title: _("Inheritance Strategy"), descriptors: InheritanceStrategyDescriptor.getApplicableDescriptors(my?.class?: Item.class), field: 'inheritanceStrategy')
             st.include(class: "hudson.security.GlobalMatrixAuthorizationStrategy", page: "config")
         }
     }

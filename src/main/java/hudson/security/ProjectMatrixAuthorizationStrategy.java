@@ -36,8 +36,6 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.Messages;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.springframework.security.core.Authentication;
 
 import javax.annotation.Nonnull;
 import java.util.Set;

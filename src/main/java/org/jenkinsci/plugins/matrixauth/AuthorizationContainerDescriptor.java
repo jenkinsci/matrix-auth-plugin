@@ -147,7 +147,7 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
                 // fall through next
             } catch (AuthenticationException e) {
                 // other seemingly unexpected error.
-                return FormValidation.error(e,"Failed to test the validity of the user name "+v);
+                return FormValidation.error(e,Messages.AuthorizationContainerDescriptor_failed_user_validity_test(v));
             }
 
             try {
@@ -160,11 +160,11 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
                 // fall through next
             } catch (AuthenticationException e) {
                 // other seemingly unexpected error.
-                return FormValidation.error(e,"Failed to test the validity of the group name "+v);
+                return FormValidation.error(e,Messages.AuthorizationContainerDescriptor_failed_group_validity_test(v));
             }
 
             // couldn't find it. it doesn't exist
-            return FormValidation.respond(FormValidation.Kind.ERROR, formatNonExistentUserGroupValidationResponse(ev, "User or group not found")); // TODO i18n
+            return FormValidation.respond(FormValidation.Kind.ERROR, formatNonExistentUserGroupValidationResponse(ev, Messages.AuthorizationContainerDescriptor_not_found()));
         } catch (Exception e) {
             // if the check fails miserably, we still want the user to be able to see the name of the user,
             // so use 'ev' as the message
