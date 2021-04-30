@@ -153,7 +153,7 @@ THE SOFTWARE.
       </tr>
       <j:forEach var="sid" items="${instance.allSIDs}">
         <j:if test="${sid != 'authenticated'}">
-          <tr name="[${sid}]" class="permission-row">
+          <tr name="[${sid}]" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}">
             <local:row title="${sid}" sid="${sid}"/>
           </tr>
         </j:if>
@@ -162,7 +162,7 @@ THE SOFTWARE.
 
       <!-- template row to be used for adding a new row -->
       <j:set var="id" value="${h.generateId()}"/>
-      <tr id="${id}" style="display:none" class="permission-row" name="__unused__">
+      <tr id="${id}" style="display:none" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}" name="__unused__">
         <local:row sid="__SID__" />
       </tr>
     </table>
@@ -170,7 +170,12 @@ THE SOFTWARE.
       <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
        <tr>
          <td colspan="3">
-            <input type="button" class="matrix-auth-add-user-button" value="${%Add user or group…}" id="${id}button"/>
+            <input type="button" class="matrix-auth-add-user-button" value="${%Add user or group…}" id="${id}button"
+                   data-table-id="${id}"
+                   data-message-prompt="${%prompt}"
+                   data-message-empty="${%empty}"
+                   data-message-error="${%error}"
+            />
          </td>
          <td align="right">
         <a href="#" class="help-button" helpURL="${rootURL}${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"><img src="${imagesURL}/16x16/help.png" alt="[help]" height="16" width="16"/></a>
@@ -179,22 +184,24 @@ THE SOFTWARE.
       </table>
       <script>
       //<![CDATA[
-      Behaviour.specify("#${id}button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
-        makeButton($$('${id}button'), function (e) {
-          var master = document.getElementById('${id}');
+      Behaviour.specify(".matrix-auth-add-user-button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+        makeButton(e, function (e) {
+          var dataReference = e.target;
+          var master = document.getElementById(dataReference.getAttribute('data-table-id'));
+          console.log(master);
           var table = master.parentNode;
 
           <!-- when 'add' is clicked... -->
-          var name = prompt("${%prompt}");
+          var name = prompt(dataReference.getAttribute('data-message-prompt'));
           if (name == null) {
             return;
           }
           if(name=="") {
-            alert("${%empty}");
+            alert(dataReference.getAttribute('data-message-empty'));
             return;
           }
           if(findElementsBySelector(table,"TR").find(function(n){return n.getAttribute("name")=='['+name+']';})!=null) {
-            alert("${%error}");
+            alert(dataReference.getAttribute('data-message-error'));
             return;
           }
 
@@ -224,7 +231,7 @@ THE SOFTWARE.
         });
       });
 
-      Behaviour.specify("#${strategyid} TD.stop A.remove", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+      Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.remove", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
           e.onclick = function() {
             var tr = findAncestor(this,"TR");
             tr.parentNode.removeChild(tr);
@@ -232,7 +239,7 @@ THE SOFTWARE.
           }
           e = null; <!-- avoid memory leak -->
         });
-      Behaviour.specify("#${strategyid} TD.stop A.selectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+      Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.selectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
           e.onclick = function() {
             var tr = findAncestor(this,"TR");
             var inputs = tr.getElementsByTagName("INPUT");
@@ -244,7 +251,7 @@ THE SOFTWARE.
           };
           e = null; <!-- avoid memory leak -->
         });
-        Behaviour.specify("#${strategyid} TD.stop A.unselectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+        Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
           e.onclick = function() {
             var tr = findAncestor(this,"TR");
             var inputs = tr.getElementsByTagName("INPUT");
@@ -256,7 +263,7 @@ THE SOFTWARE.
           };
           e = null; <!-- avoid memory leak -->
         });
-      Behaviour.specify("#${strategyid} td input", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+      Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
         var impliedByString = findAncestor(e, "TD").getAttribute('data-implied-by-list');
         var impliedByList = impliedByString.split(" ");
         var tr = findAncestor(e,"TR");
@@ -280,17 +287,14 @@ THE SOFTWARE.
         e = null; <!-- avoid memory leak -->
       });
       //]]>
-        <j:if test="${empty(descriptorPath)}">
-          <j:set var="descriptorPath" value="${descriptor.descriptorFullUrl}"/>
-        </j:if>
       //<![CDATA[
         <!-- validates the name -->
-        Behaviour.specify("#${strategyid} TR.permission-row", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+        Behaviour.specify(".global-matrix-authorization-strategy-table TR.permission-row", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
           if (e.getAttribute('name') === '__unused__') {
             return;
           }
           if (!e.hasAttribute('data-checked')) {
-            FormChecker.delayedCheck("${descriptorPath}/checkName?value="+encodeURIComponent(e.getAttribute("name")),"GET",e.firstChild);
+            FormChecker.delayedCheck(e.getAttribute('data-descriptor-url') + "/checkName?value="+encodeURIComponent(e.getAttribute("name")),"GET",e.firstChild);
             e.setAttribute('data-checked', 'true');
           }
         });
