@@ -105,7 +105,6 @@ THE SOFTWARE.
         </local:isEditable>
       </d:tag>
     </d:taglib>
-    <link rel="stylesheet" href="${rootURL}${app.VIEW_RESOURCE_PATH}/hudson/security/table.css" type="text/css" />
     <j:set var="strategyid" value="${descriptor.jsonSafeClassName}" />
     <table id="${strategyid}" class="center-align global-matrix-authorization-strategy-table" name="data">
 
@@ -182,7 +181,7 @@ THE SOFTWARE.
        </td></tr>
        <f:helpArea />
       </table>
-      <st:adjunct includes="hudson.security.GlobalMatrixAuthorizationStrategy.config"/>
+      <st:adjunct includes="hudson.security.table"/>
     </local:isEditable>
   </f:block>
 </j:jelly>
