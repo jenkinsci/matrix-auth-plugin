@@ -35,7 +35,7 @@ import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatUserGroupVal
  *
  */
 @Restricted(NoExternalUse.class)
-public interface AuthorizationContainerDescriptor<T extends AuthorizationContainer> {
+public interface AuthorizationContainerDescriptor {
 
     PermissionScope getPermissionScope();
 

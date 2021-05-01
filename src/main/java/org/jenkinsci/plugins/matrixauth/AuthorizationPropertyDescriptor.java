@@ -42,7 +42,7 @@ import java.util.logging.Logger;
  * 
  */
 @Restricted(NoExternalUse.class)
-public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty> extends AuthorizationContainerDescriptor<T> {
+public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty> extends AuthorizationContainerDescriptor {
 
     T create();
 

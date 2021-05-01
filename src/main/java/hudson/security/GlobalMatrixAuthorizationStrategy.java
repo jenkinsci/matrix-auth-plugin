@@ -153,7 +153,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
         }
     }
     
-    public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> implements AuthorizationContainerDescriptor<GlobalMatrixAuthorizationStrategy> {
+    public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> implements AuthorizationContainerDescriptor {
 
         public DescriptorImpl() {
             // make this constructor available for instantiation for ProjectMatrixAuthorizationStrategy
