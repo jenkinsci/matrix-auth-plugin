@@ -12,7 +12,6 @@ import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runners.model.Statement;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsSessionRule;
@@ -45,8 +44,6 @@ public class PermissionAdderTest {
                 Assert.assertNotNull(alice);
                 Assert.assertTrue(j.jenkins.getACL().hasPermission2(alice.impersonate2(), Jenkins.ADMINISTER));
         });
-        sessions.then(j -> {
-                Assert.assertTrue(j.jenkins.getACL().hasPermission2(User.get("alice", false, Collections.emptyMap()).impersonate2(), Jenkins.ADMINISTER));
-        });
+        sessions.then(j -> Assert.assertTrue(j.jenkins.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Jenkins.ADMINISTER)));
     }
 }
