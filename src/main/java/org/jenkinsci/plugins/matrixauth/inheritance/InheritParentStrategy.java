@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 /**
  * Strategy that inherits the ACL from the parent.
  *
- * The paren't inheritance strategy in turn determines whether this receives permissions from grandparents etc. up to root.
+ * The parent's inheritance strategy in turn determines whether this receives permissions from grandparents etc. up to root.
  */
 public class InheritParentStrategy extends InheritanceStrategy {
 

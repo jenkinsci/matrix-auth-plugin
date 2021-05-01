@@ -16,6 +16,7 @@ public class Security410Test {
 
     @Issue("SECURITY-410")
     @Test
+    @SuppressWarnings("deprecation")
     public void dangerousPermissions1() {
         ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
         assertFalse(((GlobalMatrixAuthorizationStrategy.DescriptorImpl) as.getDescriptor()).showPermission(Jenkins.RUN_SCRIPTS));

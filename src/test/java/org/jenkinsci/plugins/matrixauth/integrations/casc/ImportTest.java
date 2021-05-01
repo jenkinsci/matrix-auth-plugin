@@ -4,6 +4,7 @@ import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty;
 import hudson.model.Computer;
 import hudson.model.Item;
+import hudson.model.Node;
 import hudson.security.AuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
@@ -31,7 +32,7 @@ public class ImportTest {
 
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
-    public void should_support_configuration_as_code() throws Exception {
+    public void should_support_configuration_as_code() {
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
         assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
@@ -46,6 +47,7 @@ public class ImportTest {
         }
         { // item from Job DSL
             Folder folder = (Folder) r.jenkins.getItem("generated");
+            assertNotNull(folder);
             AuthorizationMatrixProperty property = folder.getProperties().get(AuthorizationMatrixProperty.class);
             assertTrue("folder property inherits", property.getInheritanceStrategy() instanceof NonInheritingStrategy);
             assertTrue(property.hasExplicitPermission("authenticated", Item.BUILD));
@@ -55,7 +57,10 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission("authenticated", Item.DELETE));
         }
         { // agent
-            AuthorizationMatrixNodeProperty property = r.jenkins.getNode("agent1").getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            final Node agent1 = r.jenkins.getNode("agent1");
+            assertNotNull(agent1);
+            AuthorizationMatrixNodeProperty property = agent1.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            assertNotNull(property);
             assertTrue(property.getInheritanceStrategy() instanceof InheritGlobalStrategy);
             assertTrue(property.hasExplicitPermission("anonymous", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.BUILD));
@@ -66,7 +71,7 @@ public class ImportTest {
 
     @Test
     @ConfiguredWithCode("legacy-format.yml")
-    public void legacyTest() throws Exception {
+    public void legacyTest() {
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
         assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);

@@ -89,7 +89,8 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         return groups;
     }
 
-    @Restricted(NoExternalUse.class) // Jelly
+    @Restricted(NoExternalUse.class)
+    @SuppressWarnings("unused") // Used from Jelly
     default String impliedByList(Permission p) {
         List<Permission> impliedBys = new ArrayList<>();
         while (p.impliedBy != null) {
@@ -135,7 +136,7 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         try {
             try {
                 sr.loadUserByUsername2(v);
-                User u = User.get(v); // TODO fix deprecated call while not loading users for this form validation
+                User u = User.getOrCreateByIdOrFullName(v);
                 if (ev.equals(u.getFullName())) {
                     return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("person.png", ev, "User", false));
                 }

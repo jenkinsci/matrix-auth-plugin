@@ -8,10 +8,8 @@ import hudson.model.Item;
 import hudson.model.Slave;
 import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
-import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +54,7 @@ public class ReadOnlyTest {
     }
 
     @Before
-    public void prepare() throws Exception {
+    public void prepare() {
         Jenkins.SYSTEM_READ.enabled = true;
         Item.EXTENDED_READ.enabled = true;
         Computer.EXTENDED_READ.enabled = true;
@@ -74,7 +72,6 @@ public class ReadOnlyTest {
 
     @Test
     public void testGlobalConfiguration() throws IOException, SAXException {
-        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.223"))); // this form is only accessible to Overall/SystemRead users from 2.223+
         assertPresentAndReadOnly("configureSecurity");
 
         ((ProjectMatrixAuthorizationStrategy)Jenkins.get().getAuthorizationStrategy()).add(Jenkins.ADMINISTER, "anonymous");
@@ -104,24 +101,22 @@ public class ReadOnlyTest {
 
     @Test
     public void testAgentConfigurationGlobally() throws Exception {
-        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.238")));
         final Slave agent = j.createSlave();
         agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
         assertPresentAndReadOnly("computer/" + agent.getNodeName() + "/configure");
 
-        ((ProjectMatrixAuthorizationStrategy) Jenkins.get().getAuthorizationStrategy()).add(Computer.CONFIGURE, Jenkins.ANONYMOUS.getName());
+        ((ProjectMatrixAuthorizationStrategy) Jenkins.get().getAuthorizationStrategy()).add(Computer.CONFIGURE, Jenkins.ANONYMOUS2.getName());
         assertPresentAndEditable("computer/" + agent.getNodeName() + "/configure");
     }
 
     @Test
     public void testAgentConfigurationPerAgent() throws Exception {
-        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.238")));
         final Slave agent = j.createSlave();
         agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
         assertPresentAndReadOnly("computer/" + agent.getNodeName() + "/configure");
 
         final AuthorizationMatrixNodeProperty prop = new AuthorizationMatrixNodeProperty();
-        prop.add(Computer.CONFIGURE, Jenkins.ANONYMOUS.getName());
+        prop.add(Computer.CONFIGURE, Jenkins.ANONYMOUS2.getName());
         agent.setNodeProperties(Collections.singletonList(prop));
         assertPresentAndEditable( "computer/" + agent.getNodeName() + "/configure");
     }

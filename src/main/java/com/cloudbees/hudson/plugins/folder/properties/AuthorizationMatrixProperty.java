@@ -138,10 +138,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      * populated.
      */
     public void add(Permission p, String sid) {
-        Set<String> set = grantedPermissions.get(p);
-        if (set == null)
-            grantedPermissions.put(p, set = new HashSet<>());
-        set.add(sid);
+        grantedPermissions.computeIfAbsent(p, k -> new HashSet<>()).add(sid);
         sids.add(sid);
     }
 
@@ -165,7 +162,6 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         }
 
         @Override
-        @SuppressWarnings("rawtypes")
         public boolean isApplicable(Class<? extends AbstractFolder> folder) {
             return isApplicable();
         }
@@ -200,12 +196,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     /**
-     * Persist {@link ProjectMatrixAuthorizationStrategy} as a list of IDs that
-     * represent ProjectMatrixAuthorizationStrategy#grantedPermissions.
+     * Persist {@link AuthorizationMatrixProperty} as a list of IDs that
+     * represent {@link AuthorizationMatrixProperty#getGrantedPermissions()}.
      */
     @Restricted(DoNotUse.class)
+    @SuppressWarnings("unused")
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }

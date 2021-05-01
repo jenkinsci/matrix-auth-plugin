@@ -42,7 +42,7 @@ import javax.annotation.CheckForNull;
 public class PermissionFinder {
 
     /** For Matrix Auth - Title/Permission **/
-    private static final Pattern PERMISSION_PATTERN = Pattern.compile("^([^\\/]+)\\/(.+)$");
+    private static final Pattern PERMISSION_PATTERN = Pattern.compile("^([^/]+)/(.+)$");
 
     /**
      * Attempt to match a given permission to what is defined in the UI.

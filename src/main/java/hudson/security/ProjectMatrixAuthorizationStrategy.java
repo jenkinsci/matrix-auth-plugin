@@ -132,6 +132,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     };
 
     @Restricted(DoNotUse.class)
+    @SuppressWarnings("unused")
     public static class ConverterImpl extends GlobalMatrixAuthorizationStrategy.ConverterImpl {
 
         @Override
@@ -140,7 +141,6 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
 
         @Override
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type==ProjectMatrixAuthorizationStrategy.class;
         }

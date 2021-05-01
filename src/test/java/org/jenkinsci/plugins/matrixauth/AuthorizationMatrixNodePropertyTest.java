@@ -56,9 +56,7 @@ public class AuthorizationMatrixNodePropertyTest {
         authorizationStrategy.add(Computer.CREATE, "alice");
         authorizationStrategy.add(Jenkins.READ, "alice");
 
-        { // createSlave uses CommandLauncher, which requires RUN_SCRIPTS since 2.73.2
-            authorizationStrategy.add(Jenkins.RUN_SCRIPTS, "alice");
-        }
+        addRunScriptsPermission(authorizationStrategy);
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
 
         Node node;
@@ -67,7 +65,13 @@ public class AuthorizationMatrixNodePropertyTest {
         }
 
         Assert.assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
-        Assert.assertTrue(node.getACL().hasPermission2(User.get("alice", false, Collections.emptyMap()).impersonate2(), Computer.CONFIGURE));
-        Assert.assertFalse(node.getACL().hasPermission2(User.get("bob", false, Collections.emptyMap()).impersonate2(), Computer.CONFIGURE));
+        Assert.assertTrue(node.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Computer.CONFIGURE));
+        Assert.assertFalse(node.getACL().hasPermission2(User.getOrCreateByIdOrFullName("bob").impersonate2(), Computer.CONFIGURE));
+    }
+
+    // createSlave uses CommandLauncher, which requires RUN_SCRIPTS since 2.73.2
+    @SuppressWarnings("deprecation")
+    private void addRunScriptsPermission(ProjectMatrixAuthorizationStrategy authorizationStrategy) {
+        authorizationStrategy.add(Jenkins.RUN_SCRIPTS, "alice");
     }
 }

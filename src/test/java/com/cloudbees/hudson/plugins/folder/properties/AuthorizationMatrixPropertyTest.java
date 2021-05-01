@@ -74,9 +74,9 @@ public class AuthorizationMatrixPropertyTest {
         }
 
         Assert.assertNotNull(job.getProperties().get(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission2(User.get("alice", false, Collections.emptyMap()).impersonate2(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission2(User.get("bob", false, Collections.emptyMap()).impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(User.get("alice", false, Collections.emptyMap()).impersonate2(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("bob").impersonate2(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Item.CONFIGURE));
     }
 
     @Test public void basics1() throws Exception {
@@ -155,7 +155,7 @@ public class AuthorizationMatrixPropertyTest {
     }
 
     @Test
-    public void inapplicablePermissionIsSkipped() throws Exception {
+    public void inapplicablePermissionIsSkipped() {
         AuthorizationMatrixProperty property = new AuthorizationMatrixProperty();
         l.record(AuthorizationContainer.class, Level.WARNING).capture(1);
         property.add("hudson.model.Hudson.Administer:alice");

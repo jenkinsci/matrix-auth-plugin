@@ -123,10 +123,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
      */
     // TODO Restrict?
     public void add(Permission p, String sid) {
-        Set<String> set = grantedPermissions.get(p);
-        if (set == null)
-            grantedPermissions.put(p, set = new HashSet<>());
-        set.add(sid);
+        grantedPermissions.computeIfAbsent(p, k -> new HashSet<>()).add(sid);
         sids.add(sid);
     }
 
@@ -147,12 +144,12 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     }
 
     /**
-     * Persist {@link ProjectMatrixAuthorizationStrategy} as a list of IDs that
-     * represent {@link ProjectMatrixAuthorizationStrategy#grantedPermissions}.
+     * Persist {@link AuthorizationMatrixNodeProperty} as a list of IDs that
+     * represent {@link AuthorizationMatrixNodeProperty#getGrantedPermissions()}.
      */
     @Restricted(NoExternalUse.class)
+    @SuppressWarnings("unused")
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixNodeProperty> {
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixNodeProperty.class;
         }

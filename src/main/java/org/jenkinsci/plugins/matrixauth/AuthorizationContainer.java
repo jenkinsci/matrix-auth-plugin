@@ -68,7 +68,7 @@ public interface AuthorizationContainer {
 
     /**
      * Works like {@link #add(Permission, String)} but takes both parameters
-     * from a single string of the form <code>PERMISSIONID:sid</code>
+     * from a single string of the form <code>PERMISSION_ID:sid</code>
      */
     @Restricted(NoExternalUse.class)
     default void add(String shortForm) {
@@ -92,6 +92,7 @@ public interface AuthorizationContainer {
     }
 
     @Restricted(NoExternalUse.class)
+    @SuppressWarnings("unused") // used from Jelly
     Permission getEditingPermission();
 
     /**
@@ -105,7 +106,7 @@ public interface AuthorizationContainer {
             r.addAll(set);
         r.remove("anonymous");
 
-        String[] data = r.toArray(new String[r.size()]);
+        String[] data = r.toArray(new String[0]);
         Arrays.sort(data);
         return Arrays.asList(data);
     }
