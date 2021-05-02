@@ -1,10 +1,12 @@
+/*
+ * This handles the addition of new users/groups to the list.
+ */
 Behaviour.specify(".matrix-auth-add-user-button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   makeButton(e, function (e) {
     var dataReference = e.target;
     var master = document.getElementById(dataReference.getAttribute('data-table-id'));
     var table = master.parentNode;
 
-    // when 'add' is clicked...
     var name = prompt(dataReference.getAttribute('data-message-prompt'));
     if (name == null) {
       return;
@@ -44,6 +46,9 @@ Behaviour.specify(".matrix-auth-add-user-button", 'GlobalMatrixAuthorizationStra
   });
 });
 
+/*
+ * Behavior for the element removing a permission assignment row for a user/group
+ */
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.remove", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   e.onclick = function() {
     var tr = findAncestor(this,"TR");
@@ -53,6 +58,9 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.remove"
   e = null; // avoid memory leak
 });
 
+/*
+ * Behavior for 'Select all' element that exists for each row of permissions checkboxes
+ */
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.selectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   e.onclick = function() {
     var tr = findAncestor(this,"TR");
@@ -66,6 +74,9 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.selecta
   e = null; // avoid memory leak
 });
 
+/*
+ * Behavior for 'Unselect all' element that exists for each row of permissions checkboxes
+ */
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   e.onclick = function() {
     var tr = findAncestor(this,"TR");
@@ -79,6 +90,9 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselec
   e = null; // avoid memory leak
 });
 
+/*
+ * Whenever permission assignments change, this ensures that implied permissions get their checkboxes disabled.
+ */
 Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   var impliedByString = findAncestor(e, "TD").getAttribute('data-implied-by-list');
   var impliedByList = impliedByString.split(" ");
@@ -103,7 +117,9 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
   e = null; // avoid memory leak
 });
 
-// validates the name
+/*
+ * Each newly added row needs to have the name checked. Triggered by explicit Behaviour#applySubtree calls elsewhere.
+ */
 Behaviour.specify(".global-matrix-authorization-strategy-table TR.permission-row", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   if (e.getAttribute('name') === '__unused__') {
     return;
