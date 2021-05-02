@@ -2,10 +2,9 @@ Behaviour.specify(".matrix-auth-add-user-button", 'GlobalMatrixAuthorizationStra
   makeButton(e, function (e) {
     var dataReference = e.target;
     var master = document.getElementById(dataReference.getAttribute('data-table-id'));
-    console.log(master);
     var table = master.parentNode;
 
-    <!-- when 'add' is clicked... -->
+    // when 'add' is clicked...
     var name = prompt(dataReference.getAttribute('data-message-prompt'));
     if (name == null) {
       return;
@@ -22,7 +21,7 @@ Behaviour.specify(".matrix-auth-add-user-button", 'GlobalMatrixAuthorizationStra
     if(document.importNode!=null)
       copy = document.importNode(master,true);
     else
-      copy = master.cloneNode(true); <!-- for IE -->
+      copy = master.cloneNode(true); // for IE
     copy.removeAttribute("id");
     copy.removeAttribute("style");
     copy.firstChild.innerHTML = YAHOO.lang.escapeHTML(name); // TODO consider setting innerText
@@ -51,7 +50,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.remove"
     tr.parentNode.removeChild(tr);
     return false;
   }
-  e = null; <!-- avoid memory leak -->
+  e = null; // avoid memory leak
 });
 
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.selectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
@@ -64,7 +63,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.selecta
     Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
     return false;
   };
-  e = null; <!-- avoid memory leak -->
+  e = null; // avoid memory leak
 });
 
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
@@ -77,7 +76,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselec
     Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
     return false;
   };
-  e = null; <!-- avoid memory leak -->
+  e = null; // avoid memory leak
 });
 
 Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
@@ -101,10 +100,10 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
     return true;
   };
-  e = null; <!-- avoid memory leak -->
+  e = null; // avoid memory leak
 });
 
-<!-- validates the name -->
+// validates the name
 Behaviour.specify(".global-matrix-authorization-strategy-table TR.permission-row", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   if (e.getAttribute('name') === '__unused__') {
     return;
