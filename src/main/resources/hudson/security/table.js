@@ -94,6 +94,11 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselec
  * Whenever permission assignments change, this ensures that implied permissions get their checkboxes disabled.
  */
 Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+  var table = findAncestor(e, "TABLE");
+  if (table.hasClassName('read-only')) {
+    // if this is a read-only UI (ExtendedRead / SystemRead), do not enable checkboxes
+    return;
+  }
   var impliedByString = findAncestor(e, "TD").getAttribute('data-implied-by-list');
   var impliedByList = impliedByString.split(" ");
   var tr = findAncestor(e,"TR");
