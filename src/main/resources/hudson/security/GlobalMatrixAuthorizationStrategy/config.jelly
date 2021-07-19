@@ -181,7 +181,7 @@ THE SOFTWARE.
        </td></tr>
        <f:helpArea />
       </table>
-      <st:adjunct includes="hudson.security.table"/>
     </local:isEditable>
+    <st:adjunct includes="hudson.security.table"/>
   </f:block>
 </j:jelly>
