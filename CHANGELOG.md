@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 2.6.8 (2021-07-21)
+
+* [JENKINS-66170](https://issues.jenkins.io/browse/JENKINS-66170): Apply table style when viewing in read-only mode (Extended Read permission).
+  This fixes a regression in version 2.6.7.
+
+## Version 2.6.7 (2021-05-12)
+
+* Internal: Moved JavaScript to resource files ([#102](https://github.com/jenkinsci/matrix-auth-plugin/pull/102))
+* Internal: Migrate from RestartableJenkinsRule to JenkinsSessionRule ([#101](https://github.com/jenkinsci/matrix-auth-plugin/pull/101))
+
+## Version 2.6.6 (2021-03-18)
+
+* [SECURITY-2180](https://www.jenkins.io/security/advisory/2021-03-18/#SECURITY-2180): Ensure Item/Read is only granted it all ancestors grant it as well.
+
 ## Version 2.6.5 (2021-01-21)
 
 * [JENKINS-64661](https://issues.jenkins.io/browse/JENKINS-64661): Do not break `properties` in the global Pipeline snippet generator.
