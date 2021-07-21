@@ -106,7 +106,7 @@ THE SOFTWARE.
       </d:tag>
     </d:taglib>
     <j:set var="strategyid" value="${descriptor.jsonSafeClassName}" />
-    <table id="${strategyid}" class="center-align global-matrix-authorization-strategy-table" name="data">
+    <table id="${strategyid}" class="center-align global-matrix-authorization-strategy-table ${readOnlyMode ? 'read-only' : ''}" name="data">
 
       <!-- The first row will show grouping -->
       <tr class="group-row">
@@ -181,7 +181,7 @@ THE SOFTWARE.
        </td></tr>
        <f:helpArea />
       </table>
-      <st:adjunct includes="hudson.security.table"/>
     </local:isEditable>
+    <st:adjunct includes="hudson.security.table"/>
   </f:block>
 </j:jelly>
