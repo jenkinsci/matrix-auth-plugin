@@ -88,7 +88,7 @@ THE SOFTWARE.
             </j:if>
           </j:forEach>
         </j:forEach>
-        <local:isEditable>
+        <local:isEditable sid="${attrs.sid}">
           <td class="stop" style="text-align:left;">
             <a href="#" class="selectall">
               <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
