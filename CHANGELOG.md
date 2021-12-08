@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 2.6.11 (2021-12-08)
+
+* [JENKINS-67311](https://issues.jenkins.io/browse/JENKINS-67311): Fix help button for table ([#108](https://github.com/jenkinsci/matrix-auth-plugin/pull/108))
+
+## Version 2.6.9 (2021-12-03)
+
+* [JENKINS-67210](https://issues.jenkins.io/browse/JENKINS-67210): Fix broken link to global security configuration from help ([#106](https://github.com/jenkinsci/matrix-auth-plugin/pull/106))
+* [JENKINS-66964](https://issues.jenkins.io/browse/JENKINS-66964): Fix button tooltips in configuration matrix ([#107](https://github.com/jenkinsci/matrix-auth-plugin/pull/107))
+
 ## Version 2.6.8 (2021-07-21)
 
 * [JENKINS-66170](https://issues.jenkins.io/browse/JENKINS-66170): Apply table style when viewing in read-only mode (Extended Read permission).
