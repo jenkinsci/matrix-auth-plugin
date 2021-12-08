@@ -60,3 +60,6 @@
   border-bottom: 1px solid transparent;
   white-space: nowrap;
 }
+.matrix-auth-add-user-button {
+  margin: 10px;
+}
