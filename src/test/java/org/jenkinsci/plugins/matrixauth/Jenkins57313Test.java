@@ -20,7 +20,7 @@ public class Jenkins57313Test {
         GlobalMatrixAuthorizationStrategy authorizationStrategy = new GlobalMatrixAuthorizationStrategy();
         authorizationStrategy.add(Jenkins.ADMINISTER, "anonymous");
         j.jenkins.setAuthorizationStrategy(authorizationStrategy);
-        HtmlPage page = j.createWebClient().goTo(authorizationStrategy.getDescriptor().getDescriptorUrl() + "/checkName?value=[alice]");
+        HtmlPage page = j.createWebClient().goTo(authorizationStrategy.getDescriptor().getDescriptorUrl() + "/checkName?value=[USER:alice]");
         Assert.assertEquals(200, page.getWebResponse().getStatusCode());
         String responseText = page.getWebResponse().getContentAsString();
         Assert.assertTrue(responseText.contains("alice"));

@@ -1,0 +1,27 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<slave>
+  <name>a1</name>
+  <description></description>
+  <remoteFS>/tmp/a1</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.slaves.JNLPLauncher">
+    <workDirSettings>
+      <disabled>false</disabled>
+      <internalDir>remoting</internalDir>
+      <failIfWorkDirIsMissing>false</failIfWorkDirIsMissing>
+    </workDirSettings>
+    <webSocket>true</webSocket>
+  </launcher>
+  <label></label>
+  <nodeProperties>
+    <org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy"/>
+      <permission>hudson.model.Computer.Build:anonymous</permission>
+      <permission>hudson.model.Computer.Configure:authenticated</permission>
+      <permission>hudson.model.Computer.Connect:authenticated</permission>
+      <permission>hudson.model.Computer.Disconnect:authenticated</permission>
+    </org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty>
+  </nodeProperties>
+</slave>
