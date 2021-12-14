@@ -1,11 +1,12 @@
 /*
  * This handles the addition of new users/groups to the list.
  */
-Behaviour.specify(".matrix-auth-add-user-button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   makeButton(e, function (e) {
     var dataReference = e.target;
     var master = document.getElementById(dataReference.getAttribute('data-table-id'));
     var table = master.parentNode;
+    var type = dataReference.getAttribute('data-type');
 
     var name = prompt(dataReference.getAttribute('data-message-prompt'));
     if (name == null) {
@@ -15,7 +16,7 @@ Behaviour.specify(".matrix-auth-add-user-button", 'GlobalMatrixAuthorizationStra
       alert(dataReference.getAttribute('data-message-empty'));
       return;
     }
-    if(findElementsBySelector(table,"TR").find(function(n){return n.getAttribute("name")=='['+name+']';})!=null) {
+    if(findElementsBySelector(table,"TR").find(function(n){return n.getAttribute("name")=='['+type+':'+name+']';})!=null) {
       alert(dataReference.getAttribute('data-message-error'));
       return;
     }
@@ -27,7 +28,7 @@ Behaviour.specify(".matrix-auth-add-user-button", 'GlobalMatrixAuthorizationStra
     copy.removeAttribute("id");
     copy.removeAttribute("style");
     copy.firstChild.innerHTML = YAHOO.lang.escapeHTML(name); // TODO consider setting innerText
-    copy.setAttribute("name",'['+name+']');
+    copy.setAttribute("name",'['+type+':'+name+']');
 
     for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
       if (child.hasAttribute('data-permission-id')) {
@@ -82,9 +83,85 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselec
     var tr = findAncestor(this,"TR");
     var inputs = tr.getElementsByTagName("INPUT");
     for(var i=0; i < inputs.length; i++){
-        if(inputs[i].type == "checkbox") inputs[i].checked = false;
+      if(inputs[i].type == "checkbox") inputs[i].checked = false;
     }
     Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
+    return false;
+  };
+  e = null; // avoid memory leak
+});
+
+/*
+ * Behavior for 'Migrate to user' element that exists for each ambiguous row
+ */
+Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
+  e.onclick = function() {
+    var tr = findAncestor(this,"TR");
+    var name = tr.getAttribute('name');
+
+    var newName = name.replace('[EITHER:', '[USER:'); // migrate_user behavior
+    if (this.hasClassName('migrate_group')) {
+      newName = name.replace('[EITHER:', '[GROUP:');
+    }
+
+    var table = findAncestor(this,"TABLE");
+    var tableRows = table.getElementsByTagName('tr');
+    var newNameElement = null;
+    for (var i = 0; i < tableRows.length; i++) {
+      if (tableRows[i].getAttribute('name') === newName) {
+        newNameElement = tableRows[i];
+        break;
+      }
+    }
+    if (newNameElement === tr) {
+      // uh-oh, we shouldn't be able to find ourselves, so just do nothing
+      return false;
+    }
+    if (newNameElement == null) {
+      // no row for this name exists yet, so transform the ambiguous row to unambiguous
+      tr.setAttribute('name', newName);
+      tr.removeAttribute('data-checked');
+
+      // remove migration buttons from updated row
+      var buttonContainer = findAncestor(this, "TD");
+      var migrateButtons = buttonContainer.getElementsByClassName('migrate');
+      for (var i = migrateButtons.length - 1; i >= 0; i--) {
+        buttonContainer.removeChild(migrateButtons[i]);
+      }
+    } else {
+      // there's already a row for the migrated name (unusual but OK), so merge them
+
+      // migrate permissions from this row
+      var ambiguousPermissionInputs = tr.getElementsByTagName("INPUT");
+      var unambiguousPermissionInputs = newNameElement.getElementsByTagName("INPUT");
+      for (var i = 0; i < ambiguousPermissionInputs.length; i++){
+        if(ambiguousPermissionInputs[i].type == "checkbox") {
+          unambiguousPermissionInputs[i].checked |= ambiguousPermissionInputs[i].checked;
+        }
+        newNameElement.className += ' highlight-entry';
+      }
+
+      // remove this row
+      tr.parentNode.removeChild(tr);
+    }
+    Behaviour.applySubtree(table, true);
+
+    var hasAmbiguousRows = false;
+
+    for (var i = 0; i < tableRows.length; i++) {
+      if (tableRows[i].getAttribute('name') !== null && tableRows[i].getAttribute('name').startsWith('[EITHER')) {
+        hasAmbiguousRows = true;
+      }
+    }
+    if (!hasAmbiguousRows) {
+      var alertElements = document.getElementsByClassName("alert");
+      for (var i = 0; i < alertElements.length; i++) {
+        if (alertElements[i].hasAttribute('data-table-id') && alertElements[i].getAttribute('data-table-id') === table.getAttribute('data-table-id')) {
+          alertElements[i].style.display = 'none'; // TODO animate this?
+        }
+      }
+    }
+
     return false;
   };
   e = null; // avoid memory leak

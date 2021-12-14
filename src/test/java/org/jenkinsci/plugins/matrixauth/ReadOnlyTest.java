@@ -10,6 +10,7 @@ import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -48,12 +49,12 @@ public class ReadOnlyTest {
 
     private void assertPresentAndEditable(String configurationUrl) throws IOException, SAXException {
         final HtmlPage page = initAndAssertPresent(configurationUrl);
-        Assert.assertTrue("should contain add group/user button", hasTagWithClassInPage(page, "span", "matrix-auth-add-user-button")); // Behavior.specify / makeButton converts input to button and wraps it in span
+        Assert.assertTrue("should contain add group/user button", hasTagWithClassInPage(page, "span", "matrix-auth-add-button")); // Behavior.specify / makeButton converts input to button and wraps it in span
     }
 
     private void assertPresentAndReadOnly(String configurationUrl) throws IOException, SAXException {
         final HtmlPage page = initAndAssertPresent(configurationUrl);
-        Assert.assertFalse("should not contain add group/user button", hasTagWithClassInPage(page, "span", "matrix-auth-add-user-button")); // Behavior.specify / makeButton converts input to button and wraps it in span
+        Assert.assertFalse("should not contain add group/user button", hasTagWithClassInPage(page, "span", "matrix-auth-add-button")); // Behavior.specify / makeButton converts input to button and wraps it in span
     }
 
     @Before
@@ -85,11 +86,11 @@ public class ReadOnlyTest {
     @Test
     public void testJobConfiguration() throws IOException, SAXException {
         final FreeStyleProject job = j.createFreeStyleProject(); // While 2.223 changed the UI (readOnlyMode), the basic behavior by this plugin remains the same due to permission check
-        job.addProperty(new AuthorizationMatrixProperty(Collections.emptyMap()));
+        job.addProperty(new AuthorizationMatrixProperty(Collections.emptyMap(), new InheritParentStrategy()));
         assertPresentAndReadOnly(job.getUrl() + "configure");
 
         job.removeProperty(AuthorizationMatrixProperty.class);
-        job.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(Jenkins.ANONYMOUS.getName()))));
+        job.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(new PermissionEntry(AuthorizationType.USER, Jenkins.ANONYMOUS.getName()))), new InheritParentStrategy()));
         assertPresentAndEditable(job.getUrl() + "configure");
     }
 

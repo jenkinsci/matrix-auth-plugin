@@ -1,30 +1,23 @@
 package org.jenkinsci.plugins.matrixauth;
 
 import hudson.Functions;
-import hudson.Util;
-import hudson.model.User;
 import hudson.security.AccessControlled;
-import hudson.security.AuthorizationStrategy;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.PermissionGroup;
 import hudson.security.PermissionScope;
 import hudson.security.SecurityRealm;
-import hudson.security.UserMayOrMayNotExistException;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
-import org.acegisecurity.AuthenticationException;
-import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.springframework.dao.DataAccessException;
 
 import javax.annotation.Nonnull;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -119,59 +112,108 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         return !GlobalMatrixAuthorizationStrategy.DANGEROUS_PERMISSIONS.contains(p);
     }
 
+    @Restricted(DoNotUse.class) // Jelly only
+    default boolean hasAmbiguousEntries(AuthorizationContainer container) {
+        if (container == null) {
+            return false;
+        }
+        return container.getAllPermissionEntries().stream().anyMatch(e -> e.getType() == AuthorizationType.EITHER);
+    }
+
+    @Restricted(DoNotUse.class) // Jelly only
+    default PermissionEntry entryFor(String type, String sid) {
+        if (type == null) {
+            return null; // template row only
+        }
+        return new PermissionEntry(AuthorizationType.valueOf(type), sid);
+    }
+
+    @Restricted(DoNotUse.class) // Jelly only; cf. UpdateCenter#getCategoryDisplayName in core
+    default String getTypeLabel(String type) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        if (type == null) {
+            return null;
+        }
+        return Messages.class.getMethod("TypeLabel_" + type).invoke(null).toString();
+    }
+
 
     // Not used directly by Stapler due to the trailing _ (this prevented method confusion around 1.415).
     @Restricted(NoExternalUse.class)
     default FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, @Nonnull Permission permission) {
 
-        final String v = value.substring(1,value.length()-1);
-        String ev = Functions.escape(v);
+        final String unbracketedValue = value.substring(1, value.length() - 1); // remove leading [ and trailing ]
 
-        if(!subject.hasPermission(permission))  return FormValidation.ok(ev); // can't check
+        final int splitIndex = unbracketedValue.indexOf(':');
+        if (splitIndex < 0) {
+            return FormValidation.error("No type prefix: " + unbracketedValue);
+        }
+        final String typeString = unbracketedValue.substring(0, splitIndex);
+        final AuthorizationType type;
+        try {
+            type = AuthorizationType.valueOf(typeString);
+        } catch (Exception ex) {
+            return FormValidation.error("Invalid type prefix: " + unbracketedValue);
+        }
+        String sid = unbracketedValue.substring(splitIndex + 1);
+
+        String escapedSid = Functions.escape(sid);
+
+        if (!subject.hasPermission(permission)) {
+            // Lacking permissions, so respond based on input only
+            if (type == AuthorizationType.USER) {
+                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("person.png", escapedSid, "User may or may not exist", false));
+            }
+            if (type == AuthorizationType.GROUP) {
+                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("user.png", escapedSid, "Group may or may not exist", false));
+            }
+            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(null, escapedSid, "Permissions would be granted to a user or group of this name", false));
+        }
 
         SecurityRealm sr = Jenkins.get().getSecurityRealm();
 
-        if(v.equals("authenticated"))
+        if(sid.equals("authenticated") && type == AuthorizationType.EITHER) {
             // system reserved group
-            return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("user.png", ev, "Group", false));
+            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse("user.png", escapedSid, "Internal group found; but permissions would also be granted to a user of this name", false));
+        }
+
+        if(sid.equals("anonymous") && type == AuthorizationType.EITHER) {
+            // system reserved user
+            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse("person.png", escapedSid, "Internal user found; but permissions would also be granted to a group of this name", false));
+        }
 
         try {
-            try {
-                sr.loadUserByUsername(v);
-                User u = User.get(v); // TODO fix deprecated call while not loading users for this form validation
-                if (ev.equals(u.getFullName())) {
-                    return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("person.png", ev, "User", false));
-                }
-                return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("person.png", Util.escape(StringUtils.abbreviate(u.getFullName(), 50)), "User " + ev, false));
-            } catch (UserMayOrMayNotExistException e) {
-                // undecidable, meaning the user may exist
-                return FormValidation.respond(FormValidation.Kind.OK, ev);
-            } catch (UsernameNotFoundException |DataAccessException e) {
-                // fall through next
-            } catch (AuthenticationException e) {
-                // other seemingly unexpected error.
-                return FormValidation.error(e,"Failed to test the validity of the user name "+v);
+            FormValidation groupValidation;
+            FormValidation userValidation;
+            switch (type) {
+                case GROUP:
+                    groupValidation = ValidationUtil.validateGroup(sid, sr, false);
+                    if (groupValidation != null) {
+                        return groupValidation;
+                    }
+                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(escapedSid, "Group not found")); // TODO i18n (after 3.0)
+                case USER:
+                    userValidation = ValidationUtil.validateUser(sid, sr, false);
+                    if (userValidation != null) {
+                        return userValidation;
+                    }
+                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(escapedSid, "User not found")); // TODO i18n (after 3.0)
+                case EITHER:
+                    userValidation = ValidationUtil.validateUser(sid, sr, true);
+                    if (userValidation != null) {
+                        return userValidation;
+                    }
+                    groupValidation = ValidationUtil.validateGroup(sid, sr, true);
+                    if (groupValidation != null) {
+                        return groupValidation;
+                    }
+                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(escapedSid, "User or group not found")); // TODO i18n (after 3.0)
+                default:
+                    return FormValidation.error("Unexpected type: " + type);
             }
-
-            try {
-                sr.loadGroupByGroupname(v);
-                return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse("user.png", ev, "Group", false));
-            } catch (UserMayOrMayNotExistException e) {
-                // undecidable, meaning the group may exist
-                return FormValidation.respond(FormValidation.Kind.OK, ev);
-            } catch (UsernameNotFoundException|DataAccessException e) {
-                // fall through next
-            } catch (AuthenticationException e) {
-                // other seemingly unexpected error.
-                return FormValidation.error(e,"Failed to test the validity of the group name "+v);
-            }
-
-            // couldn't find it. it doesn't exist
-            return FormValidation.respond(FormValidation.Kind.ERROR, formatNonExistentUserGroupValidationResponse(ev, "User or group not found")); // TODO i18n
         } catch (Exception e) {
             // if the check fails miserably, we still want the user to be able to see the name of the user,
-            // so use 'ev' as the message
-            return FormValidation.error(e,ev);
+            // so use 'escapedSid' as the message
+            return FormValidation.error(e,escapedSid);
         }
     }
 

@@ -53,11 +53,11 @@ public class AuthorizationMatrixNodePropertyTest {
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
-        authorizationStrategy.add(Computer.CREATE, "alice");
-        authorizationStrategy.add(Jenkins.READ, "alice");
+        authorizationStrategy.add(Computer.CREATE, PermissionEntry.user("alice"));
+        authorizationStrategy.add(Jenkins.READ, PermissionEntry.user("alice"));
 
         { // createSlave uses CommandLauncher, which requires RUN_SCRIPTS since 2.73.2
-            authorizationStrategy.add(Jenkins.RUN_SCRIPTS, "alice");
+            authorizationStrategy.add(Jenkins.RUN_SCRIPTS, PermissionEntry.user("alice"));
         }
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
 
