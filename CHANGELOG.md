@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 3.0 (upcoming release)
+## Version 3.0 (2021-12-14)
 
 * Add support for explicitly assigning permissions to _groups_ or _users_ with a given name to prevent confusion when names match either.
   Show warnings when permissions are ambiguously assigned to users and groups of a given name.
