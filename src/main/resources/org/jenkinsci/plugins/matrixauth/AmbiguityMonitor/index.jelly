@@ -30,10 +30,7 @@ THE SOFTWARE.
             <l:task href="${rootURL}/manage" icon="icon-gear2 icon-md" title="${%Manage Jenkins}"/>
         </l:side-panel>
         <l:main-panel>
-            <h1>
-                <l:icon class="icon-secure icon-xlg"/>
-                ${it.displayName}
-            </h1>
+            <h1>${it.displayName}</h1>
             <p>${%blurb}</p>
             <p>
                 <strong>${%title}</strong>
