@@ -26,6 +26,7 @@ package com.cloudbees.hudson.plugins.folder.properties;
 import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderProperty;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderPropertyDescriptor;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.AbstractItem;
@@ -34,6 +35,7 @@ import hudson.model.User;
 import hudson.model.listeners.ItemListener;
 import hudson.security.AuthorizationStrategy;
 import jenkins.model.Jenkins;
+import org.acegisecurity.acls.sid.PrincipalSid;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.matrixauth.AuthorizationPropertyDescriptor;
 import hudson.security.Permission;
@@ -45,6 +47,8 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.Sid;
+import org.jenkinsci.plugins.matrixauth.AuthorizationType;
+import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -63,10 +67,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Holds ACL for {@link ProjectMatrixAuthorizationStrategy}.
@@ -77,13 +81,10 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     /**
      * List up all permissions that are granted.
-     *
-     * Strings are either the granted authority or the principal, which is not
-     * distinguished.
      */
-    private final Map<Permission, Set<String>> grantedPermissions = new HashMap<>();
+    private final Map<Permission, Set<PermissionEntry>> grantedPermissions = new HashMap<>();
 
-    private final Set<String> sids = new HashSet<>();
+    private final Set<String> groupSids = Collections.synchronizedSet(new HashSet<>());
 
     /**
      * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
@@ -98,10 +99,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     protected AuthorizationMatrixProperty() {
     }
 
+    // TODO(3.0) How is this used?
+    @Deprecated
     public AuthorizationMatrixProperty(Map<Permission,? extends Set<String>> grantedPermissions) {
-        // do a deep copy to be safe
-        for (Entry<Permission,? extends Set<String>> e : grantedPermissions.entrySet())
-            this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
+        for (Map.Entry<Permission,? extends Set<String>> e : grantedPermissions.entrySet()) {
+            this.grantedPermissions.put(e.getKey(), e.getValue().stream().map(sid -> new PermissionEntry(AuthorizationType.EITHER, sid)).collect(Collectors.toSet()));
+        }
     }
 
     @DataBoundConstructor // JENKINS-49199: Used for job-dsl
@@ -112,19 +115,19 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         }
     }
 
-    @Restricted(NoExternalUse.class)
+    @Override
     public Set<String> getGroups() {
-        return new HashSet<>(sids);
+        return groupSids;
     }
 
-    /**
-     * Returns all the (Permission,sid) pairs that are granted, in the multi-map form.
-     *
-     * @return
-     *      read-only. never null.
-     */
-    public Map<Permission,Set<String>> getGrantedPermissions() {
-        return Collections.unmodifiableMap(grantedPermissions);
+    @Override
+    public void recordGroup(String sid) {
+        this.groupSids.add(sid);
+    }
+
+    @Override
+    public Map<Permission, Set<PermissionEntry>> getGrantedPermissionEntries() {
+        return grantedPermissions;
     }
 
     @Override
@@ -132,14 +135,10 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         return Item.CONFIGURE;
     }
 
-    /**
-     * Adds to {@link #grantedPermissions}. Use of this method should be limited
-     * during construction, as this object itself is considered immutable once
-     * populated.
-     */
-    public void add(Permission p, String sid) {
-        grantedPermissions.computeIfAbsent(p, k -> new HashSet<>()).add(sid);
-        sids.add(sid);
+    @Override
+    protected void setOwner(@NonNull AbstractFolder<?> owner) {
+        super.setOwner(owner);
+        FolderContributor.record(owner);
     }
 
     @Extension(optional = true)
@@ -176,7 +175,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL",
                 justification = "Because that is the way this SPI works")
         protected Boolean hasPermission(Sid sid, Permission p) {
-            if (AuthorizationMatrixProperty.this.hasPermission(toString(sid),p))
+            if (AuthorizationMatrixProperty.this.hasPermission(toString(sid), p, sid instanceof PrincipalSid))
                 return true;
             return null;
         }
@@ -236,12 +235,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                     String sid = current == null ? "anonymous" : current.getId();
 
                     if (!strategy.getACL((AbstractItem) folder).hasPermission2(Jenkins.getAuthentication2(), Item.READ)) {
-                        prop.add(Item.READ, sid);
+                        prop.add(Item.READ, PermissionEntry.user(sid));
                     }
                     if (!strategy.getACL((AbstractItem) folder).hasPermission2(Jenkins.getAuthentication2(), Item.CONFIGURE)) {
-                        prop.add(Item.CONFIGURE, sid);
+                        prop.add(Item.CONFIGURE, PermissionEntry.user(sid));
                     }
-                    if (prop.getGrantedPermissions().size() > 0) {
+                    if (prop.getGrantedPermissionEntries().size() > 0) {
                         try {
                             if (propIsNew) {
                                 folder.addProperty(prop);

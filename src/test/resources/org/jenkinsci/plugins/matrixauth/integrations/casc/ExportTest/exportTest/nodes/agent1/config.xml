@@ -1,0 +1,26 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<slave>
+  <name>agent1</name>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.slaves.JNLPLauncher">
+    <workDirSettings>
+      <disabled>false</disabled>
+      <internalDir>remoting</internalDir>
+      <failIfWorkDirIsMissing>false</failIfWorkDirIsMissing>
+    </workDirSettings>
+  </launcher>
+  <label></label>
+  <nodeProperties>
+    <org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy"/>
+      <permission>USER:hudson.model.Computer.Build:anonymous</permission>
+      <permission>GROUP:hudson.model.Computer.Build:authenticated</permission>
+      <permission>GROUP:hudson.model.Computer.Configure:authenticated</permission>
+      <permission>GROUP:hudson.model.Computer.Connect:authenticated</permission>
+      <permission>GROUP:hudson.model.Computer.Delete:authenticated</permission>
+      <permission>GROUP:hudson.model.Computer.Disconnect:authenticated</permission>
+    </org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty>
+  </nodeProperties>
+</slave>

@@ -56,18 +56,19 @@ THE SOFTWARE.
         </j:choose>
       </d:tag>
       <d:tag name="row">
+        <j:set var="permissionEntry" value="${descriptor.entryFor(attrs.type, attrs.sid)}"/>
         <j:choose>
-          <j:when test="${attrs.sid == 'authenticated'}">
+          <j:when test="${attrs.sid == 'authenticated' and attrs.type == 'GROUP'}">
             <td class="left-most">
               <span title="authenticated">
                 <img src="${imagesURL}/16x16/user.png" style="margin-right:0.2em"/>${%Authenticated Users}
               </span>
             </td>
           </j:when>
-          <j:when test="${attrs.sid == 'anonymous'}">
+          <j:when test="${attrs.sid == 'anonymous' and attrs.type == 'USER'}">
             <td class="left-most">
               <span title="anonymous">
-                <img src="${imagesURL}/16x16/user.png" style="margin-right:0.2em"/>${%Anonymous Users}
+                <img src="${imagesURL}/16x16/person.png" style="margin-right:0.2em"/>${%Anonymous}
               </span>
             </td>
           </j:when>
@@ -75,20 +76,21 @@ THE SOFTWARE.
             <td class="left-most">${title}</td>
           </j:otherwise>
         </j:choose>
+        <j:set var="typeName" value="${descriptor.getTypeLabel(attrs.type.toLowerCase())}"/>
         <j:forEach var="g" items="${groups}">
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
               <td width="*"
                   data-implied-by-list="${descriptor.impliedByList(p)}"
                   data-permission-id="${p.id}"
-                  data-tooltip-enabled="${%tooltip_enabled(p.group.title, p.name, attrs.sid)}"
-                  data-tooltip-disabled="${%tooltip_disabled(p.group.title, p.name, attrs.sid)}">
-                <f:checkbox name="[${p.id}]" checked="${instance.hasExplicitPermission(attrs.sid,p)}"/>
+                  data-tooltip-enabled="${%tooltip_enabled(p.group.title, p.name, typeName, attrs.sid)}"
+                  data-tooltip-disabled="${%tooltip_disabled(p.group.title, p.name, typeName, attrs.sid)}">
+                <f:checkbox name="[${p.id}]" checked="${permissionEntry != null and instance.hasExplicitPermission(permissionEntry,p)}"/>
               </td>
             </j:if>
           </j:forEach>
         </j:forEach>
-        <local:isEditable>
+        <local:isEditable sid="${attrs.sid}" type="${attrs.type}">
           <td class="stop" style="text-align:left;">
             <a href="#" class="selectall">
               <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
@@ -96,9 +98,18 @@ THE SOFTWARE.
             <a href="#" class="unselectall">
               <img alt="${%Unselect all}" title="${%unselectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/unselect-all.png" height="16" width="16"/>
             </a>
-            <j:if test="${attrs.sid!='anonymous' and attrs.sid!='authenticated'}">
+            <j:if test="${(attrs.sid != 'authenticated' or attrs.type != 'GROUP') and (attrs.sid != 'anonymous' or attrs.type != 'USER')}">
               <a href="#" class="remove">
                 <img alt="${%Remove user/group}" title="${%remove(attrs.sid)}" src="${imagesURL}/16x16/stop.png" height="16" width="16"/>
+              </a>
+            </j:if>
+            <j:if test="${attrs.type == 'EITHER'}">
+              <!-- migration options -->
+              <a href="#" class="migrate migrate_user">
+                <img alt="${%Migrate entry to user}" title="${%migrate_user(attrs.sid)}" src="${imagesURL}/16x16/person.png" height="16" width="16"/>
+              </a>
+              <a href="#" class="migrate migrate_group">
+                <img alt="${%Migrate entry to group}" title="${%migrate_group(attrs.sid)}" src="${imagesURL}/16x16/user.png" height="16" width="16"/>
               </a>
             </j:if>
           </td>
@@ -106,7 +117,8 @@ THE SOFTWARE.
       </d:tag>
     </d:taglib>
     <j:set var="strategyid" value="${descriptor.jsonSafeClassName}" />
-    <table id="${strategyid}" class="center-align global-matrix-authorization-strategy-table" name="data">
+    <j:set var="tableid" value="${h.generateId()}"/>
+    <table id="${strategyid}" data-table-id="${tableid}" class="center-align global-matrix-authorization-strategy-table ${readOnlyMode ? 'read-only' : ''}" name="data">
 
       <!-- The first row will show grouping -->
       <tr class="group-row">
@@ -144,16 +156,16 @@ THE SOFTWARE.
         </j:forEach>
       </tr>
 
-      <tr name="[anonymous]">
-        <local:row sid="anonymous" title="${%Anonymous}" />
+      <tr name="[USER:anonymous]">
+        <local:row type="USER" sid="anonymous" />
       </tr>
-      <tr name="[authenticated]">
-        <local:row sid="authenticated" title="authenticated" />
+      <tr name="[GROUP:authenticated]">
+        <local:row type="GROUP" sid="authenticated" />
       </tr>
-      <j:forEach var="sid" items="${instance.allSIDs}">
-        <j:if test="${sid != 'authenticated'}">
-          <tr name="[${sid}]" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}">
-            <local:row title="${sid}" sid="${sid}"/>
+      <j:forEach var="entry" items="${instance.allPermissionEntries}">
+        <j:if test="${entry.sid != 'authenticated' or entry.type.toString() != 'GROUP'}">
+          <tr name="[${entry.type}:${entry.sid}]" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}">
+            <local:row title="${entry.sid}" sid="${entry.sid}" type="${entry.type.toString()}" />
           </tr>
         </j:if>
       </j:forEach>
@@ -166,22 +178,28 @@ THE SOFTWARE.
       </tr>
     </table>
     <local:isEditable>
-      <table style="margin-top:0.5em; margin-left: 2em; width: 100%">
-       <tr>
-         <td colspan="3">
-            <input type="button" class="matrix-auth-add-user-button" value="${%Add user or group…}" id="${id}button"
-                   data-table-id="${id}"
-                   data-message-prompt="${%prompt}"
-                   data-message-empty="${%empty}"
-                   data-message-error="${%error}"
-            />
-         </td>
-         <td align="right">
-        <a href="#" class="help-button" helpURL="${rootURL}${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"><img src="${imagesURL}/16x16/help.png" alt="[help]" height="16" width="16"/></a>
-       </td></tr>
-       <f:helpArea />
-      </table>
-      <st:adjunct includes="hudson.security.table"/>
+      <input type="button" class="matrix-auth-add-button" value="${%Add user…}" id="${id}UserButton"
+            data-table-id="${id}"
+            data-type="USER"
+            data-message-prompt="${%userPrompt}"
+            data-message-empty="${%userEmpty}"
+            data-message-error="${%userError}"
+      />
+      <input type="button" class="matrix-auth-add-button" value="${%Add group…}" id="${id}GroupButton"
+            data-table-id="${id}"
+            data-type="GROUP"
+            data-message-prompt="${%groupPrompt}"
+            data-message-empty="${%groupEmpty}"
+            data-message-error="${%groupError}"
+      />
+      <j:if test="${descriptor.hasAmbiguousEntries(instance)}">
+        <div class="alert alert-warning" data-table-id="${tableid}">
+          ${%ambiguous}
+        </div>
+      </j:if>
+      <f:helpLink featureName="${%Permissions matrix}" url="${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"/>
+      <f:helpArea />
     </local:isEditable>
+    <st:adjunct includes="hudson.security.table"/>
   </f:block>
 </j:jelly>

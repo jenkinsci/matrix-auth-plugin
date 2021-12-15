@@ -53,7 +53,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -65,9 +64,9 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     private final transient SidACL acl = new AclImpl();
 
-    private final Map<Permission, Set<String>> grantedPermissions = new HashMap<>();
+    private final Map<Permission, Set<PermissionEntry>> grantedPermissions = new HashMap<>();
 
-    private final Set<String> sids = new HashSet<>();
+    private final Set<String> groupSids = new HashSet<>();
 
     /**
      * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
@@ -82,25 +81,25 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     public AuthorizationMatrixNodeProperty() {
     }
 
-    public AuthorizationMatrixNodeProperty(Map<Permission, Set<String>> grantedPermissions) {
+    public AuthorizationMatrixNodeProperty(Map<Permission, Set<PermissionEntry>> grantedPermissions) {
         // do a deep copy to be safe
-        for (Map.Entry<Permission,Set<String>> e : grantedPermissions.entrySet())
+        for (Map.Entry<Permission,Set<PermissionEntry>> e : grantedPermissions.entrySet())
             this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
     }
 
-    @Restricted(NoExternalUse.class)
+    @Override
     public Set<String> getGroups() {
-        return new HashSet<>(sids);
+        return groupSids;
     }
 
-    /**
-     * Returns all the (Permission,sid) pairs that are granted, in the multi-map form.
-     *
-     * @return
-     *      read-only. never null.
-     */
-    public Map<Permission,Set<String>> getGrantedPermissions() {
-        return Collections.unmodifiableMap(grantedPermissions);
+    @Override
+    public void recordGroup(String sid) {
+        this.groupSids.add(sid);
+    }
+
+    @Override
+    public Map<Permission, Set<PermissionEntry>> getGrantedPermissionEntries() {
+        return grantedPermissions;
     }
 
     @Override
@@ -114,17 +113,6 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     public InheritanceStrategy getInheritanceStrategy() {
         return inheritanceStrategy;
-    }
-
-    /**
-     * Adds to {@link #grantedPermissions}. Use of this method should be limited
-     * during construction, as this object itself is considered immutable once
-     * populated.
-     */
-    // TODO Restrict?
-    public void add(Permission p, String sid) {
-        grantedPermissions.computeIfAbsent(p, k -> new HashSet<>()).add(sid);
-        sids.add(sid);
     }
 
     private final class AclImpl extends SidACL {
@@ -145,7 +133,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     /**
      * Persist {@link AuthorizationMatrixNodeProperty} as a list of IDs that
-     * represent {@link AuthorizationMatrixNodeProperty#getGrantedPermissions()}.
+     * represent {@link AuthorizationMatrixNodeProperty#getGrantedPermissionEntries()}.
      */
     @Restricted(NoExternalUse.class)
     @SuppressWarnings("unused")
@@ -221,9 +209,9 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
                 String sid = current == null ? "anonymous" : current.getId();
 
                 if (!strategy.getACL(node).hasPermission2(Jenkins.getAuthentication2(), Computer.CONFIGURE)) {
-                    prop.add(Computer.CONFIGURE, sid);
+                    prop.add(Computer.CONFIGURE, PermissionEntry.user(sid));
                 }
-                if (prop.getGrantedPermissions().size() > 0) {
+                if (prop.getGrantedPermissionEntries().size() > 0) {
                     try {
                         node.getNodeProperties().replace(prop);
                     } catch (IOException ex) {

@@ -41,13 +41,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 
 import jenkins.model.Jenkins;
@@ -56,8 +56,11 @@ import org.acegisecurity.acls.sid.PrincipalSid;
 import org.acegisecurity.acls.sid.Sid;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.matrixauth.AbstractAuthorizationPropertyConverter;
+import org.jenkinsci.plugins.matrixauth.AmbiguityMonitor;
 import org.jenkinsci.plugins.matrixauth.AuthorizationPropertyDescriptor;
 import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
+import org.jenkinsci.plugins.matrixauth.AuthorizationType;
+import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -87,9 +90,9 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
      * Strings are either the granted authority or the principal, which is not
      * distinguished.
      */
-    private final Map<Permission, Set<String>> grantedPermissions = new HashMap<>();
+    private final Map<Permission, Set<PermissionEntry>> grantedPermissions = new HashMap<>();
 
-    private final Set<String> sids = new HashSet<>();
+    private final Set<String> groupSids = Collections.synchronizedSet(new HashSet<>());
 
     /**
      * @deprecated unused, use {@link #setInheritanceStrategy(InheritanceStrategy)} instead.
@@ -103,10 +106,30 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
     private AuthorizationMatrixProperty() {
     }
 
-    public AuthorizationMatrixProperty(Map<Permission, Set<String>> grantedPermissions) {
-        // do a deep copy to be safe
-        for (Entry<Permission, Set<String>> e : grantedPermissions.entrySet())
+    /**
+     * @since 3.0
+     */
+    // TODO(3.0) is this even needed? Why is the no-arg constructor private?
+    public AuthorizationMatrixProperty(Map<Permission, Set<PermissionEntry>> grantedPermissions, InheritanceStrategy inheritanceStrategy) {
+        this.inheritanceStrategy = inheritanceStrategy;
+        grantedPermissions.entrySet().forEach(e -> {
             this.grantedPermissions.put(e.getKey(), new HashSet<>(e.getValue()));
+            e.getValue().forEach(entry -> {
+                if (entry.getType() != AuthorizationType.USER) {
+                    this.recordGroup(entry.getSid());
+                }
+            });
+        });
+    }
+
+    /**
+     * @deprecated Use {@link #AuthorizationMatrixProperty(Map, InheritanceStrategy)} instead.
+     */
+    @Deprecated
+    public AuthorizationMatrixProperty(Map<Permission, Set<String>> grantedPermissions) {
+        for (Map.Entry<Permission,? extends Set<String>> e : grantedPermissions.entrySet()) {
+            this.grantedPermissions.put(e.getKey(), e.getValue().stream().map(sid -> new PermissionEntry(AuthorizationType.EITHER, sid)).collect(Collectors.toSet()));
+        }
     }
 
     @DataBoundConstructor
@@ -118,46 +141,43 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         }
     }
 
+    /**
+     * Getter corresponding to databound contructor for Pipeline snippetizer.
+     */
     public List<String> getPermissions() {
         List<String> permissions = new ArrayList<>();
 
-        SortedMap<Permission, Set<String>> map = new TreeMap<>(Comparator.comparing(Permission::getId));
+        SortedMap<Permission, Set<PermissionEntry>> map = new TreeMap<>(Comparator.comparing(Permission::getId));
         map.putAll(this.grantedPermissions);
-        for (Map.Entry<Permission, Set<String>> entry : map.entrySet()) {
+        for (Map.Entry<Permission, Set<PermissionEntry>> entry : map.entrySet()) {
             String permission = entry.getKey().getId();
-            for (String sid : new TreeSet<>(entry.getValue())) {
-                permissions.add(permission + ":" + sid);
+            final TreeSet<PermissionEntry> permissionEntries = new TreeSet<>(new PermissionEntryComparator());
+            permissionEntries.addAll(entry.getValue());
+            for (PermissionEntry e : permissionEntries) {
+                permissions.add(e.getType().toPrefix() + permission + ":" + e.getSid());
             }
         }
         return permissions;
     }
 
+    @Override
     public Set<String> getGroups() {
-        return new HashSet<>(sids);
+        return groupSids;
     }
 
-    /**
-     * Returns all the (Permission,sid) pairs that are granted, in the multi-map form.
-     *
-     * @return read-only. never null.
-     */
-    public Map<Permission, Set<String>> getGrantedPermissions() {
-        return Collections.unmodifiableMap(grantedPermissions);
+    @Override
+    public void recordGroup(String sid) {
+        this.groupSids.add(sid);
+    }
+
+    @Override
+    public Map<Permission, Set<PermissionEntry>> getGrantedPermissionEntries() {
+        return grantedPermissions;
     }
 
     @Override
     public Permission getEditingPermission() {
         return Item.CONFIGURE;
-    }
-
-    /**
-     * Adds to {@link #grantedPermissions}. Use of this method should be limited
-     * during construction, as this object itself is considered immutable once
-     * populated.
-     */
-    public void add(Permission p, String sid) {
-        grantedPermissions.computeIfAbsent(p, k -> new HashSet<>()).add(sid);
-        sids.add(sid);
     }
 
     @Extension
@@ -215,9 +235,15 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         return inheritanceStrategy;
     }
 
+    @Override
+    protected void setOwner(Job<?, ?> owner) {
+        super.setOwner(owner);
+        AmbiguityMonitor.JobContributor.update(owner);
+    }
+
     /**
      * Persist {@link AuthorizationMatrixProperty} as a list of IDs that
-     * represent {@link AuthorizationMatrixProperty#getGrantedPermissions()}.
+     * represent {@link AuthorizationMatrixProperty#getGrantedPermissionEntries()}.
      */
     @Restricted(DoNotUse.class)
     @SuppressWarnings("unused")
@@ -255,12 +281,12 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
                     String sid = current == null ? "anonymous" : current.getId();
 
                     if (!strategy.getACL(job).hasPermission2(Jenkins.getAuthentication2(), Item.READ)) {
-                        prop.add(Item.READ, sid);
+                        prop.add(Item.READ, new PermissionEntry(AuthorizationType.USER, sid));
                     }
                     if (!strategy.getACL(job).hasPermission2(Jenkins.getAuthentication2(), Item.CONFIGURE)) {
-                        prop.add(Item.CONFIGURE, sid);
+                        prop.add(Item.CONFIGURE, new PermissionEntry(AuthorizationType.USER, sid));
                     }
-                    if (prop.getGrantedPermissions().size() > 0) {
+                    if (prop.getGrantedPermissionEntries().size() > 0) {
                         try {
                             if (propIsNew) {
                                 job.addProperty(prop);

@@ -1,5 +1,42 @@
 # Changelog
 
+## Version 3.0 (2021-12-14)
+
+* Add support for explicitly assigning permissions to _groups_ or _users_ with a given name to prevent confusion when names match either.
+  Show warnings when permissions are ambiguously assigned to users and groups of a given name.
+
+### Important upgrade notes
+
+1. Version 3.0 extends the formats for permission assignments internally and used with [Job DSL](https://plugins.jenkins.io/job-dsl/) and [Configuration as Code](https://plugins.jenkins.io/configuration-as-code/) plugins.
+   While existing configurations can still be read, warnings will be shown on the UI and in logs when configurations contain ambiguous entries (all past permission assignments are ambiguous).
+   **Once new permissions have been assigned using version 3.0 or newer, or existing permission assignments have been migrated to apply only to users or groups, downgrading to earlier versions of this plugin may cause problems, as these releases will not be able to load unambiguous permission assignments.**
+2. Plugin APIs have changed significantly.
+   While some compatibility is retained, other plugins that depend on this plugin will likely need to be adapted to these changes or may behave in unexpected ways.
+   **If you use any plugins with a dependency on this plugin, make sure they're compatible with this release before upgrading.**
+
+## Version 2.6.11 (2021-12-08)
+
+* [JENKINS-67311](https://issues.jenkins.io/browse/JENKINS-67311): Fix help button for table ([#108](https://github.com/jenkinsci/matrix-auth-plugin/pull/108))
+
+## Version 2.6.9 (2021-12-03)
+
+* [JENKINS-67210](https://issues.jenkins.io/browse/JENKINS-67210): Fix broken link to global security configuration from help ([#106](https://github.com/jenkinsci/matrix-auth-plugin/pull/106))
+* [JENKINS-66964](https://issues.jenkins.io/browse/JENKINS-66964): Fix button tooltips in configuration matrix ([#107](https://github.com/jenkinsci/matrix-auth-plugin/pull/107))
+
+## Version 2.6.8 (2021-07-21)
+
+* [JENKINS-66170](https://issues.jenkins.io/browse/JENKINS-66170): Apply table style when viewing in read-only mode (Extended Read permission).
+  This fixes a regression in version 2.6.7.
+
+## Version 2.6.7 (2021-05-12)
+
+* Internal: Moved JavaScript to resource files ([#102](https://github.com/jenkinsci/matrix-auth-plugin/pull/102))
+* Internal: Migrate from RestartableJenkinsRule to JenkinsSessionRule ([#101](https://github.com/jenkinsci/matrix-auth-plugin/pull/101))
+
+## Version 2.6.6 (2021-03-18)
+
+* [SECURITY-2180](https://www.jenkins.io/security/advisory/2021-03-18/#SECURITY-2180): Ensure Item/Read is only granted it all ancestors grant it as well.
+
 ## Version 2.6.5 (2021-01-21)
 
 * [JENKINS-64661](https://issues.jenkins.io/browse/JENKINS-64661): Do not break `properties` in the global Pipeline snippet generator.

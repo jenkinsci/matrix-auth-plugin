@@ -60,3 +60,18 @@
   border-bottom: 1px solid transparent;
   white-space: nowrap;
 }
+
+.matrix-auth-add-user-button {
+  margin: 10px;
+}
+
+@keyframes highlightentry {
+  from { background: #C4C080; }
+  to { background: transparent; }
+}
+
+.highlight-entry {
+  -webkit-animation: highlightentry 5s;
+  -moz-animation: highlightentry 5s;
+  animation: highlightentry 5s;
+}

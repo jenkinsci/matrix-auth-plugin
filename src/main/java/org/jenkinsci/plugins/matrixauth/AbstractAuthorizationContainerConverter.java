@@ -28,12 +28,12 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.util.RobustReflectionConverter;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -50,7 +50,7 @@ public abstract class AbstractAuthorizationContainerConverter<T extends Authoriz
 
     @SuppressWarnings("unchecked")
     public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
-        final GlobalMatrixAuthorizationStrategy.IdStrategyComparator comparator = new GlobalMatrixAuthorizationStrategy.IdStrategyComparator();
+        final Comparator<PermissionEntry> comparator = new AuthorizationContainer.PermissionEntryComparator();
 
         if (!canConvert(source.getClass())) {
             throw new IllegalArgumentException("cannot marshal object of type " + source.getClass());
@@ -58,17 +58,17 @@ public abstract class AbstractAuthorizationContainerConverter<T extends Authoriz
         T container = (T) source;
 
         // Output in alphabetical order for readability.
-        SortedMap<Permission, Set<String>> sortedPermissions = new TreeMap<>(Permission.ID_COMPARATOR);
-        sortedPermissions.putAll(container.getGrantedPermissions());
+        SortedMap<Permission, Set<PermissionEntry>> sortedPermissions = new TreeMap<>(Permission.ID_COMPARATOR);
+        sortedPermissions.putAll(container.getGrantedPermissionEntries());
 
-        for (Map.Entry<Permission, Set<String>> e : sortedPermissions.entrySet()) {
+        for (Map.Entry<Permission, Set<PermissionEntry>> e : sortedPermissions.entrySet()) {
             String p = e.getKey().getId();
-            Set<String> sids = new TreeSet<>(comparator);
-            sids.addAll(e.getValue());
+            Set<PermissionEntry> entries = new TreeSet<>(comparator);
+            entries.addAll(e.getValue());
 
-            for (String sid : sids) {
+            for (PermissionEntry entry : entries) {
                 writer.startNode("permission");
-                writer.setValue(p + ':' + sid);
+                writer.setValue(entry.getType().toPrefix() + p + ':' + entry.getSid());
                 writer.endNode();
             }
         }
