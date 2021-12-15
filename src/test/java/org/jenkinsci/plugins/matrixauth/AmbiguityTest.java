@@ -9,7 +9,6 @@ import hudson.ExtensionList;
 import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
-import hudson.model.Node;
 import hudson.model.View;
 import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
@@ -47,19 +46,23 @@ public class AmbiguityTest {
         JenkinsRule.WebClient wc = j.createWebClient();
         wc.goTo(""); // no error
 
-        // This might be a bit questionable? Unsure.
-        final GlobalMatrixAuthorizationStrategy groupStrategy = new GlobalMatrixAuthorizationStrategy();
-        groupStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.GROUP, "anonymous"));
-        j.jenkins.setAuthorizationStrategy(groupStrategy);
-        FailingHttpStatusCodeException ex = assertThrows(FailingHttpStatusCodeException.class, () -> wc.goTo(""));
-        assertEquals("permission denied", 403, ex.getStatusCode());
-
-        // Legacy config would still work
+        // Legacy config still works
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         final GlobalMatrixAuthorizationStrategy eitherStrategy = new GlobalMatrixAuthorizationStrategy();
         eitherStrategy.add("hudson.model.Hudson.Read:anonymous");
         j.jenkins.setAuthorizationStrategy(eitherStrategy);
 
+        wc.goTo(""); // no error
+    }
+
+    @Test
+    public void anonymousIsAlsoGroup() throws Exception { // this wasn't always the case in older Jenkinses, but is now.
+        j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
+        final GlobalMatrixAuthorizationStrategy groupStrategy = new GlobalMatrixAuthorizationStrategy();
+        groupStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.GROUP, "anonymous"));
+        j.jenkins.setAuthorizationStrategy(groupStrategy);
+
+        JenkinsRule.WebClient wc = j.createWebClient();
         wc.goTo(""); // no error
     }
 
