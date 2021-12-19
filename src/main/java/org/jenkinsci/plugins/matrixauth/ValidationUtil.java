@@ -87,7 +87,7 @@ class ValidationUtil {
         String escapedSid = Functions.escape(userName);
         try {
             sr.loadUserByUsername2(userName);
-            User u = User.get(userName); // TODO fix deprecated call while not loading users for this form validation (after 3.0)
+            User u = User.getById(userName, true);
             if (userName.equals(u.getFullName())) {
                 // Sid and full name are identical, no need for tooltip
                 if (ambiguous) {

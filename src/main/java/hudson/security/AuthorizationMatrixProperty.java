@@ -112,9 +112,9 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
     // TODO(3.0) is this even needed? Why is the no-arg constructor private?
     public AuthorizationMatrixProperty(Map<Permission, Set<PermissionEntry>> grantedPermissions, InheritanceStrategy inheritanceStrategy) {
         this.inheritanceStrategy = inheritanceStrategy;
-        grantedPermissions.entrySet().forEach(e -> {
-            this.grantedPermissions.put(e.getKey(), new HashSet<>(e.getValue()));
-            e.getValue().forEach(entry -> {
+        grantedPermissions.forEach((key, value) -> {
+            this.grantedPermissions.put(key, new HashSet<>(value));
+            value.forEach(entry -> {
                 if (entry.getType() != AuthorizationType.USER) {
                     this.recordGroup(entry.getSid());
                 }

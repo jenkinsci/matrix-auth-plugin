@@ -51,8 +51,7 @@ public class AuthorizationMatrixNodePropertyConfigurator extends BaseConfigurato
     }
 
     @Override
-    protected AuthorizationMatrixNodeProperty instance(Mapping mapping, ConfigurationContext context)
-            throws ConfiguratorException {
+    protected AuthorizationMatrixNodeProperty instance(Mapping mapping, ConfigurationContext context) {
         return new AuthorizationMatrixNodeProperty();
     }
 
