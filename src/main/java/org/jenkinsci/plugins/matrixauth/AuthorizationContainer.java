@@ -32,6 +32,8 @@ import hudson.security.SecurityRealm;
 import jenkins.model.IdStrategy;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.matrixauth.integrations.PermissionFinder;
+import org.jenkinsci.plugins.matrixauth.integrations.casc.MatrixAuthorizationStrategyConfigurator;
+import org.jenkinsci.plugins.matrixauth.integrations.casc.PermissionEntryForCasc;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -196,6 +198,13 @@ public interface AuthorizationContainer {
             sid = shortForm.substring(firstEndIndex + 1);
             LOGGER.log(Jenkins.get().getInitLevel().ordinal() < InitMilestone.COMPLETED.ordinal() ? Level.WARNING : Level.FINE, "Processing a permission assignment in the legacy format (without explicit TYPE prefix): " + shortForm);
         }
+        Permission p = getPermission(shortForm, permissionString, sid);
+        if (p == null) return;
+        add(p, new PermissionEntry(type, sid));
+    }
+
+    @Restricted(NoExternalUse.class)
+    /* private when allowed */ default Permission getPermission(String shortForm, String permissionString, String sid) {
         Permission p = Permission.fromId(permissionString);
         if (p == null) {
             // attempt to find the permission based on the 'nice' name, e.g. Overall/Administer
@@ -207,9 +216,21 @@ public interface AuthorizationContainer {
         if (!p.isContainedBy(((AuthorizationContainerDescriptor<?>) getDescriptor()).getPermissionScope())) {
             LOGGER.log(Level.WARNING,
                     "Tried to add inapplicable permission " + p + " for " + sid + " in " + this + ", skipping");
-            return;
+            return null;
         }
-        add(p, new PermissionEntry(type, sid));
+        return p;
+    }
+
+    @Restricted(NoExternalUse.class)
+    default void add(PermissionEntryForCasc permissionEntryForCasc) {
+        PermissionEntry entry = permissionEntryForCasc.retrieveEntry();
+        Permission p = getPermission(
+                permissionEntryForCasc.getPermission(),
+                permissionEntryForCasc.getPermission(),
+                entry.getSid()
+        );
+
+        add(p, entry);
     }
 
     @Restricted(NoExternalUse.class)
