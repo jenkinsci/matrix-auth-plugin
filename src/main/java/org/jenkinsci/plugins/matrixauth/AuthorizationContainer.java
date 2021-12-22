@@ -199,7 +199,9 @@ public interface AuthorizationContainer {
             LOGGER.log(Jenkins.get().getInitLevel().ordinal() < InitMilestone.COMPLETED.ordinal() ? Level.WARNING : Level.FINE, "Processing a permission assignment in the legacy format (without explicit TYPE prefix): " + shortForm);
         }
         Permission p = getPermission(shortForm, permissionString, sid);
-        if (p == null) return;
+        if (p == null) {
+            return;
+        }
         add(p, new PermissionEntry(type, sid));
     }
 

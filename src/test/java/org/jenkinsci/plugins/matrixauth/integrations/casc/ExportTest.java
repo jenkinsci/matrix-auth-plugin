@@ -42,7 +42,6 @@ public class ExportTest {
             List<CNode> permissions = mapping.get("permissions").asSequence();
             assertEquals("list size", 18, permissions.size());
 
-            assertNull("no grantedPermissions", mapping.get("grantedPermissions"));
             {
                 List<String> strings = Arrays.asList(
                         "Credentials/Create:authenticated",
@@ -64,7 +63,12 @@ public class ExportTest {
                         "View/Configure:authenticated",
                         "View/Delete:authenticated");
                 for (CNode entry : permissions) {
-                    String value = entry.asScalar().getValue();
+                    Mapping permissionEntry = entry.asMapping();
+                    CNode sidCNode = permissionEntry.get("ambiguous");
+                    String sid = sidCNode.asScalar().getValue();
+                    String permission = permissionEntry.get("permission").asScalar().getValue();
+
+                    String value = permission + ":" + sid;
                     assertTrue("list contains entry " + value, strings.contains(value));
                 }
             }
@@ -86,7 +90,12 @@ public class ExportTest {
                         "Agent/Build:anonymous", "Agent/Build:authenticated", "Agent/Configure:authenticated",
                         "Agent/Connect:authenticated", "Agent/Delete:authenticated", "Agent/Disconnect:authenticated");
                 for (CNode entry : permissions) {
-                    String value = entry.asScalar().getValue();
+                    Mapping permissionEntry = entry.asMapping();
+                    CNode sidCNode = permissionEntry.get("ambiguous");
+                    String sid = sidCNode.asScalar().getValue();
+                    String permission = permissionEntry.get("permission").asScalar().getValue();
+
+                    String value = permission + ":" + sid;
                     assertTrue("list contains entry " + value, strings.contains(value));
                 }
             }
@@ -134,7 +143,17 @@ public class ExportTest {
                         "GROUP:View/Configure:authenticated",
                         "GROUP:View/Delete:authenticated");
                 for (CNode entry : permissions) {
-                    String value = entry.asScalar().getValue();
+                    Mapping permissionEntry = entry.asMapping();
+                    CNode sidCNode = permissionEntry.get("group");
+                    boolean user = sidCNode == null;
+                    if (user) {
+                        sidCNode = permissionEntry.get("user");
+                    }
+                    String sid = sidCNode.asScalar().getValue();
+                    String permission = permissionEntry.get("permission").asScalar().getValue();
+
+                    String type = user ? "USER" : "GROUP";
+                    String value = type + ":" + permission + ":" + sid;
                     assertTrue("list contains entry " + value, strings.contains(value));
                 }
             }
@@ -157,7 +176,17 @@ public class ExportTest {
                         "USER:Agent/Build:anonymous", "GROUP:Agent/Build:authenticated", "GROUP:Agent/Configure:authenticated",
                         "GROUP:Agent/Connect:authenticated", "GROUP:Agent/Delete:authenticated", "GROUP:Agent/Disconnect:authenticated");
                 for (CNode entry : permissions) {
-                    String value = entry.asScalar().getValue();
+                    Mapping permissionEntry = entry.asMapping();
+                    CNode sidCNode = permissionEntry.get("group");
+                    boolean user = sidCNode == null;
+                    if (user) {
+                        sidCNode = permissionEntry.get("user");
+                    }
+                    String sid = sidCNode.asScalar().getValue();
+                    String permission = permissionEntry.get("permission").asScalar().getValue();
+
+                    String type = user ? "USER" : "GROUP";
+                    String value = type + ":" + permission + ":" + sid;
                     assertTrue("list contains entry " + value, strings.contains(value));
                 }
             }

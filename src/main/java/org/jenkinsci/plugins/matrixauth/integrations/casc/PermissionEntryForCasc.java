@@ -1,13 +1,19 @@
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.matrixauth.AuthorizationType;
 import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class PermissionEntryForCasc implements Comparable<PermissionEntryForCasc> {
+
+    private static final Logger LOGGER = Logger.getLogger(PermissionEntryForCasc.class.getName());
+
     private String user;
     private String group;
+    private String ambiguous;
     private String permission;
 
     @DataBoundConstructor
@@ -35,6 +41,15 @@ public class PermissionEntryForCasc implements Comparable<PermissionEntryForCasc
         this.group = group;
     }
 
+    public String getAmbiguous() {
+        return ambiguous;
+    }
+
+    public void setAmbiguous(String ambiguous) {
+        LOGGER.warning(String.format("Setting deprecated attribute 'ambiguous' for '%s' use 'user' or 'group' instead", ambiguous));
+        this.ambiguous = ambiguous;
+    }
+
     public PermissionEntry retrieveEntry() {
         if (StringUtils.isNotBlank(user)) {
             return PermissionEntry.user(user);
@@ -43,7 +58,8 @@ public class PermissionEntryForCasc implements Comparable<PermissionEntryForCasc
         if (StringUtils.isNotBlank(group)) {
             return PermissionEntry.group(group);
         }
-        throw new IllegalStateException("One of 'group' or 'user' must be set, permission was: " + permission);
+
+        return new PermissionEntry(AuthorizationType.EITHER, ambiguous);
     }
 
     @Override

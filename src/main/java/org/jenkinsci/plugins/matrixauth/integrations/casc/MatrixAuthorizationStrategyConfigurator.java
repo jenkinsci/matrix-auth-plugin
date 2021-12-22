@@ -58,8 +58,10 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
                             } else if (v.getType().equals(AuthorizationType.GROUP)) {
                                 entry.setGroup(v.getSid());
                                 return entry;
+                            } else {
+                                entry.setAmbiguous(v.getSid());
+                                return entry;
                             }
-                            throw new IllegalStateException("Ambiguous users are not supported: " + v.getSid());
                         }))
                 .sorted()
                 .collect(Collectors.toList());
@@ -71,6 +73,4 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     public static void setPermissions(AuthorizationContainer container, Collection<PermissionEntryForCasc> permissions) {
         permissions.forEach(container::add);
     }
-
-    private static final Logger LOGGER = Logger.getLogger(MatrixAuthorizationStrategyConfigurator.class.getName());
 }

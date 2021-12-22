@@ -120,25 +120,4 @@ public class ImportTest {
         }
         assertEquals("no warnings", 0, l.getMessages().size());
     }
-
-    @Test
-    @ConfiguredWithCode("legacy-format.yml")
-    public void legacyTest() throws Exception {
-        assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
-        AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
-        assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
-        ProjectMatrixAuthorizationStrategy projectMatrixAuthorizationStrategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
-        { // global
-            assertEquals("two ambiguous sids", 2, projectMatrixAuthorizationStrategy.getAllPermissionEntries().size());
-            assertThat(projectMatrixAuthorizationStrategy.getAllPermissionEntries(), hasItems(new PermissionEntry(AuthorizationType.EITHER, "anonymous"), new PermissionEntry(AuthorizationType.EITHER, "authenticated")));
-            assertTrue("anon can read", projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.READ));
-            assertTrue("authenticated can read", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.READ));
-            assertTrue("authenticated can build", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.BUILD));
-            assertTrue("authenticated can delete jobs", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE));
-            assertTrue("authenticated can administer", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER));
-        }
-
-        assertTrue("at least one warning", 0 < l.getMessages().size()); // seems to be called twice?
-        assertTrue("correct message", l.getMessages().get(0).contains("Loading deprecated attribute 'grantedPermissions' for instance"));
-    }
 }
