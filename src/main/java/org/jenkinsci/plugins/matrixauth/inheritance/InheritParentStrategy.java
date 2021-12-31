@@ -32,8 +32,8 @@ import org.acegisecurity.Authentication;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Arrays;
 
 /**
@@ -49,7 +49,7 @@ public class InheritParentStrategy extends InheritanceStrategy {
     }
 
     @Override
-    protected boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
+    protected boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
         if (a.equals(ACL.SYSTEM)) {
             return true;
         }
@@ -84,7 +84,7 @@ public class InheritParentStrategy extends InheritanceStrategy {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return Messages.InheritParentStrategy_DisplayName();
         }
