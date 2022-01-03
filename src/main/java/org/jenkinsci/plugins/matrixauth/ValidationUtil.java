@@ -48,7 +48,7 @@ class ValidationUtil {
     private static final VersionNumber jenkinsVersion = Jenkins.getVersion();
 
     static String formatNonExistentUserGroupValidationResponse(String user, String tooltip) {
-        return formatUserGroupValidationResponse("user-disabled.png", "<span style='text-decoration: line-through;'>" + tooltip + ": " + user + "</span>", tooltip, true);
+        return formatUserGroupValidationResponse("user-disabled.svg", "<span style='text-decoration: line-through;'>" + tooltip + ": " + user + "</span>", tooltip, true);
     }
 
     static String formatUserGroupValidationResponse(String img, String label, String tooltip, boolean inPlugin) {

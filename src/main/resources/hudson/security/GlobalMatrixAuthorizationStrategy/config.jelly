@@ -93,10 +93,10 @@ THE SOFTWARE.
         <local:isEditable sid="${attrs.sid}" type="${attrs.type}">
           <td class="stop" style="text-align:left;">
             <a href="#" class="selectall">
-              <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/select-all.png" height="16" width="16"/>
+              <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/select-all.svg" style='margin-right:0.2em' height="16" width="16"/>
             </a>
             <a href="#" class="unselectall">
-              <img alt="${%Unselect all}" title="${%unselectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/16x16/unselect-all.png" height="16" width="16"/>
+              <img alt="${%Unselect all}" title="${%unselectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/unselect-all.svg" height="16" width="16"/>
             </a>
             <j:if test="${(attrs.sid != 'authenticated' or attrs.type != 'GROUP') and (attrs.sid != 'anonymous' or attrs.type != 'USER')}">
               <a href="#" class="remove">
