@@ -161,10 +161,10 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         if (!subject.hasPermission(permission)) {
             // Lacking permissions, so respond based on input only
             if (type == AuthorizationType.USER) {
-                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("person.png", escapedSid, "User may or may not exist", false));
+                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("person", escapedSid, "User may or may not exist", false));
             }
             if (type == AuthorizationType.GROUP) {
-                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("user.png", escapedSid, "Group may or may not exist", false));
+                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("user", escapedSid, "Group may or may not exist", false));
             }
             return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(null, escapedSid, "Permissions would be granted to a user or group of this name", false));
         }
@@ -173,12 +173,12 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
 
         if(sid.equals("authenticated") && type == AuthorizationType.EITHER) {
             // system reserved group
-            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse("user.png", escapedSid, "Internal group found; but permissions would also be granted to a user of this name", false));
+            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse("user", escapedSid, "Internal group found; but permissions would also be granted to a user of this name", false));
         }
 
         if(sid.equals("anonymous") && type == AuthorizationType.EITHER) {
             // system reserved user
-            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse("person.png", escapedSid, "Internal user found; but permissions would also be granted to a group of this name", false));
+            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse("person", escapedSid, "Internal user found; but permissions would also be granted to a group of this name", false));
         }
 
         try {
