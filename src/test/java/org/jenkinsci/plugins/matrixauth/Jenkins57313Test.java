@@ -24,6 +24,6 @@ public class Jenkins57313Test {
         Assert.assertEquals(200, page.getWebResponse().getStatusCode());
         String responseText = page.getWebResponse().getContentAsString();
         Assert.assertTrue(responseText.contains("alice"));
-        Assert.assertTrue(responseText.contains("person.png"));
+        Assert.assertTrue(responseText.contains("person"));
     }
 }
