@@ -14,7 +14,7 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -139,7 +139,7 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
 
     // Not used directly by Stapler due to the trailing _ (this prevented method confusion around 1.415).
     @Restricted(NoExternalUse.class)
-    default FormValidation doCheckName_(@Nonnull String value, @Nonnull AccessControlled subject, @Nonnull Permission permission) {
+    default FormValidation doCheckName_(@NonNull String value, @NonNull AccessControlled subject, @NonNull Permission permission) {
 
         final String unbracketedValue = value.substring(1, value.length() - 1); // remove leading [ and trailing ]
 

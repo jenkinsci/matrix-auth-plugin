@@ -46,7 +46,7 @@ import jenkins.model.Nodes;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -147,12 +147,12 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
         @Extension
         public static class NodeListenerImpl extends NodeListener {
             @Override
-            protected void onCreated(@Nonnull Node node) {
+            protected void onCreated(@NonNull Node node) {
                 record(node);
             }
 
             @Override
-            protected void onDeleted(@Nonnull Node node) {
+            protected void onDeleted(@NonNull Node node) {
                 if (!DISABLE) {
                     remove(node.getNodeName());
                 }
