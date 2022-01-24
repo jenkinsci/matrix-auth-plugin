@@ -1,18 +1,6 @@
 # Changelog
 
-## Version 3.0 (2021-12-14)
-
-* Add support for explicitly assigning permissions to _groups_ or _users_ with a given name to prevent confusion when names match either.
-  Show warnings when permissions are ambiguously assigned to users and groups of a given name.
-
-### Important upgrade notes
-
-1. Version 3.0 extends the formats for permission assignments internally and used with [Job DSL](https://plugins.jenkins.io/job-dsl/) and [Configuration as Code](https://plugins.jenkins.io/configuration-as-code/) plugins.
-   While existing configurations can still be read, warnings will be shown on the UI and in logs when configurations contain ambiguous entries (all past permission assignments are ambiguous).
-   **Once new permissions have been assigned using version 3.0 or newer, or existing permission assignments have been migrated to apply only to users or groups, downgrading to earlier versions of this plugin may cause problems, as these releases will not be able to load unambiguous permission assignments.**
-2. Plugin APIs have changed significantly.
-   While some compatibility is retained, other plugins that depend on this plugin will likely need to be adapted to these changes or may behave in unexpected ways.
-   **If you use any plugins with a dependency on this plugin, make sure they're compatible with this release before upgrading.**
+Release notes for Version 3.0 and newer are published in [GitHub Releases](https://github.com/jenkinsci/matrix-auth-plugin/releases) only. 
 
 ## Version 2.6.11 (2021-12-08)
 
