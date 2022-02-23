@@ -36,7 +36,7 @@ import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,7 +56,7 @@ public class AuthorizationMatrixNodePropertyConfigurator extends BaseConfigurato
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public Set<Attribute<AuthorizationMatrixNodeProperty, ?>> describe() {
         return new HashSet<>(Arrays.asList(
                 new MultivaluedAttribute<AuthorizationMatrixNodeProperty, String>("permissions", String.class)

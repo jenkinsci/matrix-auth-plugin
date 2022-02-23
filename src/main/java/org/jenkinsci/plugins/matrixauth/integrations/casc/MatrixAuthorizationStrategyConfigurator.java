@@ -8,7 +8,7 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Restricted(NoExternalUse.class)
 public abstract class MatrixAuthorizationStrategyConfigurator<T extends AuthorizationContainer> extends BaseConfigurator<T> {
 
-    @Nonnull
+    @NonNull
     @Override
     public Class<?> getImplementedAPI() {
         return AuthorizationStrategy.class;
@@ -28,7 +28,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
 
 
     @Override
-    @Nonnull
+    @NonNull
     public Set<Attribute<T, ?>> describe() {
         return new HashSet<>(Arrays.asList(
                 new MultivaluedAttribute<T, String>("permissions", String.class)

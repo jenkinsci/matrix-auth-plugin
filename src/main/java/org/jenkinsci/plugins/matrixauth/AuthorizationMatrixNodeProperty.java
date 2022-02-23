@@ -50,8 +50,8 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -163,7 +163,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         }
 
         @Override
-        public AuthorizationMatrixNodeProperty newInstance(StaplerRequest req, @Nonnull JSONObject formData) throws FormException {
+        public AuthorizationMatrixNodeProperty newInstance(StaplerRequest req, @NonNull JSONObject formData) throws FormException {
             return createNewInstance(req, formData, false);
         }
 
@@ -172,7 +172,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
             return isApplicable();
         }
 
-        @Nonnull
+        @NonNull
         @Override
         public String getDisplayName() {
             return Messages.AuthorizationMatrixNodeProperty_DisplayName();
@@ -195,7 +195,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     @Restricted(NoExternalUse.class)
     public static class NodeListenerImpl extends NodeListener {
         @Override
-        protected void onCreated(@Nonnull Node node) {
+        protected void onCreated(@NonNull Node node) {
             AuthorizationStrategy authorizationStrategy = Jenkins.get().getAuthorizationStrategy();
             if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
                 ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;

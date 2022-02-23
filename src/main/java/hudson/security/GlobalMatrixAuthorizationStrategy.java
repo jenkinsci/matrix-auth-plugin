@@ -56,8 +56,8 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Role-based authorization via a matrix.
@@ -97,13 +97,13 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public ACL getRootACL() {
         return acl;
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public Set<String> getGroups() {
         final TreeSet<String> sids = new TreeSet<>(new IdStrategyComparator());
         sids.addAll(groupSids);
@@ -157,13 +157,13 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
             return PermissionScope.JENKINS;
         }
 
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return Messages.GlobalMatrixAuthorizationStrategy_DisplayName();
         }
 
         @Override
-        public AuthorizationStrategy newInstance(StaplerRequest req, @Nonnull JSONObject formData) throws FormException {
+        public AuthorizationStrategy newInstance(StaplerRequest req, @NonNull JSONObject formData) throws FormException {
             // TODO Is there a way to pull this up into AuthorizationContainerDescriptor and share code with AuthorizationPropertyDescriptor?
             GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = create();
             Map<String,Object> data = formData.getJSONObject("data");

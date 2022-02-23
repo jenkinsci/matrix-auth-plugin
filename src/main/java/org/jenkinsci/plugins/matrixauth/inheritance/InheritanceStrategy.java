@@ -36,8 +36,8 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.springframework.security.core.Authentication;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 public abstract class InheritanceStrategy extends AbstractDescribableImpl<InheritanceStrategy> implements ExtensionPoint {
     @Restricted(NoExternalUse.class)
@@ -67,5 +67,5 @@ public abstract class InheritanceStrategy extends AbstractDescribableImpl<Inheri
         return ACL.lambda2((a, p) -> hasPermission(a, p, acl, getParentItemACL(subject), Jenkins.get().getAuthorizationStrategy().getRootACL()));
     }
 
-    protected abstract boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission, ACL child, @CheckForNull ACL parent, ACL root);
+    protected abstract boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root);
 }

@@ -32,8 +32,8 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.springframework.security.core.Authentication;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Strategy that disables inheritance except for the globally defined Administer permission.
@@ -45,7 +45,7 @@ public class NonInheritingStrategy extends InheritanceStrategy {
 
     }
 
-    protected boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
+    protected boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
         if (a.equals(ACL.SYSTEM2)) {
             return true;
         }
@@ -90,7 +90,7 @@ public class NonInheritingStrategy extends InheritanceStrategy {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return Messages.NonInheritingStrategy_DisplayName();
         }
