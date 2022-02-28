@@ -6,6 +6,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
+import java.util.Objects;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.junit.Assert;
@@ -43,9 +44,9 @@ public class ProjectMatrixAuthorizationStrategyTest {
         }
 
         Assert.assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("bob").impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.CONFIGURE));
     }
 
     @Test
@@ -69,9 +70,9 @@ public class ProjectMatrixAuthorizationStrategyTest {
         }
 
         Assert.assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("bob").impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.CONFIGURE));
 
         Assert.assertEquals("one property", 1, job.getAllProperties().size());
     }
@@ -197,9 +198,9 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
         ACL acl = r.jenkins.getAuthorizationStrategy().getACL(aliceProjects);
 
-        Authentication alice = User.getOrCreateByIdOrFullName("alice").impersonate2();
-        Authentication admin = User.getOrCreateByIdOrFullName("admin").impersonate2();
-        Authentication bob = User.getOrCreateByIdOrFullName("bob").impersonate2();
+        Authentication alice = Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2();
+        Authentication admin = Objects.requireNonNull(User.get("admin", false, Collections.emptyMap())).impersonate2();
+        Authentication bob = Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2();
 
         Assert.assertTrue(acl.hasPermission2(alice, Item.READ));
         Assert.assertTrue(acl.hasPermission2(alice, Item.CONFIGURE));

@@ -31,6 +31,7 @@ import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
+import java.util.Objects;
 import jenkins.model.Jenkins;
 
 import java.util.Collections;
@@ -65,8 +66,8 @@ public class AuthorizationMatrixNodePropertyTest {
         }
 
         Assert.assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
-        Assert.assertTrue(node.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Computer.CONFIGURE));
-        Assert.assertFalse(node.getACL().hasPermission2(User.getOrCreateByIdOrFullName("bob").impersonate2(), Computer.CONFIGURE));
+        Assert.assertTrue(node.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Computer.CONFIGURE));
+        Assert.assertFalse(node.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Computer.CONFIGURE));
     }
 
     // createSlave uses CommandLauncher, which requires RUN_SCRIPTS since 2.73.2

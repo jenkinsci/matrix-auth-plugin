@@ -36,6 +36,7 @@ import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.logging.Level;
 
 import jenkins.model.Jenkins;
@@ -75,9 +76,9 @@ public class AuthorizationMatrixPropertyTest {
         }
 
         Assert.assertNotNull(job.getProperties().get(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("bob").impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(User.getOrCreateByIdOrFullName("alice").impersonate2(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.CONFIGURE));
     }
 
     @Test public void basics1() throws Exception {
@@ -167,7 +168,7 @@ public class AuthorizationMatrixPropertyTest {
     }
 
     @Test
-    public void inapplicablePermissionIsSkipped2() throws Exception {
+    public void inapplicablePermissionIsSkipped2() {
         AuthorizationMatrixProperty property = new AuthorizationMatrixProperty();
         l.record(AuthorizationContainer.class, Level.WARNING).capture(5);
         property.add("USER:hudson.model.Hudson.Administer:alice");

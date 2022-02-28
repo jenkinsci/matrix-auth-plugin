@@ -9,6 +9,7 @@ import hudson.ExtensionList;
 import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
+import hudson.model.Node;
 import hudson.model.View;
 import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
@@ -177,12 +178,16 @@ public class AmbiguityTest {
         AmbiguityMonitor.JobContributor jobContributor = contributors.get(AmbiguityMonitor.JobContributor.class);
         AmbiguityMonitor.NodeContributor nodeContributor = contributors.get(AmbiguityMonitor.NodeContributor.class);
         FolderContributor folderContributor = contributors.get(FolderContributor.class);
-        
+
+        assertNotNull(globalConfigurationContributor);
         assertTrue(globalConfigurationContributor.hasAmbiguousEntries());
 
         { // admin monitor entries are as expected
+            assertNotNull(folderContributor);
             assertTrue(folderContributor.activeFolders.get("F"));
+            assertNotNull(jobContributor);
             assertTrue(jobContributor.activeJobs.get("F/fs"));
+            assertNotNull(nodeContributor);
             assertTrue(nodeContributor.activeNodes.get("a1"));
         }
 
@@ -198,7 +203,9 @@ public class AmbiguityTest {
 
         { // ensure permissions were migrated as expected on the node
             // object changes on submission, so need to get a new one
-            final AuthorizationMatrixNodeProperty nodeProperty = j.jenkins.getNode("a1").getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            final Node node = j.jenkins.getNode("a1");
+            assertNotNull(node);
+            final AuthorizationMatrixNodeProperty nodeProperty = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
             assertNotNull(nodeProperty);
             assertTrue(nodeProperty.hasExplicitPermission(PermissionEntry.user("anonymous"), Computer.BUILD));
             assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.group("anonymous"), Computer.BUILD));
@@ -218,6 +225,7 @@ public class AmbiguityTest {
 
         { // assert loaded permissions on the folder
             final Folder f = (Folder) j.jenkins.getItemByFullName("F");
+            assertNotNull(f);
             assertTrue(folderContributor.activeFolders.get("F")); // presented by the Redundancy Department of Redundancy
 
             final com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty = f.getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
@@ -243,6 +251,7 @@ public class AmbiguityTest {
             assertFalse(folderContributor.activeFolders.get("F"));
 
             final Folder f = (Folder) j.jenkins.getItemByFullName("F");
+            assertNotNull(f);
             final com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty = f.getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
             assertNotNull(folderProperty);
             for (Permission permission : Arrays.asList(View.CONFIGURE, View.CREATE, View.DELETE, View.READ)) {
@@ -274,11 +283,15 @@ public class AmbiguityTest {
         assertFalse(globalConfigurationContributor.hasAmbiguousEntries()); // "previously migrated"
 
         assertTrue(jobContributor.activeJobs.get("F/fs"));
-        j.jenkins.getItemByFullName("F/fs").delete();
+        final Item job = j.jenkins.getItemByFullName("F/fs");
+        assertNotNull(job);
+        job.delete();
         assertEquals(0, jobContributor.activeJobs.size());
 
         assertTrue(folderContributor.activeFolders.get("F"));
-        j.jenkins.getItemByFullName("F").delete();
+        final Item folder = j.jenkins.getItemByFullName("F");
+        assertNotNull(folder);
+        folder.delete();
         assertEquals(0, folderContributor.activeFolders.size());
 
         assertTrue(nodeContributor.activeNodes.get("a1"));
