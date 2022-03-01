@@ -1,11 +1,13 @@
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
+import hudson.model.Node;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.Configurator;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.model.CNode;
 import io.jenkins.plugins.casc.model.Mapping;
+import java.util.Objects;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,7 +74,9 @@ public class ExportTest {
 
         { // node configuration
             Configurator<AuthorizationMatrixNodeProperty> c = context.lookupOrFail(AuthorizationMatrixNodeProperty.class);
-            AuthorizationMatrixNodeProperty nodeProperty = j.jenkins.getNode("agent1").getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            final Node agent1 = j.jenkins.getNode("agent1");
+            assertNotNull(agent1);
+            AuthorizationMatrixNodeProperty nodeProperty = agent1.getNodeProperty(AuthorizationMatrixNodeProperty.class);
 
             CNode node = c.describe(nodeProperty, context);
             assertNotNull(node);
@@ -142,7 +146,7 @@ public class ExportTest {
 
         { // node configuration
             Configurator<AuthorizationMatrixNodeProperty> c = context.lookupOrFail(AuthorizationMatrixNodeProperty.class);
-            AuthorizationMatrixNodeProperty nodeProperty = j.jenkins.getNode("agent1").getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            AuthorizationMatrixNodeProperty nodeProperty = Objects.requireNonNull(j.jenkins.getNode("agent1")).getNodeProperty(AuthorizationMatrixNodeProperty.class);
 
             CNode node = c.describe(nodeProperty, context);
             assertNotNull(node);

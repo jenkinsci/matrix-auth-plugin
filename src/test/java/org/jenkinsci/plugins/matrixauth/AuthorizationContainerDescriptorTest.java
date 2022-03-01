@@ -13,7 +13,7 @@ import org.jvnet.localizer.ResourceBundleHolder;
 
 public class AuthorizationContainerDescriptorTest {
 
-    private Permission TEST_PERMISSION = new Permission(Item.PERMISSIONS, "Test", new Localizable(ResourceBundleHolder.get(AuthorizationContainerDescriptorTest.class), "Test"), Item.BUILD, PermissionScope.ITEM);
+    private final Permission TEST_PERMISSION = new Permission(Item.PERMISSIONS, "Test", new Localizable(ResourceBundleHolder.get(AuthorizationContainerDescriptorTest.class), "Test"), Item.BUILD, PermissionScope.ITEM);
 
     @Test
     public void testImpliedNotes() {

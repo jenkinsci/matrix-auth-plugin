@@ -25,6 +25,7 @@ public class InheritanceMigrationTest {
 
         {
             Folder folder = (Folder) j.jenkins.getItemByFullName("folder");
+            Assert.assertNotNull(folder);
             Assert.assertTrue(folder.getConfigFile().asString().contains("blocksInheritance"));
             AuthorizationMatrixProperty prop = (folder).getProperties().get(AuthorizationMatrixProperty.class);
             Assert.assertTrue(prop.isBlocksInheritance());
@@ -38,6 +39,7 @@ public class InheritanceMigrationTest {
             Assert.assertFalse(folder.getConfigFile().asString().contains("blocksInheritance"));
 
             folder = (Folder) j.jenkins.getItemByFullName("folder1");
+            Assert.assertNotNull(folder);
             Assert.assertTrue(folder.getConfigFile().asString().contains("blocksInheritance"));
             prop = (folder).getProperties().get(AuthorizationMatrixProperty.class);
             Assert.assertTrue(prop.isBlocksInheritance());
@@ -57,6 +59,7 @@ public class InheritanceMigrationTest {
 
         {
             Job<?, ?> job = (Job<?, ?>) j.jenkins.getItemByFullName("folder/inheritNone");
+            Assert.assertNotNull(job);
             Assert.assertTrue(job.getConfigFile().asString().contains("blocksInheritance"));
             hudson.security.AuthorizationMatrixProperty prop = job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
             Assert.assertTrue(prop.isBlocksInheritance());
@@ -67,6 +70,7 @@ public class InheritanceMigrationTest {
             Assert.assertFalse(job.getConfigFile().asString().contains("blocksInheritance"));
 
             job = (Job<?, ?>) j.jenkins.getItemByFullName("job");
+            Assert.assertNotNull(job);
             Assert.assertTrue(job.getConfigFile().asString().contains("blocksInheritance"));
             prop = job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
             Assert.assertFalse(prop.isBlocksInheritance());

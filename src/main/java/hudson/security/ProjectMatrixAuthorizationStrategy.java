@@ -32,12 +32,10 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Job;
 import hudson.Extension;
-import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.Messages;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Set;
@@ -61,20 +59,6 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         } else {
             return getACL(project.getParent());
         }
-    }
-
-    @Restricted(NoExternalUse.class)
-    @Deprecated // Unused since SECURITY-2180 fix, TODO insert specific versions
-    public static ACL inheritingACL(final ACL parent, final ACL child) {
-        if (parent instanceof SidACL && child instanceof SidACL) {
-            return ((SidACL) child).newInheritingACL((SidACL) parent);
-        }
-        return new ACL() {
-            @Override
-            public boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission) {
-                return a.equals(SYSTEM) || child.hasPermission(a, permission) || parent.hasPermission(a, permission);
-            }
-        };
     }
 
     public ACL getACL(ItemGroup<?> g) {
@@ -148,6 +132,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     };
 
     @Restricted(DoNotUse.class)
+    @SuppressWarnings("unused")
     public static class ConverterImpl extends GlobalMatrixAuthorizationStrategy.ConverterImpl {
 
         @Override
@@ -156,7 +141,6 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
 
         @Override
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type==ProjectMatrixAuthorizationStrategy.class;
         }

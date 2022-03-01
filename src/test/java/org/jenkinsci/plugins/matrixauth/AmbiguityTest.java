@@ -47,19 +47,23 @@ public class AmbiguityTest {
         JenkinsRule.WebClient wc = j.createWebClient();
         wc.goTo(""); // no error
 
-        // This might be a bit questionable? Unsure.
-        final GlobalMatrixAuthorizationStrategy groupStrategy = new GlobalMatrixAuthorizationStrategy();
-        groupStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.GROUP, "anonymous"));
-        j.jenkins.setAuthorizationStrategy(groupStrategy);
-        FailingHttpStatusCodeException ex = assertThrows(FailingHttpStatusCodeException.class, () -> wc.goTo(""));
-        assertEquals("permission denied", 403, ex.getStatusCode());
-
-        // Legacy config would still work
+        // Legacy config still works
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         final GlobalMatrixAuthorizationStrategy eitherStrategy = new GlobalMatrixAuthorizationStrategy();
         eitherStrategy.add("hudson.model.Hudson.Read:anonymous");
         j.jenkins.setAuthorizationStrategy(eitherStrategy);
 
+        wc.goTo(""); // no error
+    }
+
+    @Test
+    public void anonymousIsAlsoGroup() throws Exception { // this wasn't always the case in older Jenkinses, but is now.
+        j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
+        final GlobalMatrixAuthorizationStrategy groupStrategy = new GlobalMatrixAuthorizationStrategy();
+        groupStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.GROUP, "anonymous"));
+        j.jenkins.setAuthorizationStrategy(groupStrategy);
+
+        JenkinsRule.WebClient wc = j.createWebClient();
         wc.goTo(""); // no error
     }
 
@@ -174,12 +178,16 @@ public class AmbiguityTest {
         AmbiguityMonitor.JobContributor jobContributor = contributors.get(AmbiguityMonitor.JobContributor.class);
         AmbiguityMonitor.NodeContributor nodeContributor = contributors.get(AmbiguityMonitor.NodeContributor.class);
         FolderContributor folderContributor = contributors.get(FolderContributor.class);
-        
+
+        assertNotNull(globalConfigurationContributor);
         assertTrue(globalConfigurationContributor.hasAmbiguousEntries());
 
         { // admin monitor entries are as expected
+            assertNotNull(folderContributor);
             assertTrue(folderContributor.activeFolders.get("F"));
+            assertNotNull(jobContributor);
             assertTrue(jobContributor.activeJobs.get("F/fs"));
+            assertNotNull(nodeContributor);
             assertTrue(nodeContributor.activeNodes.get("a1"));
         }
 
@@ -195,7 +203,9 @@ public class AmbiguityTest {
 
         { // ensure permissions were migrated as expected on the node
             // object changes on submission, so need to get a new one
-            final AuthorizationMatrixNodeProperty nodeProperty = j.jenkins.getNode("a1").getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            final Node node = j.jenkins.getNode("a1");
+            assertNotNull(node);
+            final AuthorizationMatrixNodeProperty nodeProperty = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
             assertNotNull(nodeProperty);
             assertTrue(nodeProperty.hasExplicitPermission(PermissionEntry.user("anonymous"), Computer.BUILD));
             assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.group("anonymous"), Computer.BUILD));
@@ -215,6 +225,7 @@ public class AmbiguityTest {
 
         { // assert loaded permissions on the folder
             final Folder f = (Folder) j.jenkins.getItemByFullName("F");
+            assertNotNull(f);
             assertTrue(folderContributor.activeFolders.get("F")); // presented by the Redundancy Department of Redundancy
 
             final com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty = f.getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
@@ -240,6 +251,7 @@ public class AmbiguityTest {
             assertFalse(folderContributor.activeFolders.get("F"));
 
             final Folder f = (Folder) j.jenkins.getItemByFullName("F");
+            assertNotNull(f);
             final com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty = f.getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
             assertNotNull(folderProperty);
             for (Permission permission : Arrays.asList(View.CONFIGURE, View.CREATE, View.DELETE, View.READ)) {
@@ -271,11 +283,15 @@ public class AmbiguityTest {
         assertFalse(globalConfigurationContributor.hasAmbiguousEntries()); // "previously migrated"
 
         assertTrue(jobContributor.activeJobs.get("F/fs"));
-        j.jenkins.getItemByFullName("F/fs").delete();
+        final Item job = j.jenkins.getItemByFullName("F/fs");
+        assertNotNull(job);
+        job.delete();
         assertEquals(0, jobContributor.activeJobs.size());
 
         assertTrue(folderContributor.activeFolders.get("F"));
-        j.jenkins.getItemByFullName("F").delete();
+        final Item folder = j.jenkins.getItemByFullName("F");
+        assertNotNull(folder);
+        folder.delete();
         assertEquals(0, folderContributor.activeFolders.size());
 
         assertTrue(nodeContributor.activeNodes.get("a1"));

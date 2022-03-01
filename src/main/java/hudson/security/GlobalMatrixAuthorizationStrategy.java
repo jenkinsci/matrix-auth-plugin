@@ -79,6 +79,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
      * These are also all deprecated from Jenkins 2.222.
      */
     @Restricted(NoExternalUse.class)
+    @SuppressWarnings("deprecation")
     public static final List<Permission> DANGEROUS_PERMISSIONS = Collections.unmodifiableList(Arrays.asList(
             Jenkins.RUN_SCRIPTS,
             PluginManager.CONFIGURE_UPDATECENTER,
@@ -134,7 +135,6 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
      */
     @Restricted(NoExternalUse.class)
     public static class ConverterImpl extends AbstractAuthorizationContainerConverter<GlobalMatrixAuthorizationStrategy> {
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == GlobalMatrixAuthorizationStrategy.class;
         }
@@ -145,7 +145,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
         }
     }
     
-    public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> implements AuthorizationContainerDescriptor<GlobalMatrixAuthorizationStrategy> {
+    public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> implements AuthorizationContainerDescriptor {
 
         public DescriptorImpl() {
             // make this constructor available for instantiation for ProjectMatrixAuthorizationStrategy
@@ -165,7 +165,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
         @Override
         public AuthorizationStrategy newInstance(StaplerRequest req, @NonNull JSONObject formData) throws FormException {
             // TODO Is there a way to pull this up into AuthorizationContainerDescriptor and share code with AuthorizationPropertyDescriptor?
-            GlobalMatrixAuthorizationStrategy gmas = create();
+            GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = create();
             Map<String,Object> data = formData.getJSONObject("data");
 
             boolean adminAdded = false;
@@ -193,7 +193,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
                             if (p == Jenkins.ADMINISTER) {
                                 adminAdded = true;
                             }
-                            gmas.add(p, entry);
+                            globalMatrixAuthorizationStrategy.add(p, entry);
                         }
                     }
                 }
@@ -207,10 +207,10 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
                 } else {
                     id = current.getId();
                 }
-                gmas.add(Jenkins.ADMINISTER, new PermissionEntry(AuthorizationType.USER, id));
+                globalMatrixAuthorizationStrategy.add(Jenkins.ADMINISTER, new PermissionEntry(AuthorizationType.USER, id));
             }
 
-            return gmas;
+            return globalMatrixAuthorizationStrategy;
         }
 
         protected GlobalMatrixAuthorizationStrategy create() {

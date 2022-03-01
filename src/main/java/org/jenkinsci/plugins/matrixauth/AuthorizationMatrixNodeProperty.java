@@ -136,8 +136,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
      * represent {@link AuthorizationMatrixNodeProperty#getGrantedPermissionEntries()}.
      */
     @Restricted(NoExternalUse.class)
+    @SuppressWarnings("unused")
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixNodeProperty> {
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixNodeProperty.class;
         }
@@ -208,7 +208,7 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
                 User current = User.current();
                 String sid = current == null ? "anonymous" : current.getId();
 
-                if (!strategy.getACL(node).hasPermission(Jenkins.getAuthentication(), Computer.CONFIGURE)) {
+                if (!strategy.getACL(node).hasPermission2(Jenkins.getAuthentication2(), Computer.CONFIGURE)) {
                     prop.add(Computer.CONFIGURE, PermissionEntry.user(sid));
                 }
                 if (prop.getGrantedPermissionEntries().size() > 0) {

@@ -28,13 +28,12 @@ import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
-import org.acegisecurity.Authentication;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.springframework.security.core.Authentication;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import java.util.Arrays;
 
 /**
  * Strategy that disables inheritance except for the globally defined Administer permission.
@@ -46,12 +45,11 @@ public class NonInheritingStrategy extends InheritanceStrategy {
 
     }
 
-    @Override
     protected boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
-        if (a.equals(ACL.SYSTEM)) {
+        if (a.equals(ACL.SYSTEM2)) {
             return true;
         }
-        if (isUltimatelyImpliedByAdminister(permission) && root.hasPermission(a, Jenkins.ADMINISTER)) {
+        if (isUltimatelyImpliedByAdminister(permission) && root.hasPermission2(a, Jenkins.ADMINISTER)) {
             /*
              * I see two possible approaches here:
              * One would be to just grant every permission if the root ACL grants Administer.
@@ -68,10 +66,10 @@ public class NonInheritingStrategy extends InheritanceStrategy {
              * We are not inheriting permissions from the parent, but we only grant Read permission if the parent
              * also has Read permission.
              */
-            return parent.hasPermission(a, permission) && child.hasPermission(a, permission);
+            return parent.hasPermission2(a, permission) && child.hasPermission2(a, permission);
         } else {
             /* Only grant permission if it is explicitly granted here. */
-            return child.hasPermission(a, permission);
+            return child.hasPermission2(a, permission);
         }
     }
 

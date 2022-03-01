@@ -28,18 +28,17 @@ import hudson.model.AbstractItem;
 import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.security.Permission;
-import org.acegisecurity.Authentication;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.springframework.security.core.Authentication;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import java.util.Arrays;
 
 /**
  * Strategy that inherits the ACL from the parent.
  *
- * The paren't inheritance strategy in turn determines whether this receives permissions from grandparents etc. up to root.
+ * The parent's inheritance strategy in turn determines whether this receives permissions from grandparents etc. up to root.
  */
 public class InheritParentStrategy extends InheritanceStrategy {
 
@@ -50,7 +49,7 @@ public class InheritParentStrategy extends InheritanceStrategy {
 
     @Override
     protected boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
-        if (a.equals(ACL.SYSTEM)) {
+        if (a.equals(ACL.SYSTEM2)) {
             return true;
         }
         if (isParentReadPermissionRequired() && parent != null && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
@@ -58,7 +57,7 @@ public class InheritParentStrategy extends InheritanceStrategy {
              * If we have an item parent, only grant Item/Read and Item/Discover if it's granted on the parent.
              * In this case, it doesn't even matter whether it's explicitly granted on the child.
              */
-            return parent.hasPermission(a, permission);
+            return parent.hasPermission2(a, permission);
         }
         if (parent == null) {
             /*
@@ -67,10 +66,10 @@ public class InheritParentStrategy extends InheritanceStrategy {
              * - Explicitly granted here but possibly not globally (on root): That's OK
              * - NOT explicitly granted here, but globally: That's also OK
              */
-            return root.hasPermission(a, permission) || child.hasPermission(a, permission);
+            return root.hasPermission2(a, permission) || child.hasPermission2(a, permission);
         } else {
             /* If we have an item parent, check both explicit grants here and inherited permissions from parent. */
-            return parent.hasPermission(a, permission) || child.hasPermission(a, permission);
+            return parent.hasPermission2(a, permission) || child.hasPermission2(a, permission);
         }
     }
 

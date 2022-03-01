@@ -31,7 +31,7 @@ import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatUserGroupVal
  *
  */
 @Restricted(NoExternalUse.class)
-public interface AuthorizationContainerDescriptor<T extends AuthorizationContainer> {
+public interface AuthorizationContainerDescriptor {
 
     PermissionScope getPermissionScope();
 
@@ -85,7 +85,8 @@ public interface AuthorizationContainerDescriptor<T extends AuthorizationContain
         return groups;
     }
 
-    @Restricted(NoExternalUse.class) // Jelly
+    @Restricted(NoExternalUse.class)
+    @SuppressWarnings("unused") // Used from Jelly
     default String impliedByList(Permission p) {
         List<Permission> impliedBys = new ArrayList<>();
         while (p.impliedBy != null) {

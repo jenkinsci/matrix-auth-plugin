@@ -204,7 +204,7 @@ public interface AuthorizationContainer {
         if (p == null) {
             throw new IllegalArgumentException("Failed to parse '" + shortForm + "' --- no such permission");
         }
-        if (!p.isContainedBy(((AuthorizationContainerDescriptor<?>) getDescriptor()).getPermissionScope())) {
+        if (!p.isContainedBy(((AuthorizationContainerDescriptor) getDescriptor()).getPermissionScope())) {
             LOGGER.log(Level.WARNING,
                     "Tried to add inapplicable permission " + p + " for " + sid + " in " + this + ", skipping");
             return;
@@ -213,6 +213,7 @@ public interface AuthorizationContainer {
     }
 
     @Restricted(NoExternalUse.class)
+    @SuppressWarnings("unused") // used from Jelly
     Permission getEditingPermission();
 
     /**
@@ -231,7 +232,7 @@ public interface AuthorizationContainer {
             r.addAll(set);
         r.remove("anonymous");
 
-        String[] data = r.toArray(new String[r.size()]);
+        String[] data = r.toArray(new String[0]);
         Arrays.sort(data);
         return Arrays.asList(data);
     }
