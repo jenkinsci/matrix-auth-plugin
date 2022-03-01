@@ -8,13 +8,10 @@ import hudson.model.Item;
 import hudson.model.Slave;
 import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
-import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
@@ -58,7 +55,7 @@ public class ReadOnlyTest {
     }
 
     @Before
-    public void prepare() throws Exception {
+    public void prepare() {
         Jenkins.SYSTEM_READ.enabled = true;
         Item.EXTENDED_READ.enabled = true;
         Computer.EXTENDED_READ.enabled = true;
@@ -76,7 +73,6 @@ public class ReadOnlyTest {
 
     @Test
     public void testGlobalConfiguration() throws IOException, SAXException {
-        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.223"))); // this form is only accessible to Overall/SystemRead users from 2.223+
         assertPresentAndReadOnly("configureSecurity");
 
         ((ProjectMatrixAuthorizationStrategy)Jenkins.get().getAuthorizationStrategy()).add(Jenkins.ADMINISTER, "anonymous");
@@ -90,7 +86,7 @@ public class ReadOnlyTest {
         assertPresentAndReadOnly(job.getUrl() + "configure");
 
         job.removeProperty(AuthorizationMatrixProperty.class);
-        job.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(new PermissionEntry(AuthorizationType.USER, Jenkins.ANONYMOUS.getName()))), new InheritParentStrategy()));
+        job.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(new PermissionEntry(AuthorizationType.USER, Jenkins.ANONYMOUS2.getName()))), new InheritParentStrategy()));
         assertPresentAndEditable(job.getUrl() + "configure");
     }
 
@@ -100,30 +96,28 @@ public class ReadOnlyTest {
         folder.addProperty(new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.emptyMap()));
         assertPresentAndReadOnly(folder.getUrl() + "configure");
 
-        folder.getProperties().replace(new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(Jenkins.ANONYMOUS.getName()))));
+        folder.getProperties().replace(new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.singletonMap(Item.CONFIGURE, Collections.singleton(Jenkins.ANONYMOUS2.getName()))));
         assertPresentAndEditable(folder.getUrl() + "configure");
     }
 
     @Test
     public void testAgentConfigurationGlobally() throws Exception {
-        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.238")));
         final Slave agent = j.createSlave();
         agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
         assertPresentAndReadOnly("computer/" + agent.getNodeName() + "/configure");
 
-        ((ProjectMatrixAuthorizationStrategy) Jenkins.get().getAuthorizationStrategy()).add(Computer.CONFIGURE, Jenkins.ANONYMOUS.getName());
+        ((ProjectMatrixAuthorizationStrategy) Jenkins.get().getAuthorizationStrategy()).add(Computer.CONFIGURE, Jenkins.ANONYMOUS2.getName());
         assertPresentAndEditable("computer/" + agent.getNodeName() + "/configure");
     }
 
     @Test
     public void testAgentConfigurationPerAgent() throws Exception {
-        Assume.assumeTrue(Jenkins.getVersion().isNewerThanOrEqualTo(new VersionNumber("2.238")));
         final Slave agent = j.createSlave();
         agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
         assertPresentAndReadOnly("computer/" + agent.getNodeName() + "/configure");
 
         final AuthorizationMatrixNodeProperty prop = new AuthorizationMatrixNodeProperty();
-        prop.add(Computer.CONFIGURE, Jenkins.ANONYMOUS.getName());
+        prop.add(Computer.CONFIGURE, Jenkins.ANONYMOUS2.getName());
         agent.setNodeProperties(Collections.singletonList(prop));
         assertPresentAndEditable( "computer/" + agent.getNodeName() + "/configure");
     }

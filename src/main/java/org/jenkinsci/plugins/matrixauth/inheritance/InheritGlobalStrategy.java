@@ -27,13 +27,12 @@ import hudson.Extension;
 import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.security.Permission;
-import org.acegisecurity.Authentication;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.springframework.security.core.Authentication;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import java.util.Arrays;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Strategy that inherits only the global ACL -- parent, grandparent, etc. ACLs are not inherited.
@@ -46,8 +45,8 @@ public class InheritGlobalStrategy extends InheritanceStrategy {
     }
 
     @Override
-    protected boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
-        if (a.equals(ACL.SYSTEM)) {
+    protected boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
+        if (a.equals(ACL.SYSTEM2)) {
             return true;
         }
         if (isParentReadPermissionRequired() && parent != null && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
@@ -63,12 +62,12 @@ public class InheritGlobalStrategy extends InheritanceStrategy {
              * - The permission is granted in the parent
              * - The permission is granted globally or explicitly on this element (the child)
              */
-            final boolean grantedViaChild = child.hasPermission(a, permission);
-            final boolean grantedGlobally = root.hasPermission(a, permission);
-            final boolean grantedInParent = parent.hasPermission(a, permission);
+            final boolean grantedViaChild = child.hasPermission2(a, permission);
+            final boolean grantedGlobally = root.hasPermission2(a, permission);
+            final boolean grantedInParent = parent.hasPermission2(a, permission);
             return (grantedViaChild || grantedGlobally) && grantedInParent;
         }
-        return child.hasPermission(a, permission) || root.hasPermission(a, permission);
+        return child.hasPermission2(a, permission) || root.hasPermission2(a, permission);
     }
 
     @Symbol("inheritingGlobal")
@@ -81,7 +80,7 @@ public class InheritGlobalStrategy extends InheritanceStrategy {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return Messages.InheritGlobalStrategy_DisplayName();
         }

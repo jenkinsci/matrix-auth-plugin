@@ -48,7 +48,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -112,9 +112,9 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
     // TODO(3.0) is this even needed? Why is the no-arg constructor private?
     public AuthorizationMatrixProperty(Map<Permission, Set<PermissionEntry>> grantedPermissions, InheritanceStrategy inheritanceStrategy) {
         this.inheritanceStrategy = inheritanceStrategy;
-        grantedPermissions.entrySet().forEach(e -> {
-            this.grantedPermissions.put(e.getKey(), new HashSet<>(e.getValue()));
-            e.getValue().forEach(entry -> {
+        grantedPermissions.forEach((key, value) -> {
+            this.grantedPermissions.put(key, new HashSet<>(value));
+            value.forEach(entry -> {
                 if (entry.getType() != AuthorizationType.USER) {
                     this.recordGroup(entry.getSid());
                 }
@@ -200,7 +200,6 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         }
 
         @Override
-        @SuppressWarnings("rawtypes")
         public boolean isApplicable(Class<? extends Job> jobType) {
             return isApplicable();
         }
@@ -247,8 +246,8 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
      * represent {@link AuthorizationMatrixProperty#getGrantedPermissionEntries()}.
      */
     @Restricted(DoNotUse.class)
+    @SuppressWarnings("unused")
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }
@@ -281,10 +280,10 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
                     User current = User.current();
                     String sid = current == null ? "anonymous" : current.getId();
 
-                    if (!strategy.getACL(job).hasPermission(Jenkins.getAuthentication(), Item.READ)) {
+                    if (!strategy.getACL(job).hasPermission2(Jenkins.getAuthentication2(), Item.READ)) {
                         prop.add(Item.READ, new PermissionEntry(AuthorizationType.USER, sid));
                     }
-                    if (!strategy.getACL(job).hasPermission(Jenkins.getAuthentication(), Item.CONFIGURE)) {
+                    if (!strategy.getACL(job).hasPermission2(Jenkins.getAuthentication2(), Item.CONFIGURE)) {
                         prop.add(Item.CONFIGURE, new PermissionEntry(AuthorizationType.USER, sid));
                     }
                     if (prop.getGrantedPermissionEntries().size() > 0) {

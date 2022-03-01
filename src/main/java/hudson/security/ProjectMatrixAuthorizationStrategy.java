@@ -32,14 +32,12 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Job;
 import hudson.Extension;
-import org.acegisecurity.Authentication;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.Messages;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -53,28 +51,14 @@ import java.util.TreeSet;
  */
 public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizationStrategy {
     @Override
-    @Nonnull
-    public ACL getACL(@Nonnull Job<?,?> project) {
+    @NonNull
+    public ACL getACL(@NonNull Job<?,?> project) {
         AuthorizationMatrixProperty amp = project.getProperty(AuthorizationMatrixProperty.class);
         if (amp != null) {
             return amp.getInheritanceStrategy().getEffectiveACL(amp.getACL(), project);
         } else {
             return getACL(project.getParent());
         }
-    }
-
-    @Restricted(NoExternalUse.class)
-    @Deprecated // Unused since SECURITY-2180 fix, TODO insert specific versions
-    public static ACL inheritingACL(final ACL parent, final ACL child) {
-        if (parent instanceof SidACL && child instanceof SidACL) {
-            return ((SidACL) child).newInheritingACL((SidACL) parent);
-        }
-        return new ACL() {
-            @Override
-            public boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission) {
-                return a.equals(SYSTEM) || child.hasPermission(a, permission) || parent.hasPermission(a, permission);
-            }
-        };
     }
 
     public ACL getACL(ItemGroup<?> g) {
@@ -85,9 +69,9 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         return getRootACL();
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    public ACL getACL(@Nonnull Node node) {
+    public ACL getACL(@NonNull Node node) {
         AuthorizationMatrixNodeProperty property = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
         if (property != null) {
             return property.getInheritanceStrategy().getEffectiveACL(property.getACL(), node);
@@ -96,8 +80,8 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     }
 
     @Override
-    @Nonnull
-    public ACL getACL(@Nonnull AbstractItem item) {
+    @NonNull
+    public ACL getACL(@NonNull AbstractItem item) {
         if (Jenkins.get().getPlugin("cloudbees-folder") != null) { // optional dependency
             if (item instanceof AbstractFolder) {
                 com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty p = ((AbstractFolder<?>) item).getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
@@ -110,7 +94,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public Set<String> getGroups() {
         Set<String> r = new TreeSet<>(new IdStrategyComparator());
         r.addAll(super.getGroups());
@@ -141,13 +125,14 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return Messages.ProjectMatrixAuthorizationStrategy_DisplayName();
         }
     };
 
     @Restricted(DoNotUse.class)
+    @SuppressWarnings("unused")
     public static class ConverterImpl extends GlobalMatrixAuthorizationStrategy.ConverterImpl {
 
         @Override
@@ -156,7 +141,6 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
         }
 
         @Override
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type==ProjectMatrixAuthorizationStrategy.class;
         }

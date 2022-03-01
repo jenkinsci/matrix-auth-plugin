@@ -4,6 +4,7 @@ import hudson.model.User;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.pages.SignupPage;
+import java.util.Objects;
 import jenkins.model.Jenkins;
 
 import java.util.Collections;
@@ -12,7 +13,6 @@ import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runners.model.Statement;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsSessionRule;
@@ -43,10 +43,8 @@ public class PermissionAdderTest {
                 signup.submit(j);
                 User alice = User.get("alice", false, Collections.emptyMap());
                 Assert.assertNotNull(alice);
-                Assert.assertTrue(j.jenkins.getACL().hasPermission(alice.impersonate(), Jenkins.ADMINISTER));
+                Assert.assertTrue(j.jenkins.getACL().hasPermission2(alice.impersonate2(), Jenkins.ADMINISTER));
         });
-        sessions.then(j -> {
-                Assert.assertTrue(j.jenkins.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Jenkins.ADMINISTER));
-        });
+        sessions.then(j -> Assert.assertTrue(j.jenkins.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Jenkins.ADMINISTER)));
     }
 }

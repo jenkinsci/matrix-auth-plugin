@@ -4,6 +4,7 @@ import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty;
 import hudson.model.Computer;
 import hudson.model.Item;
+import hudson.model.Node;
 import hudson.security.AuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
@@ -26,6 +27,7 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ImportTest {
@@ -38,7 +40,7 @@ public class ImportTest {
 
     @Test
     @ConfiguredWithCode("configuration-as-code-ambiguous.yml")
-    public void should_support_configuration_as_code_ambiguous_format() throws Exception {
+    public void should_support_configuration_as_code_ambiguous_format() {
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
         assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
@@ -66,6 +68,7 @@ public class ImportTest {
         }
         { // item from Job DSL
             Folder folder = (Folder) r.jenkins.getItem("generated");
+            assertNotNull(folder);
             AuthorizationMatrixProperty property = folder.getProperties().get(AuthorizationMatrixProperty.class);
             assertTrue("folder property inherits", property.getInheritanceStrategy() instanceof NonInheritingStrategy);
             assertTrue(property.hasExplicitPermission("authenticated", Item.BUILD));
@@ -75,7 +78,10 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission("authenticated", Item.DELETE));
         }
         { // agent
-            AuthorizationMatrixNodeProperty property = r.jenkins.getNode("agent1").getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            final Node agent1 = r.jenkins.getNode("agent1");
+            assertNotNull(agent1);
+            AuthorizationMatrixNodeProperty property = agent1.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            assertNotNull(property);
             assertTrue(property.getInheritanceStrategy() instanceof InheritGlobalStrategy);
             assertTrue(property.hasExplicitPermission("anonymous", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.BUILD));
@@ -86,7 +92,7 @@ public class ImportTest {
 
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
-    public void should_support_configuration_as_code() throws Exception {
+    public void should_support_configuration_as_code() {
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
         assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
@@ -103,6 +109,7 @@ public class ImportTest {
         }
         { // item from Job DSL
             Folder folder = (Folder) r.jenkins.getItem("generated");
+            assertNotNull(folder);
             AuthorizationMatrixProperty property = folder.getProperties().get(AuthorizationMatrixProperty.class);
             assertTrue("folder property inherits", property.getInheritanceStrategy() instanceof NonInheritingStrategy);
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.BUILD));
@@ -112,7 +119,10 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.DELETE));
         }
         { // agent
-            AuthorizationMatrixNodeProperty property = r.jenkins.getNode("agent1").getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            final Node agent = r.jenkins.getNode("agent1");
+            assertNotNull(agent);
+            AuthorizationMatrixNodeProperty property = agent.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            assertNotNull(property);
             assertTrue(property.getInheritanceStrategy() instanceof InheritGlobalStrategy);
             assertTrue(property.hasExplicitPermission(PermissionEntry.user("anonymous"), Computer.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.BUILD));
@@ -120,4 +130,5 @@ public class ImportTest {
         }
         assertEquals("no warnings", 0, l.getMessages().size());
     }
+
 }

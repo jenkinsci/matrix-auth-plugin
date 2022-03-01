@@ -161,7 +161,6 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         }
 
         @Override
-        @SuppressWarnings("rawtypes")
         public boolean isApplicable(Class<? extends AbstractFolder> folder) {
             return isApplicable();
         }
@@ -196,12 +195,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     /**
-     * Persist {@link ProjectMatrixAuthorizationStrategy} as a list of IDs that
-     * represent ProjectMatrixAuthorizationStrategy#grantedPermissions.
+     * Persist {@link AuthorizationMatrixProperty} as a list of IDs that
+     * represent {@link AuthorizationMatrixProperty#getGrantedPermissions()}.
      */
     @Restricted(DoNotUse.class)
+    @SuppressWarnings("unused")
     public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }
@@ -235,10 +234,10 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                     User current = User.current();
                     String sid = current == null ? "anonymous" : current.getId();
 
-                    if (!strategy.getACL((AbstractItem) folder).hasPermission(Jenkins.getAuthentication(), Item.READ)) {
+                    if (!strategy.getACL((AbstractItem) folder).hasPermission2(Jenkins.getAuthentication2(), Item.READ)) {
                         prop.add(Item.READ, PermissionEntry.user(sid));
                     }
-                    if (!strategy.getACL((AbstractItem) folder).hasPermission(Jenkins.getAuthentication(), Item.CONFIGURE)) {
+                    if (!strategy.getACL((AbstractItem) folder).hasPermission2(Jenkins.getAuthentication2(), Item.CONFIGURE)) {
                         prop.add(Item.CONFIGURE, PermissionEntry.user(sid));
                     }
                     if (prop.getGrantedPermissionEntries().size() > 0) {

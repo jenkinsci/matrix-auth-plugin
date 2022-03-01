@@ -24,7 +24,6 @@
 package org.jenkinsci.plugins.matrixauth;
 
 import hudson.model.Descriptor;
-import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.Permission;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
@@ -43,7 +42,7 @@ import java.util.logging.Logger;
  * 
  */
 @Restricted(NoExternalUse.class)
-public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty> extends AuthorizationContainerDescriptor<T> {
+public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty> extends AuthorizationContainerDescriptor {
 
     Logger LOGGER = Logger.getLogger(AuthorizationPropertyDescriptor.class.getName());
 

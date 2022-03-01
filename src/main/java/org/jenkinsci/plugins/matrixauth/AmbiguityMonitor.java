@@ -43,10 +43,11 @@ import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
 import jenkins.model.NodeListener;
 import jenkins.model.Nodes;
+import jenkins.util.SystemProperties;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -75,7 +76,7 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
         return Messages.AmbiguityMonitor_DisplayName();
     }
 
-    // TODO Override once on 2.267+
+    @Override
     public boolean isSecurity() {
         return true;
     }
@@ -147,12 +148,12 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
         @Extension
         public static class NodeListenerImpl extends NodeListener {
             @Override
-            protected void onCreated(@Nonnull Node node) {
+            protected void onCreated(@NonNull Node node) {
                 record(node);
             }
 
             @Override
-            protected void onDeleted(@Nonnull Node node) {
+            protected void onDeleted(@NonNull Node node) {
                 if (!DISABLE) {
                     remove(node.getNodeName());
                 }
@@ -268,8 +269,7 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
         Jenkins.get().getNodes().forEach(NodeContributor::record);
     }
 
-    // TODO SystemProperties in 2.236+
-    private static /* non-final for Groovy */ boolean DISABLE = Boolean.getBoolean(AmbiguityMonitor.class.getName() + ".DISABLE");
+    private static /* non-final for Groovy */ boolean DISABLE = SystemProperties.getBoolean(AmbiguityMonitor.class.getName() + ".DISABLE");
     
     // "isGatheringData" as "isEnabled" is already defined at the parent level
     public static boolean isGatheringData() {
