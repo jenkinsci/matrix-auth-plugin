@@ -99,7 +99,7 @@ public class ProjectMatrixAuthorizationStrategyTest {
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
         Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream().filter(
-                lbl -> lbl.asText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
+                lbl -> lbl.asNormalizedText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
         if (!anyLabel.isPresent()) {
             throw new IllegalStateException("expected to find a label");
         }
@@ -129,7 +129,7 @@ public class ProjectMatrixAuthorizationStrategyTest {
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
         Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream().filter(
-                lbl -> lbl.asText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
+                lbl -> lbl.asNormalizedText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
         if (!anyLabel.isPresent()) {
             throw new IllegalStateException("expected to find a label");
         }
