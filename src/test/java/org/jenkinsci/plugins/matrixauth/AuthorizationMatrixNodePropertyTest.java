@@ -31,6 +31,7 @@ import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
+import java.util.Objects;
 import jenkins.model.Jenkins;
 
 import java.util.Collections;
@@ -53,12 +54,10 @@ public class AuthorizationMatrixNodePropertyTest {
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
-        authorizationStrategy.add(Computer.CREATE, "alice");
-        authorizationStrategy.add(Jenkins.READ, "alice");
+        authorizationStrategy.add(Computer.CREATE, PermissionEntry.user("alice"));
+        authorizationStrategy.add(Jenkins.READ, PermissionEntry.user("alice"));
 
-        { // createSlave uses CommandLauncher, which requires RUN_SCRIPTS since 2.73.2
-            authorizationStrategy.add(Jenkins.RUN_SCRIPTS, "alice");
-        }
+        addRunScriptsPermission(authorizationStrategy);
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
 
         Node node;
@@ -67,7 +66,13 @@ public class AuthorizationMatrixNodePropertyTest {
         }
 
         Assert.assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
-        Assert.assertTrue(node.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Computer.CONFIGURE));
-        Assert.assertFalse(node.getACL().hasPermission(User.get("bob", false, Collections.emptyMap()).impersonate(), Computer.CONFIGURE));
+        Assert.assertTrue(node.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Computer.CONFIGURE));
+        Assert.assertFalse(node.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Computer.CONFIGURE));
+    }
+
+    // createSlave uses CommandLauncher, which requires RUN_SCRIPTS since 2.73.2
+    @SuppressWarnings("deprecation")
+    private void addRunScriptsPermission(ProjectMatrixAuthorizationStrategy authorizationStrategy) {
+        authorizationStrategy.add(Jenkins.RUN_SCRIPTS, PermissionEntry.user("alice"));
     }
 }

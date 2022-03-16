@@ -2,36 +2,36 @@ jenkins:
   authorizationStrategy:
     projectMatrix:
       permissions:
-      - "Agent/Build:authenticated"
-      - "Agent/Configure:authenticated"
-      - "Agent/Connect:authenticated"
-      - "Agent/Create:authenticated"
-      - "Agent/Delete:authenticated"
-      - "Agent/Disconnect:authenticated"
-      - "Credentials/Create:authenticated"
-      - "Credentials/Delete:authenticated"
-      - "Credentials/ManageDomains:authenticated"
-      - "Credentials/Update:authenticated"
-      - "Credentials/View:authenticated"
-      - "Job/Build:authenticated"
-      - "Job/Cancel:authenticated"
-      - "Job/Configure:authenticated"
-      - "Job/Create:authenticated"
-      - "Job/Delete:authenticated"
-      - "Job/Discover:authenticated"
-      - "Job/Move:authenticated"
-      - "Job/Read:authenticated"
-      - "Job/Workspace:authenticated"
-      - "Overall/Read:anonymous"
-      - "Overall/Administer:authenticated"
-      - "Overall/Read:authenticated"
-      - "Run/Delete:authenticated"
-      - "Run/Replay:authenticated"
-      - "Run/Update:authenticated"
-      - "View/Configure:authenticated"
-      - "View/Create:authenticated"
-      - "View/Delete:authenticated"
-      - "View/Read:authenticated"
+      - "GROUP:Agent/Build:authenticated"
+      - "GROUP:Agent/Configure:authenticated"
+      - "GROUP:Agent/Connect:authenticated"
+      - "GROUP:Agent/Create:authenticated"
+      - "GROUP:Agent/Delete:authenticated"
+      - "GROUP:Agent/Disconnect:authenticated"
+      - "GROUP:Credentials/Create:authenticated"
+      - "GROUP:Credentials/Delete:authenticated"
+      - "GROUP:Credentials/ManageDomains:authenticated"
+      - "GROUP:Credentials/Update:authenticated"
+      - "GROUP:Credentials/View:authenticated"
+      - "GROUP:Job/Build:authenticated"
+      - "GROUP:Job/Cancel:authenticated"
+      - "GROUP:Job/Configure:authenticated"
+      - "GROUP:Job/Create:authenticated"
+      - "GROUP:Job/Delete:authenticated"
+      - "GROUP:Job/Discover:authenticated"
+      - "GROUP:Job/Move:authenticated"
+      - "GROUP:Job/Read:authenticated"
+      - "GROUP:Job/Workspace:authenticated"
+      - "GROUP:Overall/Administer:authenticated"
+      - "GROUP:Overall/Read:authenticated"
+      - "GROUP:Run/Delete:authenticated"
+      - "GROUP:Run/Replay:authenticated"
+      - "GROUP:Run/Update:authenticated"
+      - "GROUP:View/Configure:authenticated"
+      - "GROUP:View/Create:authenticated"
+      - "GROUP:View/Delete:authenticated"
+      - "GROUP:View/Read:authenticated"
+      - "USER:Overall/Read:anonymous"
   nodes:
   - permanent:
       launcher:
@@ -45,9 +45,9 @@ jenkins:
       - authorizationMatrix:
           inheritanceStrategy: "inheritingGlobal"
           permissions:
-          - "Agent/Disconnect:authenticated"
-          - "Agent/Build:authenticated"
-          - "Agent/Build:anonymous"
+          - "GROUP:Agent/Disconnect:authenticated"
+          - "GROUP:Agent/Build:authenticated"
+          - "USER:Agent/Build:anonymous"
       numExecutors: 1
       retentionStrategy: "always"
   securityRealm:
@@ -63,10 +63,10 @@ jobs:
               nonInheriting()
           }
           permissions([
-              'Job/Build:authenticated',
-              'Job/Configure:authenticated',
-              'Job/Delete:authenticated',
-              'Job/Read:authenticated',
+              'GROUP:Job/Build:authenticated',
+              'GROUP:Job/Configure:authenticated',
+              'GROUP:Job/Delete:authenticated',
+              'GROUP:Job/Read:authenticated',
           ])
         }
       }

@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 
 @Restricted(NoExternalUse.class)
 public abstract class AbstractAuthorizationPropertyConverter<T extends AuthorizationProperty> extends AbstractAuthorizationContainerConverter<T> {
-    @SuppressWarnings("rawtypes")
     abstract public boolean canConvert(Class type);
 
     abstract public T create();

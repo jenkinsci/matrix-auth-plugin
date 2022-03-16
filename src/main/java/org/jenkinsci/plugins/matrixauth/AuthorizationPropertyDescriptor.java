@@ -42,7 +42,9 @@ import java.util.logging.Logger;
  * 
  */
 @Restricted(NoExternalUse.class)
-public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty> extends AuthorizationContainerDescriptor<T> {
+public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty> extends AuthorizationContainerDescriptor {
+
+    Logger LOGGER = Logger.getLogger(AuthorizationPropertyDescriptor.class.getName());
 
     T create();
 
@@ -61,7 +63,12 @@ public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty
         property.setInheritanceStrategy(req.bindJSON(InheritanceStrategy.class, formData.getJSONObject("inheritanceStrategy")));
 
         for (Map.Entry<String, Object> r : data.entrySet()) {
-            String sid = r.getKey();
+            String permissionEntryString = r.getKey();
+            PermissionEntry entry = PermissionEntry.fromString(permissionEntryString);
+            if (entry == null) {
+                LOGGER.log(Level.FINE, () -> "Failed to parse PermissionEntry from string: " + permissionEntryString);
+                continue;
+            }
 
             if (!(r.getValue() instanceof JSONObject)) {
                 throw new Descriptor.FormException("not an object: " + formData, "data");
@@ -75,10 +82,9 @@ public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty
                 if ((Boolean) e.getValue()) {
                     Permission p = Permission.fromId(e.getKey());
                     if (p == null) {
-                        Logger.getLogger(AuthorizationPropertyDescriptor.class.getName())
-                                .log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\"", new Object[]{e.getKey(), sid});
+                        LOGGER.log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\", type: {2}", new Object[]{e.getKey(), entry.getSid(), entry.getType()});
                     } else {
-                        property.add(p, sid);
+                        property.add(p, entry);
                     }
                 }
             }

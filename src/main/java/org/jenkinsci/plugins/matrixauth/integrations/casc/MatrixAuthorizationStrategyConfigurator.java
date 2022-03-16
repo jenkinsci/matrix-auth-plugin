@@ -1,16 +1,14 @@
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
 import hudson.security.AuthorizationStrategy;
-import hudson.security.Permission;
 import io.jenkins.plugins.casc.Attribute;
 import io.jenkins.plugins.casc.BaseConfigurator;
 import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
-import org.jenkinsci.plugins.matrixauth.integrations.PermissionFinder;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -22,7 +20,7 @@ import java.util.stream.Collectors;
 @Restricted(NoExternalUse.class)
 public abstract class MatrixAuthorizationStrategyConfigurator<T extends AuthorizationContainer> extends BaseConfigurator<T> {
 
-    @Nonnull
+    @NonNull
     @Override
     public Class<?> getImplementedAPI() {
         return AuthorizationStrategy.class;
@@ -30,7 +28,7 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
 
 
     @Override
-    @Nonnull
+    @NonNull
     public Set<Attribute<T, ?>> describe() {
         return new HashSet<>(Arrays.asList(
                 new MultivaluedAttribute<T, String>("permissions", String.class)
@@ -45,25 +43,21 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     }
 
     /**
-     * Extract container's permissions as a List of "PERMISSION:sid"
+     * Extract container's permissions as a List of "TYPE:PERMISSION:sid"
      */
     public static Collection<String> getPermissions(AuthorizationContainer container) {
-        return container.getGrantedPermissions().entrySet().stream()
+        return container.getGrantedPermissionEntries().entrySet().stream()
                 .flatMap( e -> e.getValue().stream()
-                        .map(v -> e.getKey().group.getId() + "/" + e.getKey().name + ":" + v))
+                        .map(v -> v.getType().toPrefix() + e.getKey().group.getId() + "/" + e.getKey().name + ":" + v.getSid()))
                 .sorted()
                 .collect(Collectors.toList());
     }
 
     /**
-     * Configure container's permissions from a List of "PERMISSION:sid"
+     * Configure container's permissions from a List of "PERMISSION:sid" or "TYPE:PERMISSION:sid"
      */
     public static void setPermissions(AuthorizationContainer container, Collection<String> permissions) {
-        permissions.forEach(p -> {
-            final int i = p.indexOf(':');
-            final Permission permission = PermissionFinder.findPermission(p.substring(0, i));
-            container.add(permission, p.substring(i+1));
-        });
+        permissions.forEach(container::add);
     }
 
     /**

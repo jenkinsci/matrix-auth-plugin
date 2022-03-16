@@ -36,12 +36,14 @@ import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.logging.Level;
 
 import jenkins.model.Jenkins;
 import static org.junit.Assert.*;
 
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
+import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.junit.Assert;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
@@ -64,8 +66,8 @@ public class AuthorizationMatrixPropertyTest {
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
-        authorizationStrategy.add(Item.CREATE, "alice");
-        authorizationStrategy.add(Jenkins.READ, "alice");
+        authorizationStrategy.add(Item.CREATE, PermissionEntry.user("alice"));
+        authorizationStrategy.add(Jenkins.READ, PermissionEntry.user("alice"));
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
         
         Folder job;
@@ -74,9 +76,9 @@ public class AuthorizationMatrixPropertyTest {
         }
 
         Assert.assertNotNull(job.getProperties().get(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission(User.get("bob", false, Collections.emptyMap()).impersonate(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission(User.get("alice", false, Collections.emptyMap()).impersonate(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.READ));
+        Assert.assertFalse(job.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Item.READ));
+        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.CONFIGURE));
     }
 
     @Test public void basics1() throws Exception {
@@ -87,15 +89,15 @@ public class AuthorizationMatrixPropertyTest {
 
         ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
         r.jenkins.setAuthorizationStrategy(as);
-        as.add(Hudson.READ,"authenticated");
+        as.add(Hudson.READ,PermissionEntry.group("authenticated"));
 
         Folder f = r.jenkins.createProject(Folder.class, "d");
         AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
 
         assertTrue(amp.getInheritanceStrategy() instanceof InheritParentStrategy);
 
-        amp.add(Item.READ,"alice");
-        amp.add(Item.BUILD,"alice");
+        amp.add(Item.READ,PermissionEntry.user("alice"));
+        amp.add(Item.BUILD,PermissionEntry.user("alice"));
         f.getProperties().add(amp);
 
         final FreeStyleProject foo = f.createProject(FreeStyleProject.class, "foo");
@@ -132,12 +134,12 @@ public class AuthorizationMatrixPropertyTest {
 
         ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
         r.jenkins.setAuthorizationStrategy(as);
-        as.add(Hudson.READ,"authenticated");
+        as.add(Hudson.READ, PermissionEntry.group("authenticated"));
 
         Folder f = r.jenkins.createProject(Folder.class, "d");
         AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
         amp.setInheritanceStrategy(new NonInheritingStrategy());
-        amp.add(Item.READ,"alice");
+        amp.add(Item.READ,PermissionEntry.user("alice"));
         f.getProperties().add(amp);
 
         final FreeStyleProject foo = f.createProject(FreeStyleProject.class, "foo");
@@ -155,13 +157,24 @@ public class AuthorizationMatrixPropertyTest {
     }
 
     @Test
-    public void inapplicablePermissionIsSkipped() throws Exception {
+    public void inapplicablePermissionIsSkipped() {
         AuthorizationMatrixProperty property = new AuthorizationMatrixProperty();
-        l.record(AuthorizationContainer.class, Level.WARNING).capture(1);
+        l.record(AuthorizationContainer.class, Level.WARNING).capture(5);
         property.add("hudson.model.Hudson.Administer:alice");
-        assertTrue(property.getGrantedPermissions().isEmpty());
-        assertTrue(l.getMessages().get(0).contains("Tried to add inapplicable permission"));
-        assertTrue(l.getMessages().get(0).contains("Administer"));
-        assertTrue(l.getMessages().get(0).contains("alice"));
+        assertTrue(property.getGrantedPermissionEntries().isEmpty());
+        assertTrue(l.getMessages().stream().anyMatch(m -> m.contains("Tried to add inapplicable permission")));
+        assertTrue(l.getMessages().stream().anyMatch(m -> m.contains("Administer")));
+        assertTrue(l.getMessages().stream().anyMatch(m -> m.contains("alice")));
+    }
+
+    @Test
+    public void inapplicablePermissionIsSkipped2() {
+        AuthorizationMatrixProperty property = new AuthorizationMatrixProperty();
+        l.record(AuthorizationContainer.class, Level.WARNING).capture(5);
+        property.add("USER:hudson.model.Hudson.Administer:alice");
+        assertTrue(property.getGrantedPermissionEntries().isEmpty());
+        assertTrue(l.getMessages().stream().anyMatch(m -> m.contains("Tried to add inapplicable permission")));
+        assertTrue(l.getMessages().stream().anyMatch(m -> m.contains("Administer")));
+        assertTrue(l.getMessages().stream().anyMatch(m -> m.contains("alice")));
     }
 }

@@ -36,7 +36,9 @@ import org.acegisecurity.acls.sid.Sid;
 import org.jenkinsci.plugins.matrixauth.AbstractAuthorizationContainerConverter;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainerDescriptor;
+import org.jenkinsci.plugins.matrixauth.AuthorizationType;
 import org.jenkinsci.plugins.matrixauth.Messages;
+import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -56,8 +58,8 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Role-based authorization via a matrix.
@@ -69,43 +71,26 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
     /**
      * List up all permissions that are granted.
      *
-     * Strings are either the granted authority or the principal,
-     * which is not distinguished.
      */
-    private final Map<Permission,Set<String>> grantedPermissions = new HashMap<>();
+    private final Map<Permission,Set<PermissionEntry>> grantedPermissions = new HashMap<>();
+
+    private final Set<String> groupSids = new HashSet<>();
 
     /**
      * List of permissions considered dangerous to grant to non-admin users.
      * These are also all deprecated from Jenkins 2.222.
      */
     @Restricted(NoExternalUse.class)
+    @SuppressWarnings("deprecation")
     public static final List<Permission> DANGEROUS_PERMISSIONS = Collections.unmodifiableList(Arrays.asList(
             Jenkins.RUN_SCRIPTS,
             PluginManager.CONFIGURE_UPDATECENTER,
             PluginManager.UPLOAD_PLUGINS
     ));
 
-    private final Set<String> sids = new HashSet<>();
-
-    /**
-     * Adds to {@link #grantedPermissions}.
-     * Use of this method should be limited during construction,
-     * as this object itself is considered immutable once populated.
-     */
-    public void add(Permission p, String sid) {
-        if (p==null)
-            throw new IllegalArgumentException("Permission can not be null for sid:" + sid);
-
-        LOGGER.log(Level.FINE, "Grant permission \"{0}\" to \"{1}\")", new Object[]{p, sid});
-        Set<String> set = grantedPermissions.get(p);
-        if(set==null)
-            grantedPermissions.put(p,set = new HashSet<>());
-        set.add(sid);
-        sids.add(sid);
-    }
-
-    public Map<Permission, Set<String>> getGrantedPermissions() {
-        return Collections.unmodifiableMap(grantedPermissions);
+    @Override
+    public Map<Permission, Set<PermissionEntry>> getGrantedPermissionEntries() {
+        return grantedPermissions;
     }
 
     @Override
@@ -114,17 +99,22 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public ACL getRootACL() {
         return acl;
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public Set<String> getGroups() {
         final TreeSet<String> sids = new TreeSet<>(new IdStrategyComparator());
-        sids.addAll(this.sids);
+        sids.addAll(groupSids);
         return sids;
+    }
+
+    @Override
+    public void recordGroup(String sid) {
+        this.groupSids.add(sid);
     }
 
     private final class AclImpl extends SidACL {
@@ -147,7 +137,6 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
      */
     @Restricted(NoExternalUse.class)
     public static class ConverterImpl extends AbstractAuthorizationContainerConverter<GlobalMatrixAuthorizationStrategy> {
-        @SuppressWarnings("rawtypes")
         public boolean canConvert(Class type) {
             return type == GlobalMatrixAuthorizationStrategy.class;
         }
@@ -158,7 +147,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
         }
     }
     
-    public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> implements AuthorizationContainerDescriptor<GlobalMatrixAuthorizationStrategy> {
+    public static class DescriptorImpl extends Descriptor<AuthorizationStrategy> implements AuthorizationContainerDescriptor {
 
         public DescriptorImpl() {
             // make this constructor available for instantiation for ProjectMatrixAuthorizationStrategy
@@ -170,21 +159,26 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
             return PermissionScope.JENKINS;
         }
 
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return Messages.GlobalMatrixAuthorizationStrategy_DisplayName();
         }
 
         @Override
-        public AuthorizationStrategy newInstance(StaplerRequest req, @Nonnull JSONObject formData) throws FormException {
+        public AuthorizationStrategy newInstance(StaplerRequest req, @NonNull JSONObject formData) throws FormException {
             // TODO Is there a way to pull this up into AuthorizationContainerDescriptor and share code with AuthorizationPropertyDescriptor?
-            GlobalMatrixAuthorizationStrategy gmas = create();
+            GlobalMatrixAuthorizationStrategy globalMatrixAuthorizationStrategy = create();
             Map<String,Object> data = formData.getJSONObject("data");
 
             boolean adminAdded = false;
 
             for(Map.Entry<String,Object> r : data.entrySet()) {
-                String sid = r.getKey();
+                String permissionEntryString = r.getKey();
+                PermissionEntry entry = PermissionEntry.fromString(permissionEntryString);
+                if (entry == null) {
+                    LOGGER.log(Level.FINE, () -> "Failed to parse PermissionEntry from string: " + permissionEntryString);
+                    continue;
+                }
                 if (!(r.getValue() instanceof JSONObject)) {
                     throw new FormException("not an object: " + formData, "data");
                 }
@@ -196,12 +190,12 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
                     if ((Boolean) e.getValue()) {
                         Permission p = Permission.fromId(e.getKey());
                         if (p == null) {
-                            LOGGER.log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\"", new Object[]{e.getKey(), sid});
+                            LOGGER.log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\", type: {2}", new Object[]{e.getKey(), entry.getSid(), entry.getType()});
                         } else {
                             if (p == Jenkins.ADMINISTER) {
                                 adminAdded = true;
                             }
-                            gmas.add(p, sid);
+                            globalMatrixAuthorizationStrategy.add(p, entry);
                         }
                     }
                 }
@@ -215,10 +209,10 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
                 } else {
                     id = current.getId();
                 }
-                gmas.add(Jenkins.ADMINISTER, id);
+                globalMatrixAuthorizationStrategy.add(Jenkins.ADMINISTER, new PermissionEntry(AuthorizationType.USER, id));
             }
 
-            return gmas;
+            return globalMatrixAuthorizationStrategy;
         }
 
         protected GlobalMatrixAuthorizationStrategy create() {
@@ -239,7 +233,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
 
         @Override public boolean add(AuthorizationStrategy strategy, User user, Permission perm) {
             if (strategy instanceof GlobalMatrixAuthorizationStrategy) {
-                ((GlobalMatrixAuthorizationStrategy) strategy).add(perm, user.getId());
+                ((GlobalMatrixAuthorizationStrategy) strategy).add(perm, PermissionEntry.user(user.getId()));
                 try {
                     Jenkins.get().save();
                 } catch (IOException ioe) {

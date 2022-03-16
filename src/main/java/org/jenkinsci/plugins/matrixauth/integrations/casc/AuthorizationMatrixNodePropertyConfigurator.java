@@ -27,7 +27,6 @@ import hudson.Extension;
 import io.jenkins.plugins.casc.Attribute;
 import io.jenkins.plugins.casc.BaseConfigurator;
 import io.jenkins.plugins.casc.ConfigurationContext;
-import io.jenkins.plugins.casc.ConfiguratorException;
 import io.jenkins.plugins.casc.impl.attributes.DescribableAttribute;
 import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
 import io.jenkins.plugins.casc.model.Mapping;
@@ -36,7 +35,7 @@ import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -51,13 +50,12 @@ public class AuthorizationMatrixNodePropertyConfigurator extends BaseConfigurato
     }
 
     @Override
-    protected AuthorizationMatrixNodeProperty instance(Mapping mapping, ConfigurationContext context)
-            throws ConfiguratorException {
+    protected AuthorizationMatrixNodeProperty instance(Mapping mapping, ConfigurationContext context) {
         return new AuthorizationMatrixNodeProperty();
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public Set<Attribute<AuthorizationMatrixNodeProperty, ?>> describe() {
         return new HashSet<>(Arrays.asList(
                 new MultivaluedAttribute<AuthorizationMatrixNodeProperty, String>("permissions", String.class)

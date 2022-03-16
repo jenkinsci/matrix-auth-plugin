@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.7</version>
+        <version>4.37</version>
     </parent>
     <artifactId>matrix-auth</artifactId>
     <version>${revision}${changelist}</version>
@@ -12,14 +12,12 @@
     <name>Matrix Authorization Strategy Plugin</name>
     <url>https://github.com/jenkinsci/matrix-auth-plugin</url>
     <properties>
-        <revision>2.6.6</revision>
+        <revision>3.2</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
-        <hpi.compatibleSinceVersion>2.0</hpi.compatibleSinceVersion>
-        <jenkins.version>2.222.1</jenkins.version>
+        <hpi.compatibleSinceVersion>3.0</hpi.compatibleSinceVersion>
+        <jenkins.version>2.277.1</jenkins.version>
         <java.level>8</java.level>
-        <workflow-cps.version>2.31</workflow-cps.version>
-        <configuration-as-code.version>1.35</configuration-as-code.version>
     </properties>
     <licenses>
         <license>
@@ -33,18 +31,29 @@
         <url>https://github.com/${gitHubRepo}</url>
         <tag>${scmTag}</tag>
      </scm>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.277.x</artifactId>
+                <version>28</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <!-- optional plugin dependencies -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>cloudbees-folder</artifactId>
-            <version>6.1.0</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.jenkins</groupId>
             <artifactId>configuration-as-code</artifactId>
-            <version>${configuration-as-code.version}</version>
             <optional>true</optional>
         </dependency>
 
@@ -52,39 +61,27 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-            <version>2.1.16</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
-            <version>${workflow-cps.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
-            <version>${workflow-cps.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-multibranch</artifactId>
-            <version>2.10</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- requireUpperBoundDeps -->
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>structs</artifactId>
-            <version>1.19</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.jenkins.configuration-as-code</groupId>
             <artifactId>test-harness</artifactId>
-            <version>${configuration-as-code.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -99,13 +96,6 @@
                     <artifactId>groovy-all</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <!-- requireUpperBounds -->
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>script-security</artifactId>
-            <version>1.54</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

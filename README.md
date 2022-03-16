@@ -6,7 +6,7 @@ For a basic introduction, see [the section on Matrix Authorization in the Jenkin
 
 ## Changelog
 
-See [CHANGELOG](CHANGELOG.md).
+See [GitHub Releases](https://github.com/jenkinsci/matrix-auth-plugin/releases) (2.6.5 and newer only) or [CHANGELOG](CHANGELOG.md) (before 3.0 only).
 
 ## Use Cases
 
