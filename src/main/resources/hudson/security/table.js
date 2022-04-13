@@ -180,7 +180,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
   var impliedByList = impliedByString.split(" ");
   var tr = findAncestor(e,"TR");
   e.disabled = false;
-  e.setAttribute('tooltip', YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled')));
+  e.nextSibling.setAttribute('tooltip', YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled')));
 
   for (var i = 0; i < impliedByList.length; i++) {
     var permissionId = impliedByList[i];
@@ -188,7 +188,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     if (reference !== null) {
       if (reference.checked) {
         e.disabled = true;
-        e.setAttribute('tooltip', YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled')));
+        e.nextSibling.setAttribute('tooltip', YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled')));
       }
     }
   }
