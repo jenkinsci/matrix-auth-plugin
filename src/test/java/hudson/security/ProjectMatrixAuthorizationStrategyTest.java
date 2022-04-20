@@ -3,9 +3,12 @@ package hudson.security;
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlOption;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
+import hudson.util.VersionNumber;
 import java.util.Objects;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
@@ -96,16 +99,7 @@ public class ProjectMatrixAuthorizationStrategyTest {
         Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission2(Jenkins.ANONYMOUS2, Jenkins.ADMINISTER));
 
         JenkinsRule.WebClient wc = r.createWebClient().login("alice");
-        HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
-
-        Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream().filter(
-                lbl -> lbl.asNormalizedText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
-        if (!anyLabel.isPresent()) {
-            throw new IllegalStateException("expected to find a label");
-        }
-        HtmlElement label = anyLabel.get();
-        label.click();
-        r.submit(form);
+        configureGlobalMatrixAuthStrategyThroughUI(wc);
 
         try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
             // ensure that the user submitting the empty matrix will be admin
@@ -126,19 +120,34 @@ public class ProjectMatrixAuthorizationStrategyTest {
         Assert.assertTrue("anon is admin", r.jenkins.getACL().hasPermission2(Jenkins.ANONYMOUS2, Jenkins.ADMINISTER));
 
         JenkinsRule.WebClient wc = r.createWebClient();
-        HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
-
-        Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream().filter(
-                lbl -> lbl.asNormalizedText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
-        if (!anyLabel.isPresent()) {
-            throw new IllegalStateException("expected to find a label");
-        }
-        HtmlElement label = anyLabel.get();
-        label.click();
-        r.submit(form);
+        configureGlobalMatrixAuthStrategyThroughUI(wc);
 
         Assert.assertTrue("anon is admin", r.jenkins.getACL().hasPermission2(Jenkins.ANONYMOUS2, Jenkins.ADMINISTER));
         Assert.assertTrue(r.jenkins.getAuthorizationStrategy() instanceof GlobalMatrixAuthorizationStrategy);
+    }
+
+    private void configureGlobalMatrixAuthStrategyThroughUI(JenkinsRule.WebClient wc) throws Exception {
+        HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
+
+        if (new VersionNumber("2.342").isOlderThanOrEqualTo(Jenkins.getVersion())) {
+            final Optional<HtmlElement> anyOption = form.getElementsByTagName("option").stream().filter(option -> option.getTextContent().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
+
+            if (!anyOption.isPresent()) {
+                throw new IllegalStateException("expected to find an option");
+            }
+            HtmlOption option = (HtmlOption) anyOption.get();
+            HtmlSelect parent = (HtmlSelect) option.getParentNode();
+            parent.setSelectedAttribute(option, true);
+        } else {
+            Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream().filter(
+                    lbl -> lbl.asNormalizedText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
+            if (!anyLabel.isPresent()) {
+                throw new IllegalStateException("expected to find a label");
+            }
+            HtmlElement label = anyLabel.get();
+            label.click();
+        }
+        r.submit(form);
     }
 
     @Test
