@@ -180,7 +180,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
   var impliedByList = impliedByString.split(" ");
   var tr = findAncestor(e,"TR");
   e.disabled = false;
-  let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled'))
+  let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
   e.setAttribute('tooltip', tooltip); // before 2.335 -- TODO remove once baseline is new enough
   e.nextSibling.setAttribute('tooltip', tooltip); // 2.335+
 
