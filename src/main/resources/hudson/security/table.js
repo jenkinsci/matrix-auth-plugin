@@ -52,8 +52,31 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
  */
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.remove", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   e.onclick = function() {
+    // Run ambiguity warning removal code: If all ambiguous rows are deleted, the warning needs to go as well
+    // Order of operations: Find table ancestor, remove row, iterate over leftover rows
+    var table = findAncestor(this,"TABLE");
+
     var tr = findAncestor(this,"TR");
     tr.parentNode.removeChild(tr);
+
+    var tableRows = table.getElementsByTagName('tr');
+
+    var hasAmbiguousRows = false;
+
+    for (var i = 0; i < tableRows.length; i++) {
+      if (tableRows[i].getAttribute('name') !== null && tableRows[i].getAttribute('name').startsWith('[EITHER')) {
+        hasAmbiguousRows = true;
+      }
+    }
+    if (!hasAmbiguousRows) {
+      var alertElements = document.getElementsByClassName("alert");
+      for (var i = 0; i < alertElements.length; i++) {
+        if (alertElements[i].hasAttribute('data-table-id') && alertElements[i].getAttribute('data-table-id') === table.getAttribute('data-table-id')) {
+          alertElements[i].style.display = 'none'; // TODO animate this?
+        }
+      }
+    }
+
     return false;
   }
   e = null; // avoid memory leak
