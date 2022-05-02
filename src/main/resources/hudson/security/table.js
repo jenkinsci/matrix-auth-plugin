@@ -250,6 +250,8 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TR.permission-row
 
 document.addEventListener('DOMContentLoaded', function () {
   setTimeout(function () {
-    window.registerTooltips();
+    if (window.registerTooltips) {
+      window.registerTooltips();
+    }
   }, 500);
 })
