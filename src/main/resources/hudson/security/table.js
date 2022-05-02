@@ -40,10 +40,13 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     findElementsBySelector(copy, ".stop img").each(function(item) {
       item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
     });
+
+    var tooltipAttributeName = getTooltipAttributeName();
+
     findElementsBySelector(copy, "input[type=checkbox]").each(function(item) {
-      const tooltip = item.getAttribute("html-tooltip");
+      const tooltip = item.getAttribute(tooltipAttributeName);
       if (tooltip) {
-        item.setAttribute("html-tooltip", tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
+        item.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
       } else {
         item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
       }
@@ -196,6 +199,11 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
   e = null; // avoid memory leak
 });
 
+function getTooltipAttributeName() {
+  var tippySupported = window.registerTooltips !== undefined;
+  return tippySupported ? 'html-tooltip' : 'tooltip';
+}
+
 /*
  * Whenever permission assignments change, this ensures that implied permissions get their checkboxes disabled.
  */
@@ -205,13 +213,16 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     // if this is a read-only UI (ExtendedRead / SystemRead), do not enable checkboxes
     return;
   }
+
+  var tooltipAttributeName = getTooltipAttributeName();
+
   var impliedByString = findAncestor(e, "TD").getAttribute('data-implied-by-list');
   var impliedByList = impliedByString.split(" ");
   var tr = findAncestor(e,"TR");
   e.disabled = false;
   let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
-  e.setAttribute('html-tooltip', tooltip); // before 2.335 -- TODO remove once baseline is new enough
-  e.nextSibling.setAttribute('html-tooltip', tooltip); // 2.335+
+  e.setAttribute('tooltip', tooltip); // before 2.335 -- TODO remove once baseline is new enough
+  e.nextSibling.setAttribute(tooltipAttributeName, tooltip); // 2.335+
 
   for (var i = 0; i < impliedByList.length; i++) {
     var permissionId = impliedByList[i];
@@ -220,8 +231,8 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
       if (reference.checked) {
         e.disabled = true;
         let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled'));
-        e.setAttribute('html-tooltip', tooltip); // before 2.335 -- TODO remove once baseline is new enough
-        e.nextSibling.setAttribute('html-tooltip', tooltip); // 2.335+
+        e.setAttribute(tooltipAttributeName, tooltip); // before 2.335 -- TODO remove once baseline is new enough
+        e.nextSibling.setAttribute(tooltipAttributeName, tooltip); // 2.335+
       }
     }
   }
