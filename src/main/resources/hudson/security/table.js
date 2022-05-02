@@ -32,19 +32,19 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
 
     for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
       if (child.hasAttribute('data-permission-id')) {
-        child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name));
-        child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name));
+        child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name).replace("__TYPE__", type));
+        child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name).replace("__TYPE__", type));
       }
     }
     findElementsBySelector(copy, ".stop img").each(function(item) {
-      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", type));
     });
     findElementsBySelector(copy, "input[type=checkbox]").each(function(item) {
-      const tooltip = item.getAttribute("tooltip");
+      const tooltip = item.getAttribute("html-tooltip");
       if (tooltip) {
-        item.setAttribute("tooltip", tooltip.replace("__SID__", name));
+        item.setAttribute("html-tooltip", tooltip.replace("__SID__", name).replace("__TYPE__", type));
       } else {
-        item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+        item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", type));
       }
     });
     table.appendChild(copy);
@@ -212,8 +212,8 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
   var tr = findAncestor(e,"TR");
   e.disabled = false;
   let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
-  e.setAttribute('tooltip', tooltip); // before 2.335 -- TODO remove once baseline is new enough
-  e.nextSibling.setAttribute('tooltip', tooltip); // 2.335+
+  e.setAttribute('html-tooltip', tooltip); // before 2.335 -- TODO remove once baseline is new enough
+  e.nextSibling.setAttribute('html-tooltip', tooltip); // 2.335+
 
   for (var i = 0; i < impliedByList.length; i++) {
     var permissionId = impliedByList[i];
@@ -222,8 +222,8 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
       if (reference.checked) {
         e.disabled = true;
         let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled'));
-        e.setAttribute('tooltip', tooltip); // before 2.335 -- TODO remove once baseline is new enough
-        e.nextSibling.setAttribute('tooltip', tooltip); // 2.335+
+        e.setAttribute('html-tooltip', tooltip); // before 2.335 -- TODO remove once baseline is new enough
+        e.nextSibling.setAttribute('html-tooltip', tooltip); // 2.335+
       }
     }
   }
@@ -231,9 +231,6 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
     return true;
   };
-  if (window.registerTooltips) {
-    window.registerTooltips();
-  }
   e = null; // avoid memory leak
 });
 
@@ -249,3 +246,9 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TR.permission-row
     e.setAttribute('data-checked', 'true');
   }
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  setTimeout(function () {
+    window.registerTooltips();
+  }, 500);
+})
