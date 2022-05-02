@@ -178,27 +178,29 @@ THE SOFTWARE.
       </tr>
     </table>
     <local:isEditable>
-      <input type="button" class="matrix-auth-add-button" value="${%Add user…}" id="${id}UserButton"
-            data-table-id="${id}"
-            data-type="USER"
-            data-message-prompt="${%userPrompt}"
-            data-message-empty="${%userEmpty}"
-            data-message-error="${%userError}"
-      />
-      <input type="button" class="matrix-auth-add-button" value="${%Add group…}" id="${id}GroupButton"
-            data-table-id="${id}"
-            data-type="GROUP"
-            data-message-prompt="${%groupPrompt}"
-            data-message-empty="${%groupEmpty}"
-            data-message-error="${%groupError}"
-      />
+      <div class="jenkins-!-margin-top-2">
+        <input type="button" class="matrix-auth-add-button" value="${%Add user…}" id="${id}UserButton"
+              data-table-id="${id}"
+              data-type="USER"
+              data-message-prompt="${%userPrompt}"
+              data-message-empty="${%userEmpty}"
+              data-message-error="${%userError}"
+        />
+        <input type="button" class="matrix-auth-add-button" value="${%Add group…}" id="${id}GroupButton"
+              data-table-id="${id}"
+              data-type="GROUP"
+              data-message-prompt="${%groupPrompt}"
+              data-message-empty="${%groupEmpty}"
+              data-message-error="${%groupError}"
+        />
+        <f:helpLink featureName="${%Permissions matrix}" url="${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"/>
+        <f:helpArea />
+      </div>
       <j:if test="${descriptor.hasAmbiguousEntries(instance)}">
         <div class="alert alert-warning" data-table-id="${tableid}">
           ${%ambiguous}
         </div>
       </j:if>
-      <f:helpLink featureName="${%Permissions matrix}" url="${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"/>
-      <f:helpArea />
     </local:isEditable>
     <st:adjunct includes="hudson.security.table"/>
   </f:block>

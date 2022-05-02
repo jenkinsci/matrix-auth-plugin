@@ -50,9 +50,6 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     });
     table.appendChild(copy);
     Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
-    if (window.registerTooltips) {
-      window.registerTooltips();
-    }
   });
 });
 
@@ -228,6 +225,11 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
       }
     }
   }
+
+  if (window.registerTooltips) {
+    window.registerTooltips(e.nextSibling.parentElement);
+  }
+
   e.onchange = function() {
     Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
     return true;
@@ -247,11 +249,3 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TR.permission-row
     e.setAttribute('data-checked', 'true');
   }
 });
-
-document.addEventListener('DOMContentLoaded', function () {
-  setTimeout(function () {
-    if (window.registerTooltips) {
-      window.registerTooltips();
-    }
-  }, 500);
-})
