@@ -40,10 +40,18 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
       item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
     });
     findElementsBySelector(copy, "input[type=checkbox]").each(function(item) {
-      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+      const tooltip = item.getAttribute("tooltip");
+      if (tooltip) {
+        item.setAttribute("tooltip", tooltip.replace("__SID__", name));
+      } else {
+        item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+      }
     });
     table.appendChild(copy);
     Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
+    if (window.registerTooltips) {
+      window.registerTooltips();
+    }
   });
 });
 
@@ -223,6 +231,9 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
     return true;
   };
+  if (window.registerTooltips) {
+    window.registerTooltips();
+  }
   e = null; // avoid memory leak
 });
 
