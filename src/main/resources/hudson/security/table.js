@@ -7,7 +7,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     var master = document.getElementById(dataReference.getAttribute('data-table-id'));
     var table = master.parentNode;
     var type = dataReference.getAttribute('data-type');
-    var typeLabel = type.toLowerCase();
+    var typeLabel = dataReference.getAttribute('data-type-label');
 
     var name = prompt(dataReference.getAttribute('data-message-prompt'));
     if (name == null) {
