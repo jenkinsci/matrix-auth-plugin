@@ -7,6 +7,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     var master = document.getElementById(dataReference.getAttribute('data-table-id'));
     var table = master.parentNode;
     var type = dataReference.getAttribute('data-type');
+    var typeLabel = dataReference.getAttribute('data-type-label');
 
     var name = prompt(dataReference.getAttribute('data-message-prompt'));
     if (name == null) {
@@ -32,15 +33,15 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
 
     for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
       if (child.hasAttribute('data-permission-id')) {
-        child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name));
-        child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name));
+        child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
+        child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
       }
     }
     findElementsBySelector(copy, ".stop img").each(function(item) {
-      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
     });
     findElementsBySelector(copy, "input[type=checkbox]").each(function(item) {
-      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
     });
     table.appendChild(copy);
     Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
