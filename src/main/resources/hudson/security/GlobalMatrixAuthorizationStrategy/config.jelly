@@ -146,7 +146,11 @@ THE SOFTWARE.
         <j:forEach var="g" items="${groups}">
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
-              <th class="pane" tooltip="${descriptor.getDescription(p)}">
+              <th class="pane" html-tooltip="${descriptor.getDescription(p)}" tooltip="${descriptor.getDescription(p)}">
+                <!--
+                  Tooltip needs to be HTML for GlobalMatrixAuthorizationStrategy.PermissionNotImpliedBy formatting.
+                  So set 'html-tooltip' for Tippy and 'tooltip' for YUI.
+                 -->
                 <span>
                   ${p.name}
                 </span>
