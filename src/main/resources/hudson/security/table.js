@@ -260,18 +260,3 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TR.permission-row
     e.setAttribute('data-checked', 'true');
   }
 });
-
-/*
-  Removes tooltip attribute when html-tooltip is supported, so we don't get two tooltips.
-  TODO remove after baseline is above https://github.com/jenkinsci/jenkins/pull/6408
- */
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.html-tooltip-forward-compat')
-      .forEach(function (element) {
-        if (window.registerTooltips) {
-          element.removeAttribute('tooltip');
-          element.removeAttribute('title');
-          window.registerTooltips()
-        }
-      });
-});
