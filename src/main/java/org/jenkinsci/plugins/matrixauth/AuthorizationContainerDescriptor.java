@@ -132,7 +132,7 @@ public interface AuthorizationContainerDescriptor {
     @Restricted(DoNotUse.class) // Jelly only; cf. UpdateCenter#getCategoryDisplayName in core
     default String getTypeLabel(String type) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         if (type == null) {
-            return "__TYPE__";
+            return "__TYPE__"; // placeholder
         }
         return Messages.class.getMethod("TypeLabel_" + type).invoke(null).toString();
     }

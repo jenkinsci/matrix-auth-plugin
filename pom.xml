@@ -12,7 +12,7 @@
     <name>Matrix Authorization Strategy Plugin</name>
     <url>https://github.com/jenkinsci/matrix-auth-plugin</url>
     <properties>
-        <revision>3.1.2</revision>
+        <revision>3.1.3</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <hpi.compatibleSinceVersion>3.0</hpi.compatibleSinceVersion>
