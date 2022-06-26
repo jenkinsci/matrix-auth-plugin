@@ -201,7 +201,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
 
 function getTooltipAttributeName() {
   var tippySupported = window.registerTooltips !== undefined;
-  return tippySupported ? 'html-tooltip' : 'tooltip';
+  return tippySupported ? 'data-html-tooltip' : 'tooltip';
 }
 
 /*
