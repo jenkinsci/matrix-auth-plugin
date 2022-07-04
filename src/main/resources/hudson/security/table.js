@@ -37,11 +37,13 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
         child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
       }
     }
-    findElementsBySelector(copy, ".stop img").each(function(item) {
-      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
-    });
 
     var tooltipAttributeName = getTooltipAttributeName();
+
+    findElementsBySelector(copy, ".stop a").each(function(item) {
+      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
+      item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
+    });
 
     findElementsBySelector(copy, "input[type=checkbox]").each(function(item) {
       const tooltip = item.getAttribute(tooltipAttributeName);
