@@ -7,6 +7,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     var master = document.getElementById(dataReference.getAttribute('data-table-id'));
     var table = master.parentNode;
     var type = dataReference.getAttribute('data-type');
+    var typeLabel = dataReference.getAttribute('data-type-label');
 
     var name = prompt(dataReference.getAttribute('data-message-prompt'));
     if (name == null) {
@@ -32,15 +33,25 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
 
     for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
       if (child.hasAttribute('data-permission-id')) {
-        child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name));
-        child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name));
+        child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
+        child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
       }
     }
-    findElementsBySelector(copy, ".stop img").each(function(item) {
-      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+
+    var tooltipAttributeName = getTooltipAttributeName();
+
+    findElementsBySelector(copy, ".stop a").each(function(item) {
+      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
+      item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
     });
+
     findElementsBySelector(copy, "input[type=checkbox]").each(function(item) {
-      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name));
+      const tooltip = item.getAttribute(tooltipAttributeName);
+      if (tooltip) {
+        item.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
+      } else {
+        item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
+      }
     });
     table.appendChild(copy);
     Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
@@ -52,8 +63,31 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
  */
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.remove", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   e.onclick = function() {
+    // Run ambiguity warning removal code: If all ambiguous rows are deleted, the warning needs to go as well
+    // Order of operations: Find table ancestor, remove row, iterate over leftover rows
+    var table = findAncestor(this,"TABLE");
+
     var tr = findAncestor(this,"TR");
     tr.parentNode.removeChild(tr);
+
+    var tableRows = table.getElementsByTagName('tr');
+
+    var hasAmbiguousRows = false;
+
+    for (var i = 0; i < tableRows.length; i++) {
+      if (tableRows[i].getAttribute('name') !== null && tableRows[i].getAttribute('name').startsWith('[EITHER')) {
+        hasAmbiguousRows = true;
+      }
+    }
+    if (!hasAmbiguousRows) {
+      var alertElements = document.getElementsByClassName("alert");
+      for (var i = 0; i < alertElements.length; i++) {
+        if (alertElements[i].hasAttribute('data-table-id') && alertElements[i].getAttribute('data-table-id') === table.getAttribute('data-table-id')) {
+          alertElements[i].style.display = 'none'; // TODO animate this?
+        }
+      }
+    }
+
     return false;
   }
   e = null; // avoid memory leak
@@ -167,6 +201,11 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
   e = null; // avoid memory leak
 });
 
+function getTooltipAttributeName() {
+  var tippySupported = window.registerTooltips !== undefined;
+  return tippySupported ? 'html-tooltip' : 'tooltip';
+}
+
 /*
  * Whenever permission assignments change, this ensures that implied permissions get their checkboxes disabled.
  */
@@ -176,11 +215,16 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     // if this is a read-only UI (ExtendedRead / SystemRead), do not enable checkboxes
     return;
   }
+
+  var tooltipAttributeName = getTooltipAttributeName();
+
   var impliedByString = findAncestor(e, "TD").getAttribute('data-implied-by-list');
   var impliedByList = impliedByString.split(" ");
   var tr = findAncestor(e,"TR");
   e.disabled = false;
-  e.setAttribute('tooltip', YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled')));
+  let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
+  e.setAttribute(tooltipAttributeName, tooltip); // before 2.335 -- TODO remove once baseline is new enough
+  e.nextSibling.setAttribute(tooltipAttributeName, tooltip); // 2.335+
 
   for (var i = 0; i < impliedByList.length; i++) {
     var permissionId = impliedByList[i];
@@ -188,10 +232,17 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     if (reference !== null) {
       if (reference.checked) {
         e.disabled = true;
-        e.setAttribute('tooltip', YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled')));
+        let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled'));
+        e.setAttribute(tooltipAttributeName, tooltip); // before 2.335 -- TODO remove once baseline is new enough
+        e.nextSibling.setAttribute(tooltipAttributeName, tooltip); // 2.335+
       }
     }
   }
+
+  if (window.registerTooltips) {
+    window.registerTooltips(e.nextSibling.parentElement);
+  }
+
   e.onchange = function() {
     Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
     return true;

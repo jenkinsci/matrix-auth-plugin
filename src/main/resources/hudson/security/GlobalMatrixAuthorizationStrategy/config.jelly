@@ -92,24 +92,24 @@ THE SOFTWARE.
         </j:forEach>
         <local:isEditable sid="${attrs.sid}" type="${attrs.type}">
           <td class="stop" style="text-align:left;">
-            <a href="#" class="selectall">
-              <img alt="${%Select all}" title="${%selectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/select-all.svg" style='margin-right:0.2em' height="16" width="16"/>
+            <a href="#" class="selectall" tooltip="${%selectall(h.escape(attrs.sid))}" html-tooltip="${%selectall(h.escape(attrs.sid))}">
+              <img alt="${%Select all}" src="${rootURL}/plugin/matrix-auth/images/select-all.svg" style='margin-right:0.2em' height="16" width="16"/>
             </a>
-            <a href="#" class="unselectall">
-              <img alt="${%Unselect all}" title="${%unselectall(attrs.sid)}" src="${rootURL}/plugin/matrix-auth/images/unselect-all.svg" height="16" width="16"/>
+            <a href="#" class="unselectall" tooltip="${%unselectall(h.escape(attrs.sid))}" html-tooltip="${%unselectall(h.escape(attrs.sid))}">
+              <img alt="${%Unselect all}" src="${rootURL}/plugin/matrix-auth/images/unselect-all.svg" height="16" width="16"/>
             </a>
             <j:if test="${(attrs.sid != 'authenticated' or attrs.type != 'GROUP') and (attrs.sid != 'anonymous' or attrs.type != 'USER')}">
-              <a href="#" class="remove">
-                <l:icon alt="${%Remove user/group}" title="${%remove(attrs.sid)}" class="icon-stop icon-sm" />
+              <a href="#" class="remove" tooltip="${%remove(h.escape(attrs.sid))}" html-tooltip="${%remove(h.escape(attrs.sid))}">
+                <l:icon alt="${%Remove user/group}" class="icon-stop icon-sm" />
               </a>
             </j:if>
             <j:if test="${attrs.type == 'EITHER'}">
               <!-- migration options -->
-              <a href="#" class="migrate migrate_user">
-                <l:icon alt="${%Migrate entry to user}" title="${%migrate_user(attrs.sid)}" class="icon-person icon-sm" />
+              <a href="#" class="migrate migrate_user" tooltip="${%migrate_user(h.escape(attrs.sid))}" html-tooltip="${%migrate_user(h.escape(attrs.sid))}">
+                <l:icon alt="${%Migrate entry to user}" class="icon-person icon-sm" />
               </a>
-              <a href="#" class="migrate migrate_group">
-                <l:icon alt="${%Migrate entry to group}" title="${%migrate_group(attrs.sid)}" class="icon-user icon-sm" />
+              <a href="#" class="migrate migrate_group" tooltip="${%migrate_group(h.escape(attrs.sid))}" html-tooltip="${%migrate_group(h.escape(attrs.sid))}">
+                <l:icon alt="${%Migrate entry to group}" class="icon-user icon-sm" />
               </a>
             </j:if>
           </td>
@@ -146,7 +146,11 @@ THE SOFTWARE.
         <j:forEach var="g" items="${groups}">
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
-              <th class="pane" tooltip="${descriptor.getDescription(p)}">
+              <th class="pane" html-tooltip="${descriptor.getDescription(p)}" tooltip="${descriptor.getDescription(p)}">
+                <!--
+                  Tooltip needs to be HTML for GlobalMatrixAuthorizationStrategy.PermissionNotImpliedBy formatting.
+                  So set 'html-tooltip' for Tippy and 'tooltip' for YUI.
+                 -->
                 <span>
                   ${p.name}
                 </span>
@@ -178,27 +182,31 @@ THE SOFTWARE.
       </tr>
     </table>
     <local:isEditable>
-      <input type="button" class="matrix-auth-add-button" value="${%Add user…}" id="${id}UserButton"
-            data-table-id="${id}"
-            data-type="USER"
-            data-message-prompt="${%userPrompt}"
-            data-message-empty="${%userEmpty}"
-            data-message-error="${%userError}"
-      />
-      <input type="button" class="matrix-auth-add-button" value="${%Add group…}" id="${id}GroupButton"
-            data-table-id="${id}"
-            data-type="GROUP"
-            data-message-prompt="${%groupPrompt}"
-            data-message-empty="${%groupEmpty}"
-            data-message-error="${%groupError}"
-      />
+      <div class="jenkins-!-margin-top-2">
+        <input type="button" class="matrix-auth-add-button" value="${%Add user…}" id="${id}UserButton"
+              data-table-id="${id}"
+              data-type="USER"
+              data-type-label="${%user}"
+              data-message-prompt="${%userPrompt}"
+              data-message-empty="${%userEmpty}"
+              data-message-error="${%userError}"
+        />
+        <input type="button" class="matrix-auth-add-button" value="${%Add group…}" id="${id}GroupButton"
+              data-table-id="${id}"
+              data-type="GROUP"
+              data-type-label="${%group}"
+              data-message-prompt="${%groupPrompt}"
+              data-message-empty="${%groupEmpty}"
+              data-message-error="${%groupError}"
+        />
+        <f:helpLink featureName="${%Permissions matrix}" url="${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"/>
+        <f:helpArea />
+      </div>
       <j:if test="${descriptor.hasAmbiguousEntries(instance)}">
         <div class="alert alert-warning" data-table-id="${tableid}">
           ${%ambiguous}
         </div>
       </j:if>
-      <f:helpLink featureName="${%Permissions matrix}" url="${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"/>
-      <f:helpArea />
     </local:isEditable>
     <st:adjunct includes="hudson.security.table"/>
   </f:block>
