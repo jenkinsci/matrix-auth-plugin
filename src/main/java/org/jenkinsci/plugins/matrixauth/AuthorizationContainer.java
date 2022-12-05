@@ -180,6 +180,8 @@ public interface AuthorizationContainer {
      *     <li>Internal ID: <code>hudson.model.Hudson.ADMINISTER</code></li>
      *     <li>UI short form: <code>Overall/Administer</code></li>
      * </ul>
+     * @see hudson.security.Permission#fromId(String)
+     * @see org.jenkinsci.plugins.matrixauth.integrations.PermissionFinder
      */
     @Restricted(NoExternalUse.class)
     default void add(String shortForm) {
