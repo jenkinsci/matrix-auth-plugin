@@ -204,8 +204,15 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
   e = null; // avoid memory leak
 });
 
+/*
+ * Determine which attribute to set tooltips in. Changed in Jenkins 2.379 with Tippy and data-html-tooltip support.
+ */
 function getTooltipAttributeName() {
-  var tippySupported = window.registerTooltips !== undefined;
+  let coreVersion = document.body.getAttribute('data-version');
+  if (coreVersion === null) {
+    return 'tooltip'
+  }
+  let tippySupported = coreVersion >= '2.379';
   return tippySupported ? 'data-html-tooltip' : 'tooltip';
 }
 
