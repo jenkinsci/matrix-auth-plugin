@@ -175,6 +175,13 @@ public interface AuthorizationContainer {
      * Works like {@link #add(Permission, PermissionEntry)} but takes both parameters
      * from a single string of the form <code>PERMISSION_ID:sid</code> (legacy format, implicit 'EITHER' type)
      * or <code>type:PERMISSION_ID:sid</code> (new since 3.0).
+     * <p>The supported formats for <code>PERMISSION_ID</code> are:</p>
+     * <ul>
+     *     <li>Internal ID: <code>hudson.model.Hudson.ADMINISTER</code></li>
+     *     <li>UI short form: <code>Overall/Administer</code></li>
+     * </ul>
+     * @see hudson.security.Permission#fromId(String)
+     * @see org.jenkinsci.plugins.matrixauth.integrations.PermissionFinder
      */
     @Restricted(NoExternalUse.class)
     default void add(String shortForm) {
