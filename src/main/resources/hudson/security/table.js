@@ -41,7 +41,10 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     var tooltipAttributeName = getTooltipAttributeName();
 
     findElementsBySelector(copy, ".stop a").each(function(item) {
-      item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
+      let oldTitle = item.getAttribute("title");
+      if (oldTitle !== null) {
+        item.setAttribute("title", oldTitle.replace("__SID__", name).replace("__TYPE__", typeLabel));
+      }
       item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
     });
 
