@@ -212,6 +212,7 @@ function getTooltipAttributeName() {
   if (coreVersion === null) {
     return 'tooltip'
   }
+  // TODO remove after minimum version is 2.379 or higher
   let tippySupported = coreVersion >= '2.379';
   return tippySupported ? 'data-html-tooltip' : 'tooltip';
 }
