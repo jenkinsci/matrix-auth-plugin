@@ -49,6 +49,8 @@ import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.verb.GET;
+import org.kohsuke.stapler.verb.POST;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -179,6 +181,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         }
 
         @Restricted(DoNotUse.class)
+        @GET
+        @POST
         public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) {
             // Computer isn't a DescriptorByNameOwner before Jenkins 2.78, and then @AncestorInPath doesn't work
             return doCheckName_(value,

@@ -72,6 +72,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.GET;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * {@link JobProperty} to associate ACL for each project.
@@ -205,6 +206,7 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         }
 
         @GET
+        @POST
         public FormValidation doCheckName(@AncestorInPath Job<?, ?> project, @QueryParameter String value) {
             return doCheckName_(value, project, Item.CONFIGURE);
         }

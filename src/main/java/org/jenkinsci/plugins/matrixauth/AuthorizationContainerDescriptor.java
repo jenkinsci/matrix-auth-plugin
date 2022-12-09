@@ -13,6 +13,8 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.verb.GET;
+import org.kohsuke.stapler.verb.POST;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -140,6 +142,8 @@ public interface AuthorizationContainerDescriptor {
 
     // Not used directly by Stapler due to the trailing _ (this prevented method confusion around 1.415).
     @Restricted(NoExternalUse.class)
+    @GET
+    @POST
     default FormValidation doCheckName_(@NonNull String value, @NonNull AccessControlled subject, @NonNull Permission permission) {
 
         final String unbracketedValue = value.substring(1, value.length() - 1); // remove leading [ and trailing ]

@@ -60,6 +60,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.GET;
+import org.kohsuke.stapler.verb.POST;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -166,6 +167,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         }
 
         @GET
+        @POST
         public FormValidation doCheckName(@AncestorInPath AbstractFolder<?> folder, @QueryParameter String value) {
             return doCheckName_(value, folder, Item.CONFIGURE);
         }
