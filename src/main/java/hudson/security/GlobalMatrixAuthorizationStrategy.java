@@ -217,8 +217,9 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
             return new GlobalMatrixAuthorizationStrategy();
         }
 
+        @SuppressWarnings("lgtm[jenkins/csrf]")
         @Restricted(NoExternalUse.class)
-        public FormValidation doCheckName(@QueryParameter String value ) {
+        public FormValidation doCheckName(@QueryParameter String value) {
             return doCheckName_(value, Jenkins.get(), Jenkins.ADMINISTER);
         }
 
