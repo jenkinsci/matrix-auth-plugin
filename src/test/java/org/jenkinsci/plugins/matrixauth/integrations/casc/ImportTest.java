@@ -8,6 +8,9 @@ import hudson.model.Node;
 import hudson.security.AuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
+import io.jenkins.plugins.casc.ConfigurationAsCode;
+import io.jenkins.plugins.casc.ConfiguratorException;
+import java.util.Objects;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.AuthorizationType;
@@ -16,12 +19,11 @@ import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.junit.Rule;
 import org.junit.Test;
-import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
-import org.jvnet.hudson.test.LoggerRule;
 
 import java.util.List;
 import java.util.logging.Level;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.RealJenkinsRule;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,14 +35,16 @@ import static org.junit.Assert.assertTrue;
 public class ImportTest {
 
     @Rule
-    public JenkinsConfiguredWithCodeRule r = new JenkinsConfiguredWithCodeRule();
-
-    @Rule
-    public LoggerRule l = new LoggerRule().record(MatrixAuthorizationStrategyConfigurator.class, Level.WARNING).capture(20);
+    public RealJenkinsRule rr = new RealJenkinsRule().withLogger(MatrixAuthorizationStrategyConfigurator.class, Level.WARNING);
 
     @Test
-    @ConfiguredWithCode("configuration-as-code-ambiguous.yml")
-    public void should_support_configuration_as_code_ambiguous_format() {
+    public void should_support_configuration_as_code_ambiguous_format() throws Throwable {
+        rr.then(ImportTest::should_support_configuration_as_code_ambiguous_formatStep);
+    }
+
+    private static void should_support_configuration_as_code_ambiguous_formatStep(JenkinsRule r) throws ConfiguratorException {
+        ConfigurationAsCode.get().configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-ambiguous.yml")).toExternalForm());
+
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
         assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
@@ -87,12 +91,17 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission("authenticated", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.DISCONNECT));
         }
-        assertEquals("no warnings", 0, l.getMessages().size());
+        assertEquals("no warnings", 0, Jenkins.logRecords.stream().filter(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())).count());
     }
 
     @Test
-    @ConfiguredWithCode("configuration-as-code.yml")
-    public void should_support_configuration_as_code() {
+    public void should_support_configuration_as_code() throws Throwable {
+        rr.then(ImportTest::should_support_configuration_as_codeStep);
+    }
+
+    private static void should_support_configuration_as_codeStep(JenkinsRule r) throws ConfiguratorException {
+        ConfigurationAsCode.get().configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code.yml")).toExternalForm());
+
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
         assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
@@ -128,12 +137,17 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.DISCONNECT));
         }
-        assertEquals("no warnings", 0, l.getMessages().size());
+        assertEquals("no warnings", 0, Jenkins.logRecords.stream().filter(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())).count());
     }
 
     @Test
-    @ConfiguredWithCode("legacy-format.yml")
-    public void legacyTest() {
+    public void legacyTest() throws Throwable {
+        rr.then(ImportTest::legacyTestStep);
+    }
+
+    private static void legacyTestStep(JenkinsRule r) throws ConfiguratorException {
+        ConfigurationAsCode.get().configure(Objects.requireNonNull(ImportTest.class.getResource("legacy-format.yml")).toExternalForm());
+
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
         assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
@@ -148,7 +162,7 @@ public class ImportTest {
             assertTrue("authenticated can administer", projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER));
         }
 
-        assertTrue("at least one warning", 0 < l.getMessages().size()); // seems to be called twice?
-        assertTrue("correct message", l.getMessages().get(0).contains("Loading deprecated attribute 'grantedPermissions' for instance"));
+        assertTrue("at least one warning", Jenkins.logRecords.stream().anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())));
+        assertTrue("correct message", Jenkins.logRecords.stream().anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName()) && l.getMessage().contains("Loading deprecated attribute 'grantedPermissions' for instance")));
     }
 }
