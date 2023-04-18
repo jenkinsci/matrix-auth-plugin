@@ -116,7 +116,7 @@ class ValidationUtil {
             // fall through next
         } catch (AuthenticationException e) {
             // other seemingly unexpected error.
-            return FormValidation.error(e,"Failed to test the validity of the user name " + userName);
+            return FormValidation.error(e,"Failed to test the validity of the user ID " + userName);
         }
         return null;
     }
