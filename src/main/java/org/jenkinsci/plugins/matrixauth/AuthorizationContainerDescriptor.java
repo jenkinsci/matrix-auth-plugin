@@ -1,5 +1,9 @@
 package org.jenkinsci.plugins.matrixauth;
 
+import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatNonExistentUserGroupValidationResponse;
+import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatUserGroupValidationResponse;
+
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Functions;
 import hudson.security.AccessControlled;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
@@ -8,21 +12,15 @@ import hudson.security.PermissionGroup;
 import hudson.security.PermissionScope;
 import hudson.security.SecurityRealm;
 import hudson.util.FormValidation;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-
-import edu.umd.cs.findbugs.annotations.NonNull;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatNonExistentUserGroupValidationResponse;
-import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatUserGroupValidationResponse;
 
 /**
  * Interface methods common to descriptors of authorization strategy and the various properties.
@@ -58,7 +56,8 @@ public interface AuthorizationContainerDescriptor {
                 if (description.length() > 0) {
                     description += "<br/><br/>";
                 }
-                description += Messages.GlobalMatrixAuthorizationStrategy_PermissionImpliedBy(impliedBy.group.title, impliedBy.name);
+                description += Messages.GlobalMatrixAuthorizationStrategy_PermissionImpliedBy(
+                        impliedBy.group.title, impliedBy.name);
             }
         }
 
@@ -96,7 +95,6 @@ public interface AuthorizationContainerDescriptor {
         return StringUtils.join(impliedBys.stream().map(Permission::getId).collect(Collectors.toList()), " ");
     }
 
-
     @Restricted(DoNotUse.class) // Called from Jelly view
     default boolean showPermission(Permission p) {
         if (!p.getEnabled()) {
@@ -130,17 +128,18 @@ public interface AuthorizationContainerDescriptor {
     }
 
     @Restricted(DoNotUse.class) // Jelly only; cf. UpdateCenter#getCategoryDisplayName in core
-    default String getTypeLabel(String type) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    default String getTypeLabel(String type)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         if (type == null) {
             return "__TYPE__"; // placeholder
         }
         return Messages.class.getMethod("TypeLabel_" + type).invoke(null).toString();
     }
 
-
     // Not used directly by Stapler due to the trailing _ (this prevented method confusion around 1.415).
     @Restricted(NoExternalUse.class)
-    default FormValidation doCheckName_(@NonNull String value, @NonNull AccessControlled subject, @NonNull Permission permission) {
+    default FormValidation doCheckName_(
+            @NonNull String value, @NonNull AccessControlled subject, @NonNull Permission permission) {
 
         final String unbracketedValue = value.substring(1, value.length() - 1); // remove leading [ and trailing ]
 
@@ -162,24 +161,33 @@ public interface AuthorizationContainerDescriptor {
         if (!subject.hasPermission(permission)) {
             // Lacking permissions, so respond based on input only
             if (type == AuthorizationType.USER) {
-                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("person", escapedSid, "User may or may not exist"));
+                return FormValidation.okWithMarkup(
+                        formatUserGroupValidationResponse("person", escapedSid, "User may or may not exist"));
             }
             if (type == AuthorizationType.GROUP) {
-                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("user", escapedSid, "Group may or may not exist"));
+                return FormValidation.okWithMarkup(
+                        formatUserGroupValidationResponse("user", escapedSid, "Group may or may not exist"));
             }
-            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(null, escapedSid, "Permissions would be granted to a user or group of this name"));
+            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
+                    null, escapedSid, "Permissions would be granted to a user or group of this name"));
         }
 
         SecurityRealm sr = Jenkins.get().getSecurityRealm();
 
-        if(sid.equals("authenticated") && type == AuthorizationType.EITHER) {
+        if (sid.equals("authenticated") && type == AuthorizationType.EITHER) {
             // system reserved group
-            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse("user", escapedSid, "Internal group found; but permissions would also be granted to a user of this name"));
+            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
+                    "user",
+                    escapedSid,
+                    "Internal group found; but permissions would also be granted to a user of this name"));
         }
 
-        if(sid.equals("anonymous") && type == AuthorizationType.EITHER) {
+        if (sid.equals("anonymous") && type == AuthorizationType.EITHER) {
             // system reserved user
-            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse("person", escapedSid, "Internal user found; but permissions would also be granted to a group of this name"));
+            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
+                    "person",
+                    escapedSid,
+                    "Internal user found; but permissions would also be granted to a group of this name"));
         }
 
         try {
@@ -191,13 +199,15 @@ public interface AuthorizationContainerDescriptor {
                     if (groupValidation != null) {
                         return groupValidation;
                     }
-                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(escapedSid, "Group not found")); // TODO i18n (after 3.0)
+                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(
+                            escapedSid, "Group not found")); // TODO i18n (after 3.0)
                 case USER:
                     userValidation = ValidationUtil.validateUser(sid, sr, false);
                     if (userValidation != null) {
                         return userValidation;
                     }
-                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(escapedSid, "User not found")); // TODO i18n (after 3.0)
+                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(
+                            escapedSid, "User not found")); // TODO i18n (after 3.0)
                 case EITHER:
                     userValidation = ValidationUtil.validateUser(sid, sr, true);
                     if (userValidation != null) {
@@ -207,15 +217,15 @@ public interface AuthorizationContainerDescriptor {
                     if (groupValidation != null) {
                         return groupValidation;
                     }
-                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(escapedSid, "User or group not found")); // TODO i18n (after 3.0)
+                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(
+                            escapedSid, "User or group not found")); // TODO i18n (after 3.0)
                 default:
                     return FormValidation.error("Unexpected type: " + type);
             }
         } catch (Exception e) {
             // if the check fails miserably, we still want the user to be able to see the name of the user,
             // so use 'escapedSid' as the message
-            return FormValidation.error(e,escapedSid);
+            return FormValidation.error(e, escapedSid);
         }
     }
-
 }

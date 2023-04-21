@@ -25,10 +25,9 @@ package org.jenkinsci.plugins.matrixauth.inheritance;
 
 import hudson.DescriptorExtensionList;
 import hudson.model.Descriptor;
-import jenkins.model.Jenkins;
-
 import java.util.ArrayList;
 import java.util.List;
+import jenkins.model.Jenkins;
 
 public abstract class InheritanceStrategyDescriptor extends Descriptor<InheritanceStrategy> {
 
@@ -46,6 +45,6 @@ public abstract class InheritanceStrategyDescriptor extends Descriptor<Inheritan
         }
         return result;
     }
-    
+
     public abstract boolean isApplicable(Class<?> clazz);
 }

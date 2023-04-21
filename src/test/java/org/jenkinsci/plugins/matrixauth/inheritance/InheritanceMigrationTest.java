@@ -46,7 +46,10 @@ public class InheritanceMigrationTest {
             Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
             Assert.assertTrue(prop.hasExplicitPermission("admin", Item.CONFIGURE));
             Assert.assertFalse(prop.hasExplicitPermission("admin", Item.READ));
-            Assert.assertTrue(folder.getACL().hasPermission(User.get("admin").impersonate(), Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
+            Assert.assertTrue(folder.getACL()
+                    .hasPermission(
+                            User.get("admin").impersonate(),
+                            Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
             Assert.assertTrue(folder.getACL().hasPermission(User.get("admin").impersonate(), Item.CONFIGURE));
             Assert.assertTrue(prop.hasExplicitPermission("alice", Item.CONFIGURE));
             Assert.assertTrue(prop.hasExplicitPermission("alice", Item.READ));
@@ -61,11 +64,15 @@ public class InheritanceMigrationTest {
             Job<?, ?> job = (Job<?, ?>) j.jenkins.getItemByFullName("folder/inheritNone");
             Assert.assertNotNull(job);
             Assert.assertTrue(job.getConfigFile().asString().contains("blocksInheritance"));
-            hudson.security.AuthorizationMatrixProperty prop = job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
+            hudson.security.AuthorizationMatrixProperty prop =
+                    job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
             Assert.assertTrue(prop.isBlocksInheritance());
             Assert.assertEquals(0, prop.getGrantedPermissions().size());
             Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
-            Assert.assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
+            Assert.assertTrue(job.getACL()
+                    .hasPermission(
+                            User.get("admin").impersonate(),
+                            Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
             job.save();
             Assert.assertFalse(job.getConfigFile().asString().contains("blocksInheritance"));
 

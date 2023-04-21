@@ -23,11 +23,10 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 /**
  * @since 3.0
@@ -50,6 +49,10 @@ public final class DeprecationUtil {
         final StackTraceElement calledDeprecatedMethod = stackTrace[1];
         final StackTraceElement caller = stackTrace[2];
 
-        Logger.getLogger(calledDeprecatedMethod.getClassName()).log(Level.INFO, () -> "Deprecated method "+ calledDeprecatedMethod.getClassName() +"#" + calledDeprecatedMethod.getMethodName() + " called by " + caller.getClassName());
+        Logger.getLogger(calledDeprecatedMethod.getClassName())
+                .log(
+                        Level.INFO,
+                        () -> "Deprecated method " + calledDeprecatedMethod.getClassName() + "#"
+                                + calledDeprecatedMethod.getMethodName() + " called by " + caller.getClassName());
     }
 }

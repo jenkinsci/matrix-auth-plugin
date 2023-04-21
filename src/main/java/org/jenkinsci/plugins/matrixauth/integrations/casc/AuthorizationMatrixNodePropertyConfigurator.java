@@ -23,6 +23,7 @@
  */
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import io.jenkins.plugins.casc.Attribute;
 import io.jenkins.plugins.casc.BaseConfigurator;
@@ -30,15 +31,13 @@ import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.impl.attributes.DescribableAttribute;
 import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
 import io.jenkins.plugins.casc.model.Mapping;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-
-import edu.umd.cs.findbugs.annotations.NonNull;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 @Extension(optional = true)
 @Restricted(NoExternalUse.class)
@@ -61,6 +60,7 @@ public class AuthorizationMatrixNodePropertyConfigurator extends BaseConfigurato
                 new MultivaluedAttribute<AuthorizationMatrixNodeProperty, String>("permissions", String.class)
                         .getter(MatrixAuthorizationStrategyConfigurator::getPermissions)
                         .setter(MatrixAuthorizationStrategyConfigurator::setPermissions),
-                new DescribableAttribute<AuthorizationMatrixNodeProperty, InheritanceStrategy>("inheritanceStrategy", InheritanceStrategy.class)));
+                new DescribableAttribute<AuthorizationMatrixNodeProperty, InheritanceStrategy>(
+                        "inheritanceStrategy", InheritanceStrategy.class)));
     }
 }

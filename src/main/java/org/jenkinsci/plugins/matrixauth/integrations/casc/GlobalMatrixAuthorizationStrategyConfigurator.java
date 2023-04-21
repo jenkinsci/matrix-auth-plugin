@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import io.jenkins.plugins.casc.ConfigurationContext;
@@ -8,12 +10,10 @@ import io.jenkins.plugins.casc.model.Mapping;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 @Extension(optional = true, ordinal = 2)
 @Restricted(NoExternalUse.class)
-public class GlobalMatrixAuthorizationStrategyConfigurator extends MatrixAuthorizationStrategyConfigurator<GlobalMatrixAuthorizationStrategy> {
+public class GlobalMatrixAuthorizationStrategyConfigurator
+        extends MatrixAuthorizationStrategyConfigurator<GlobalMatrixAuthorizationStrategy> {
 
     @Override
     @NonNull

@@ -23,6 +23,7 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
@@ -40,14 +41,6 @@ import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.AuthorizationStrategy;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
-import jenkins.model.Jenkins;
-import jenkins.model.NodeListener;
-import jenkins.model.Nodes;
-import jenkins.util.SystemProperties;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-
-import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -57,7 +50,12 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
+import jenkins.model.Jenkins;
+import jenkins.model.NodeListener;
+import jenkins.model.Nodes;
+import jenkins.util.SystemProperties;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 /**
  * Warn when any configuration contains ambiguous permission assignments.
@@ -93,7 +91,7 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -127,12 +125,14 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
 
         @Override
         public boolean hasAmbiguousEntries() {
-            return Jenkins.get().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy && activeNodes.values().stream().anyMatch(v -> v);
+            return Jenkins.get().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy
+                    && activeNodes.values().stream().anyMatch(v -> v);
         }
 
         public static void record(Node node) {
             if (!DISABLE) {
-                boolean value = AmbiguityMonitor.hasAmbiguousEntries(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
+                boolean value = AmbiguityMonitor.hasAmbiguousEntries(
+                        node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
                 LOGGER.log(Level.FINE, () -> "Recording node " + node + " as having ambiguous entries? " + value);
                 ExtensionList.lookupSingleton(NodeContributor.class).activeNodes.put(node.getNodeName(), value);
             }
@@ -167,12 +167,14 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
 
         @Override
         public boolean hasAmbiguousEntries() {
-            return Jenkins.get().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy && activeJobs.values().stream().anyMatch(v -> v);
+            return Jenkins.get().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy
+                    && activeJobs.values().stream().anyMatch(v -> v);
         }
 
         public static void update(Job<?, ?> job) {
             if (!DISABLE) {
-                boolean value = AmbiguityMonitor.hasAmbiguousEntries(job.getProperty(AuthorizationMatrixProperty.class));
+                boolean value =
+                        AmbiguityMonitor.hasAmbiguousEntries(job.getProperty(AuthorizationMatrixProperty.class));
                 LOGGER.log(Level.FINE, () -> "Recording job " + job + " as having ambiguous entries? " + value);
                 ExtensionList.lookupSingleton(JobContributor.class).activeJobs.put(job.getFullName(), value);
             }
@@ -187,7 +189,13 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
 
         // for Jelly
         public List<Item> getEntries() {
-            return activeJobs.entrySet().stream().filter(Map.Entry::getValue).map(Map.Entry::getKey).map(v -> Jenkins.get().getItemByFullName(v)).filter(Objects::nonNull).sorted(Comparator.comparing(Item::getFullDisplayName, String.CASE_INSENSITIVE_ORDER)).collect(Collectors.toList());
+            return activeJobs.entrySet().stream()
+                    .filter(Map.Entry::getValue)
+                    .map(Map.Entry::getKey)
+                    .map(v -> Jenkins.get().getItemByFullName(v))
+                    .filter(Objects::nonNull)
+                    .sorted(Comparator.comparing(Item::getFullDisplayName, String.CASE_INSENSITIVE_ORDER))
+                    .collect(Collectors.toList());
         }
 
         @Extension
@@ -213,7 +221,8 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
             public void onDeleted(Item item) {
                 if (!DISABLE) {
                     if (item instanceof Job) {
-                        // This needs special handling because strictly speaking, the configuration isn't updated to not be ambiguous
+                        // This needs special handling because strictly speaking, the configuration isn't updated to not
+                        // be ambiguous
                         remove(item.getFullName());
                     }
                 }
@@ -241,9 +250,13 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
 
                     // Cf. Nodes#persistNode, hacky but probably the best we can do
                     final String nodeName = file.getFile().getParentFile().getName();
-                    // Nodes is @Restricted but the Saveable we inform listeners about, so go through Jenkins#getNode instead
+                    // Nodes is @Restricted but the Saveable we inform listeners about, so go through Jenkins#getNode
+                    // instead
                     final Node node = Jenkins.get().getNode(nodeName);
-                    LOGGER.log(Level.FINER, () -> "Determined node name " + nodeName + " from file " + file + " and found node " + node);
+                    LOGGER.log(
+                            Level.FINER,
+                            () -> "Determined node name " + nodeName + " from file " + file + " and found node "
+                                    + node);
                     if (node != null) {
                         NodeContributor.record(node);
                     }
@@ -251,7 +264,7 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
                 if (o instanceof Job) {
                     LOGGER.log(Level.FINEST, () -> "Recording update to Saveable " + o + " stored in " + file);
 
-                    JobContributor.update((Job<?,?>) o);
+                    JobContributor.update((Job<?, ?>) o);
                 }
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, ex, () -> "Exception while updating status for " + o);
@@ -269,8 +282,9 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
         Jenkins.get().getNodes().forEach(NodeContributor::record);
     }
 
-    private static /* non-final for Groovy */ boolean DISABLE = SystemProperties.getBoolean(AmbiguityMonitor.class.getName() + ".DISABLE");
-    
+    private static /* non-final for Groovy */ boolean DISABLE =
+            SystemProperties.getBoolean(AmbiguityMonitor.class.getName() + ".DISABLE");
+
     // "isGatheringData" as "isEnabled" is already defined at the parent level
     public static boolean isGatheringData() {
         return !DISABLE;

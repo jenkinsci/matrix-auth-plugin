@@ -25,10 +25,9 @@ package org.jenkinsci.plugins.matrixauth;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import java.util.Objects;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-
-import java.util.Objects;
 
 /**
  * Combines sid with {@link AuthorizationType type}.
@@ -109,9 +108,6 @@ public class PermissionEntry {
 
     @Override
     public String toString() {
-        return "PermissionEntry{" +
-                "type=" + type +
-                ", sid='" + sid + "'" +
-                '}';
+        return "PermissionEntry{" + "type=" + type + ", sid='" + sid + "'" + '}';
     }
 }

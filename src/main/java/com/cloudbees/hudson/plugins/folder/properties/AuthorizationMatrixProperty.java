@@ -34,33 +34,11 @@ import hudson.model.Item;
 import hudson.model.User;
 import hudson.model.listeners.ItemListener;
 import hudson.security.AuthorizationStrategy;
-import jenkins.model.Jenkins;
-import org.acegisecurity.acls.sid.PrincipalSid;
-import org.jenkinsci.Symbol;
-import org.jenkinsci.plugins.matrixauth.AuthorizationPropertyDescriptor;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import hudson.security.SidACL;
-import org.jenkinsci.plugins.matrixauth.AbstractAuthorizationPropertyConverter;
-import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
 import hudson.util.FormValidation;
-import net.sf.json.JSONObject;
-import org.acegisecurity.acls.sid.Sid;
-import org.jenkinsci.plugins.matrixauth.AuthorizationType;
-import org.jenkinsci.plugins.matrixauth.PermissionEntry;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.DoNotUse;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
-import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.verb.GET;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,11 +49,33 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
+import org.acegisecurity.acls.sid.PrincipalSid;
+import org.acegisecurity.acls.sid.Sid;
+import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.matrixauth.AbstractAuthorizationPropertyConverter;
+import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
+import org.jenkinsci.plugins.matrixauth.AuthorizationPropertyDescriptor;
+import org.jenkinsci.plugins.matrixauth.AuthorizationType;
+import org.jenkinsci.plugins.matrixauth.PermissionEntry;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.verb.GET;
 
 /**
  * Holds ACL for {@link ProjectMatrixAuthorizationStrategy}.
  */
-public class AuthorizationMatrixProperty extends AbstractFolderProperty<AbstractFolder<?>> implements AuthorizationProperty {
+public class AuthorizationMatrixProperty extends AbstractFolderProperty<AbstractFolder<?>>
+        implements AuthorizationProperty {
 
     private final transient SidACL acl = new AclImpl();
 
@@ -95,15 +95,17 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     private InheritanceStrategy inheritanceStrategy = new InheritParentStrategy();
 
-
-    protected AuthorizationMatrixProperty() {
-    }
+    protected AuthorizationMatrixProperty() {}
 
     // TODO(3.0) How is this used?
     @Deprecated
-    public AuthorizationMatrixProperty(Map<Permission,? extends Set<String>> grantedPermissions) {
-        for (Map.Entry<Permission,? extends Set<String>> e : grantedPermissions.entrySet()) {
-            this.grantedPermissions.put(e.getKey(), e.getValue().stream().map(sid -> new PermissionEntry(AuthorizationType.EITHER, sid)).collect(Collectors.toSet()));
+    public AuthorizationMatrixProperty(Map<Permission, ? extends Set<String>> grantedPermissions) {
+        for (Map.Entry<Permission, ? extends Set<String>> e : grantedPermissions.entrySet()) {
+            this.grantedPermissions.put(
+                    e.getKey(),
+                    e.getValue().stream()
+                            .map(sid -> new PermissionEntry(AuthorizationType.EITHER, sid))
+                            .collect(Collectors.toSet()));
         }
     }
 
@@ -143,7 +145,8 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     @Extension(optional = true)
     @Symbol("authorizationMatrix")
-    public static class DescriptorImpl extends AbstractFolderPropertyDescriptor implements AuthorizationPropertyDescriptor<AuthorizationMatrixProperty> {
+    public static class DescriptorImpl extends AbstractFolderPropertyDescriptor
+            implements AuthorizationPropertyDescriptor<AuthorizationMatrixProperty> {
 
         @Override
         public AuthorizationMatrixProperty create() {
@@ -172,8 +175,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     private final class AclImpl extends SidACL {
-        @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL",
-                justification = "Because that is the way this SPI works")
+        @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL", justification = "Because that is the way this SPI works")
         protected Boolean hasPermission(Sid sid, Permission p) {
             if (AuthorizationMatrixProperty.this.hasPermission(toString(sid), p, sid instanceof PrincipalSid))
                 return true;
@@ -200,7 +202,8 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
      */
     @Restricted(DoNotUse.class)
     @SuppressWarnings("unused")
-    public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
+    public static final class ConverterImpl
+            extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }
@@ -221,7 +224,8 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         public void onCreated(Item item) {
             AuthorizationStrategy authorizationStrategy = Jenkins.get().getAuthorizationStrategy();
             if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
-                ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
+                ProjectMatrixAuthorizationStrategy strategy =
+                        (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
 
                 if (item instanceof AbstractFolder) {
                     AbstractFolder<?> folder = (AbstractFolder<?>) item;
@@ -234,10 +238,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                     User current = User.current();
                     String sid = current == null ? "anonymous" : current.getId();
 
-                    if (!strategy.getACL((AbstractItem) folder).hasPermission2(Jenkins.getAuthentication2(), Item.READ)) {
+                    if (!strategy.getACL((AbstractItem) folder)
+                            .hasPermission2(Jenkins.getAuthentication2(), Item.READ)) {
                         prop.add(Item.READ, PermissionEntry.user(sid));
                     }
-                    if (!strategy.getACL((AbstractItem) folder).hasPermission2(Jenkins.getAuthentication2(), Item.CONFIGURE)) {
+                    if (!strategy.getACL((AbstractItem) folder)
+                            .hasPermission2(Jenkins.getAuthentication2(), Item.CONFIGURE)) {
                         prop.add(Item.CONFIGURE, PermissionEntry.user(sid));
                     }
                     if (prop.getGrantedPermissionEntries().size() > 0) {
@@ -248,7 +254,10 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
                                 folder.save();
                             }
                         } catch (IOException ex) {
-                            LOGGER.log(Level.WARNING, "Failed to grant creator permissions on folder " + item.getFullName(), ex);
+                            LOGGER.log(
+                                    Level.WARNING,
+                                    "Failed to grant creator permissions on folder " + item.getFullName(),
+                                    ex);
                         }
                     }
                 }

@@ -33,11 +33,6 @@ import hudson.model.Saveable;
 import hudson.model.listeners.ItemListener;
 import hudson.model.listeners.SaveableListener;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
-import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.matrixauth.AmbiguityMonitor;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -47,6 +42,10 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.matrixauth.AmbiguityMonitor;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 @Restricted(NoExternalUse.class)
 @Extension(optional = true)
@@ -57,12 +56,14 @@ public class FolderContributor implements AmbiguityMonitor.Contributor {
 
     @Override
     public boolean hasAmbiguousEntries() {
-        return Jenkins.get().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy && activeFolders.values().stream().anyMatch(v -> v);
+        return Jenkins.get().getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy
+                && activeFolders.values().stream().anyMatch(v -> v);
     }
 
     public static void record(final AbstractFolder<?> folder) {
         if (AmbiguityMonitor.isGatheringData()) {
-            final boolean value = AmbiguityMonitor.hasAmbiguousEntries(folder.getProperties().get(AuthorizationMatrixProperty.class));
+            final boolean value =
+                    AmbiguityMonitor.hasAmbiguousEntries(folder.getProperties().get(AuthorizationMatrixProperty.class));
             LOGGER.log(Level.FINE, () -> "Recording folder " + folder + " as having ambiguous entries? " + value);
             ExtensionList.lookupSingleton(FolderContributor.class).activeFolders.put(folder.getFullName(), value);
         }
@@ -77,7 +78,13 @@ public class FolderContributor implements AmbiguityMonitor.Contributor {
 
     // for Jelly
     public List<Item> getEntries() {
-        return activeFolders.entrySet().stream().filter(Map.Entry::getValue).map(Map.Entry::getKey).map(v -> Jenkins.get().getItemByFullName(v)).filter(Objects::nonNull).sorted(Comparator.comparing(Item::getFullDisplayName, String.CASE_INSENSITIVE_ORDER)).collect(Collectors.toList());
+        return activeFolders.entrySet().stream()
+                .filter(Map.Entry::getValue)
+                .map(Map.Entry::getKey)
+                .map(v -> Jenkins.get().getItemByFullName(v))
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(Item::getFullDisplayName, String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList());
     }
 
     @Extension(optional = true)
@@ -104,7 +111,8 @@ public class FolderContributor implements AmbiguityMonitor.Contributor {
             if (AmbiguityMonitor.isGatheringData()) {
                 if (item instanceof AbstractFolder<?>) {
                     AbstractFolder<?> folder = (AbstractFolder<?>) item;
-                    // This needs special handling because strictly speaking, the configuration isn't updated to not be ambiguous
+                    // This needs special handling because strictly speaking, the configuration isn't updated to not be
+                    // ambiguous
                     remove(folder.getFullName());
                 }
             }

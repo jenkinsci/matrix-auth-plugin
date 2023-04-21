@@ -30,9 +30,6 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import hudson.security.Permission;
 import hudson.util.RobustReflectionConverter;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
@@ -41,12 +38,14 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 @Restricted(NoExternalUse.class)
 public abstract class AbstractAuthorizationContainerConverter<T extends AuthorizationContainer> implements Converter {
-    abstract public boolean canConvert(Class type);
+    public abstract boolean canConvert(Class type);
 
-    abstract public T create();
+    public abstract T create();
 
     @SuppressWarnings("unchecked")
     public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
@@ -74,14 +73,15 @@ public abstract class AbstractAuthorizationContainerConverter<T extends Authoriz
         }
     }
 
-    protected void unmarshalContainer(T container, HierarchicalStreamReader reader, final UnmarshallingContext context) {
+    protected void unmarshalContainer(
+            T container, HierarchicalStreamReader reader, final UnmarshallingContext context) {
         while (reader.hasMoreChildren()) {
             reader.moveDown();
             try {
                 container.add(reader.getValue());
             } catch (IllegalArgumentException ex) {
                 Logger.getLogger(AbstractAuthorizationContainerConverter.class.getName())
-                        .log(Level.WARNING,"Skipping a non-existent permission", ex);
+                        .log(Level.WARNING, "Skipping a non-existent permission", ex);
                 RobustReflectionConverter.addErrorInContext(context, ex);
             }
             reader.moveUp();

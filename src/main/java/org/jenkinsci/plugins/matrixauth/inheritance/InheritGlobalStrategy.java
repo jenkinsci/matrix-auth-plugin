@@ -23,6 +23,8 @@
  */
 package org.jenkinsci.plugins.matrixauth.inheritance;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.security.ACL;
@@ -31,25 +33,23 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.springframework.security.core.Authentication;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 /**
  * Strategy that inherits only the global ACL -- parent, grandparent, etc. ACLs are not inherited.
  */
 public class InheritGlobalStrategy extends InheritanceStrategy {
 
     @DataBoundConstructor
-    public InheritGlobalStrategy() {
-
-    }
+    public InheritGlobalStrategy() {}
 
     @Override
-    protected boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
+    protected boolean hasPermission(
+            @NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
         if (a.equals(ACL.SYSTEM2)) {
             return true;
         }
-        if (isParentReadPermissionRequired() && parent != null && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
+        if (isParentReadPermissionRequired()
+                && parent != null
+                && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
             /*
              * We need special handling for Read/Discover permissions to prevent SECURITY-2180:
              * Item/Read is expected to only be effective if it is granted on every ancestor, similar to how permissions
