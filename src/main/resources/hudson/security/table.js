@@ -175,7 +175,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
         if(ambiguousPermissionInputs[i].type == "checkbox") {
           unambiguousPermissionInputs[i].checked |= ambiguousPermissionInputs[i].checked;
         }
-        newNameElement.classList.add(' highlight-entry');
+        newNameElement.classList.add('highlight-entry');
       }
 
       // remove this row
