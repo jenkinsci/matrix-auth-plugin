@@ -23,6 +23,8 @@
  */
 package org.jenkinsci.plugins.matrixauth.inheritance;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.AbstractItem;
 import hudson.model.Item;
@@ -32,9 +34,6 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.springframework.security.core.Authentication;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 /**
  * Strategy that inherits the ACL from the parent.
  *
@@ -43,16 +42,17 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class InheritParentStrategy extends InheritanceStrategy {
 
     @DataBoundConstructor
-    public InheritParentStrategy() {
-
-    }
+    public InheritParentStrategy() {}
 
     @Override
-    protected boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
+    protected boolean hasPermission(
+            @NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
         if (a.equals(ACL.SYSTEM2)) {
             return true;
         }
-        if (isParentReadPermissionRequired() && parent != null && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
+        if (isParentReadPermissionRequired()
+                && parent != null
+                && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
             /*
              * If we have an item parent, only grant Item/Read and Item/Discover if it's granted on the parent.
              * In this case, it doesn't even matter whether it's explicitly granted on the child.

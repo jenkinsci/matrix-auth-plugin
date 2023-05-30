@@ -28,22 +28,21 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.ExtendedHierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 @Restricted(NoExternalUse.class)
-public abstract class AbstractAuthorizationPropertyConverter<T extends AuthorizationProperty> extends AbstractAuthorizationContainerConverter<T> {
-    abstract public boolean canConvert(Class type);
+public abstract class AbstractAuthorizationPropertyConverter<T extends AuthorizationProperty>
+        extends AbstractAuthorizationContainerConverter<T> {
+    public abstract boolean canConvert(Class type);
 
-    abstract public T create();
+    public abstract T create();
 
-    public void marshal(Object source, HierarchicalStreamWriter writer,
-                        MarshallingContext context) {
+    public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
         AuthorizationProperty authorizationProperty = (AuthorizationProperty) source;
 
         InheritanceStrategy strategy = authorizationProperty.getInheritanceStrategy();
@@ -60,7 +59,7 @@ public abstract class AbstractAuthorizationPropertyConverter<T extends Authoriza
     protected void unmarshalContainer(T container, HierarchicalStreamReader reader, UnmarshallingContext context) {
         String prop = ((ExtendedHierarchicalStreamReader) reader).peekNextChild();
 
-        if (prop!=null && prop.equals("useProjectSecurity")) {
+        if (prop != null && prop.equals("useProjectSecurity")) {
             reader.moveDown();
             reader.getValue(); // we used to use this but not any more.
             reader.moveUp();
@@ -74,12 +73,13 @@ public abstract class AbstractAuthorizationPropertyConverter<T extends Authoriza
             }
             reader.moveUp();
         }
-        
+
         if ("inheritanceStrategy".equals(prop)) {
             reader.moveDown();
             String clazz = reader.getAttribute("class");
             try {
-                container.setInheritanceStrategy((InheritanceStrategy) Class.forName(clazz).newInstance());
+                container.setInheritanceStrategy(
+                        (InheritanceStrategy) Class.forName(clazz).newInstance());
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Failed to restore inheritance strategy", e);
             }
