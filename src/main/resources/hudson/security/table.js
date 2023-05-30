@@ -40,7 +40,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
 
     var tooltipAttributeName = getTooltipAttributeName();
 
-    findElementsBySelector(copy, ".stop a").each(function(item) {
+    findElementsBySelector(copy, ".stop a").forEach(function(item) {
       let oldTitle = item.getAttribute("title");
       if (oldTitle !== null) {
         item.setAttribute("title", oldTitle.replace("__SID__", name).replace("__TYPE__", typeLabel));
@@ -48,7 +48,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
       item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
     });
 
-    findElementsBySelector(copy, "input[type=checkbox]").each(function(item) {
+    findElementsBySelector(copy, "input[type=checkbox]").forEach(function(item) {
       const tooltip = item.getAttribute(tooltipAttributeName);
       if (tooltip) {
         item.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
@@ -137,7 +137,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
     var name = tr.getAttribute('name');
 
     var newName = name.replace('[EITHER:', '[USER:'); // migrate_user behavior
-    if (this.hasClassName('migrate_group')) {
+    if (this.classList.contains('migrate_group')) {
       newName = name.replace('[EITHER:', '[GROUP:');
     }
 
@@ -175,7 +175,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
         if(ambiguousPermissionInputs[i].type == "checkbox") {
           unambiguousPermissionInputs[i].checked |= ambiguousPermissionInputs[i].checked;
         }
-        newNameElement.className += ' highlight-entry';
+        newNameElement.classList.add('highlight-entry');
       }
 
       // remove this row
@@ -222,7 +222,7 @@ function getTooltipAttributeName() {
  */
 Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   var table = findAncestor(e, "TABLE");
-  if (table.hasClassName('read-only')) {
+  if (table.classList.contains('read-only')) {
     // if this is a read-only UI (ExtendedRead / SystemRead), do not enable checkboxes
     return;
   }
