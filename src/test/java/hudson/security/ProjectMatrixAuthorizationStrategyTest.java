@@ -1,10 +1,6 @@
 package hudson.security;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlOption;
-import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
@@ -13,6 +9,10 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import jenkins.model.Jenkins;
+import org.htmlunit.html.HtmlElement;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlOption;
+import org.htmlunit.html.HtmlSelect;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.junit.Assert;
 import org.junit.Rule;

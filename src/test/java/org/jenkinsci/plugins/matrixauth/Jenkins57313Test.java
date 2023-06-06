@@ -1,8 +1,8 @@
 package org.jenkinsci.plugins.matrixauth;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
+import org.htmlunit.html.HtmlPage;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
