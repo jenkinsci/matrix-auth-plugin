@@ -99,7 +99,7 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     @NonNull
     public Set<String> getGroups() {
         Set<String> r = new TreeSet<>(new IdStrategyComparator());
-        try (ACLContext ctx = ACL.as2(ACL.SYSTEM2)) {
+        try (ACLContext ignored = ACL.as2(ACL.SYSTEM2)) {
             r.addAll(super.getGroups());
             for (Job<?, ?> j : Jenkins.get().getAllItems(Job.class)) {
                 AuthorizationMatrixProperty jobProperty = j.getProperty(AuthorizationMatrixProperty.class);

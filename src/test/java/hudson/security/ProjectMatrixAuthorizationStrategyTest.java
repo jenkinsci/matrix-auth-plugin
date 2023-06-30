@@ -1,18 +1,27 @@
 package hudson.security;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlOption;
 import com.gargoylesoftware.htmlunit.html.HtmlSelect;
+import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
 import hudson.util.VersionNumber;
+import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.matrixauth.PermissionEntry;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -265,6 +274,27 @@ public class ProjectMatrixAuthorizationStrategyTest {
             Assert.fail();
         } catch (Exception expected) {
             // expected
+        }
+    }
+
+    @Test
+    public void getGroupsAlwaysEverything() throws IOException {
+        HudsonPrivateSecurityRealm securityRealm = new HudsonPrivateSecurityRealm(false, false, null);
+        r.jenkins.setSecurityRealm(securityRealm);
+
+        ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
+        authorizationStrategy.add(Jenkins.READ, PermissionEntry.group("group1"));
+        r.jenkins.setAuthorizationStrategy(authorizationStrategy);
+
+        final Folder f = r.jenkins.createProject(Folder.class, "F");
+        final FreeStyleProject job = f.createProject(FreeStyleProject.class, "job");
+        job.addProperty(new AuthorizationMatrixProperty(
+                Map.of(Item.READ, Set.of(PermissionEntry.group("group2"))), new InheritParentStrategy()));
+
+        assertThat(authorizationStrategy.getGroups(), containsInAnyOrder("group1", "group2"));
+
+        try (ACLContext ignored = ACL.as2(Jenkins.ANONYMOUS2)) {
+            assertThat(authorizationStrategy.getGroups(), containsInAnyOrder("group1", "group2"));
         }
     }
 }
