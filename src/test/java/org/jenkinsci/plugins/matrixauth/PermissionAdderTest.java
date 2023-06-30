@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.matrixauth;
 
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import hudson.model.User;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
@@ -8,6 +7,7 @@ import hudson.security.pages.SignupPage;
 import java.util.Collections;
 import java.util.Objects;
 import jenkins.model.Jenkins;
+import org.htmlunit.ElementNotFoundException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

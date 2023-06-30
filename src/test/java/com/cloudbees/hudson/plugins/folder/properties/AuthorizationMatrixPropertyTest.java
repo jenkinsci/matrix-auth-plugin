@@ -27,7 +27,6 @@ package com.cloudbees.hudson.plugins.folder.properties;
 import static org.junit.Assert.*;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import hudson.model.FreeStyleProject;
 import hudson.model.Hudson;
 import hudson.model.Item;
@@ -40,6 +39,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.logging.Level;
 import jenkins.model.Jenkins;
+import org.htmlunit.FailingHttpStatusCodeException;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;

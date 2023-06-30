@@ -1,7 +1,6 @@
 package org.jenkinsci.plugins.matrixauth;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
@@ -12,6 +11,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Objects;
 import jenkins.model.Jenkins;
+import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.junit.Assert;
 import org.junit.Before;
