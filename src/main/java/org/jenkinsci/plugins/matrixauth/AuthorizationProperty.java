@@ -28,18 +28,19 @@ import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.security.Permission;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import jenkins.model.Jenkins;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
+import org.jenkinsci.plugins.matrixauth.integrations.PermissionFinder;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -88,49 +89,58 @@ public interface AuthorizationProperty extends AuthorizationContainer {
         return getInheritanceStrategy() instanceof NonInheritingStrategy;
     }
 
+    private static Permission findPermission(String value) {
+        final Permission permission = Permission.fromId(value);
+        if (permission != null) {
+            return permission;
+        }
+        return PermissionFinder.findPermission(value);
+    }
+
     default void setEntries(List<PropertyEntry> entries) {
         for (PropertyEntry entry : entries) {
             if (entry instanceof JobDslGroup) {
                 entry.getPermissions()
-                        .forEach(permission -> add(
-                                getPermission(permission, permission, entry.getName()),
-                                PermissionEntry.group(entry.getName())));
+                        .forEach(permission -> add(findPermission(permission), PermissionEntry.group(entry.getName())));
             } else if (entry instanceof JobDslUser) {
                 entry.getPermissions()
-                        .forEach(permission -> add(
-                                getPermission(permission, permission, entry.getName()),
-                                PermissionEntry.user(entry.getName())));
+                        .forEach(permission -> add(findPermission(permission), PermissionEntry.user(entry.getName())));
             } else {
                 entry.getPermissions()
                         .forEach(permission -> add(
-                                getPermission(permission, permission, entry.getName()),
+                                findPermission(permission),
                                 new PermissionEntry(AuthorizationType.EITHER, entry.getName())));
             }
         }
     }
 
     default List<PropertyEntry> getEntries() {
-        final Map<PermissionEntry, List<String>> mapping = new HashMap<>();
-        getGrantedPermissionEntries().forEach((permission, value) -> value.forEach(sid -> {
-            switch (sid.getType()) {
-                case USER:
-                case GROUP:
-                    mapping.computeIfAbsent(sid, unused -> new ArrayList<>()).add(permission.getId());
-                    break;
-                default:
-                    // TODO Figure out what to do with this. New type for ambiguous permissions?
-            }
-        }));
-        return mapping.entrySet().stream().map(e -> {
-            final PermissionEntry key = e.getKey();
-            if (key.getType() == AuthorizationType.USER) {
-                return new JobDslUser(key.getSid(), e.getValue());
-            }
-            if (key.getType() == AuthorizationType.GROUP) {
-                return new JobDslGroup(key.getSid(), e.getValue());
-            }
-            return null;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        final Map<PermissionEntry, SortedSet<String>> mapping = new HashMap<>();
+        getGrantedPermissionEntries()
+                .forEach((permission, value) -> value.forEach(sid -> {
+                    switch (sid.getType()) {
+                        case USER:
+                        case GROUP:
+                            mapping.computeIfAbsent(sid, unused -> new TreeSet<>())
+                                    .add(permission.group.getId() + "/" + permission.name);
+                            break;
+                        default:
+                            // TODO Figure out what to do with this. New type for ambiguous permissions?
+                    }
+                }));
+        return mapping.entrySet().stream()
+                .map(e -> {
+                    final PermissionEntry key = e.getKey();
+                    if (key.getType() == AuthorizationType.USER) {
+                        return new JobDslUser(key.getSid(), new ArrayList<>(e.getValue()));
+                    }
+                    if (key.getType() == AuthorizationType.GROUP) {
+                        return new JobDslGroup(key.getSid(), new ArrayList<>(e.getValue()));
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     abstract class PropertyEntry implements Describable<PropertyEntry> {
@@ -185,6 +195,7 @@ public interface AuthorizationProperty extends AuthorizationContainer {
         public JobDslGroup(String name, List<String> permissions) {
             super(name, permissions);
         }
+
         @Extension
         @Symbol("group")
         public static class DescriptorImpl extends Descriptor<PropertyEntry> {}
