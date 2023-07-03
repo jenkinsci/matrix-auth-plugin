@@ -111,10 +111,8 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
 
     @DataBoundConstructor // JENKINS-49199: Used for job-dsl
     @Restricted(NoExternalUse.class)
-    public AuthorizationMatrixProperty(List<String> permissions) {
-        for (String permission : permissions) {
-            add(permission);
-        }
+    public AuthorizationMatrixProperty(List<PropertyEntry> entries) {
+        setEntries(entries);
     }
 
     @Override

@@ -135,12 +135,8 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
     }
 
     @DataBoundConstructor
-    public AuthorizationMatrixProperty(List<String> permissions) {
-        for (String str : permissions) {
-            if (str != null) {
-                this.add(str);
-            }
-        }
+    public AuthorizationMatrixProperty(List<PropertyEntry> entries) {
+        setEntries(entries);
     }
 
     /**
