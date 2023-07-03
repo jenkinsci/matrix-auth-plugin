@@ -1,8 +1,8 @@
 package org.jenkinsci.plugins.matrixauth;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
+import org.htmlunit.html.HtmlPage;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,7 +20,8 @@ public class Jenkins57313Test {
         GlobalMatrixAuthorizationStrategy authorizationStrategy = new GlobalMatrixAuthorizationStrategy();
         authorizationStrategy.add(Jenkins.ADMINISTER, "anonymous");
         j.jenkins.setAuthorizationStrategy(authorizationStrategy);
-        HtmlPage page = j.createWebClient().goTo(authorizationStrategy.getDescriptor().getDescriptorUrl() + "/checkName?value=[USER:alice]");
+        HtmlPage page = j.createWebClient()
+                .goTo(authorizationStrategy.getDescriptor().getDescriptorUrl() + "/checkName?value=[USER:alice]");
         Assert.assertEquals(200, page.getWebResponse().getStatusCode());
         String responseText = page.getWebResponse().getContentAsString();
         Assert.assertTrue(responseText.contains("alice"));

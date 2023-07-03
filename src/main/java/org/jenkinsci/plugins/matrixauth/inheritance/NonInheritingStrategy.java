@@ -23,6 +23,8 @@
  */
 package org.jenkinsci.plugins.matrixauth.inheritance;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.security.ACL;
@@ -32,20 +34,16 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.springframework.security.core.Authentication;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 /**
  * Strategy that disables inheritance except for the globally defined Administer permission.
  */
 public class NonInheritingStrategy extends InheritanceStrategy {
 
     @DataBoundConstructor
-    public NonInheritingStrategy() {
+    public NonInheritingStrategy() {}
 
-    }
-
-    protected boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
+    protected boolean hasPermission(
+            @NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root) {
         if (a.equals(ACL.SYSTEM2)) {
             return true;
         }
@@ -61,7 +59,9 @@ public class NonInheritingStrategy extends InheritanceStrategy {
              */
             return true;
         }
-        if (isParentReadPermissionRequired() && parent != null && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
+        if (isParentReadPermissionRequired()
+                && parent != null
+                && (Item.READ.equals(permission) || Item.DISCOVER.equals(permission))) {
             /*
              * We are not inheriting permissions from the parent, but we only grant Read permission if the parent
              * also has Read permission.

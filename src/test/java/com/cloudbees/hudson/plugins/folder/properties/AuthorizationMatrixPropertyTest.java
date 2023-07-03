@@ -24,8 +24,9 @@
 
 package com.cloudbees.hudson.plugins.folder.properties;
 
+import static org.junit.Assert.*;
+
 import com.cloudbees.hudson.plugins.folder.Folder;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import hudson.model.FreeStyleProject;
 import hudson.model.Hudson;
 import hudson.model.Item;
@@ -34,19 +35,16 @@ import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
-
 import java.util.Collections;
 import java.util.Objects;
 import java.util.logging.Level;
-
 import jenkins.model.Jenkins;
-import static org.junit.Assert.*;
-
+import org.htmlunit.FailingHttpStatusCodeException;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 import org.jenkinsci.plugins.matrixauth.PermissionEntry;
-import org.junit.Assert;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -54,50 +52,65 @@ import org.jvnet.hudson.test.LoggerRule;
 
 public class AuthorizationMatrixPropertyTest {
 
-    @Rule public JenkinsRule r = new JenkinsRule();
+    @Rule
+    public JenkinsRule r = new JenkinsRule();
 
-    @Rule public LoggerRule l = new LoggerRule();
+    @Rule
+    public LoggerRule l = new LoggerRule();
 
     @Test
     public void ensureCreatorHasPermissions() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
-        realm.createAccount("alice","alice");
-        realm.createAccount("bob","bob");
+        realm.createAccount("alice", "alice");
+        realm.createAccount("bob", "bob");
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
         authorizationStrategy.add(Item.CREATE, PermissionEntry.user("alice"));
         authorizationStrategy.add(Jenkins.READ, PermissionEntry.user("alice"));
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
-        
+
         Folder job;
         try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
             job = r.createProject(Folder.class);
         }
 
         Assert.assertNotNull(job.getProperties().get(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.READ));
+        Assert.assertFalse(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("bob", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.READ));
+        Assert.assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.CONFIGURE));
     }
 
-    @Test public void basics1() throws Exception {
+    @Test
+    public void basics1() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
-        realm.createAccount("alice","alice");
-        realm.createAccount("bob","bob");
+        realm.createAccount("alice", "alice");
+        realm.createAccount("bob", "bob");
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
         r.jenkins.setAuthorizationStrategy(as);
-        as.add(Hudson.READ,PermissionEntry.group("authenticated"));
+        as.add(Hudson.READ, PermissionEntry.group("authenticated"));
 
         Folder f = r.jenkins.createProject(Folder.class, "d");
         AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
 
         assertTrue(amp.getInheritanceStrategy() instanceof InheritParentStrategy);
 
-        amp.add(Item.READ,PermissionEntry.user("alice"));
-        amp.add(Item.BUILD,PermissionEntry.user("alice"));
+        amp.add(Item.READ, PermissionEntry.user("alice"));
+        amp.add(Item.BUILD, PermissionEntry.user("alice"));
         f.getProperties().add(amp);
 
         final FreeStyleProject foo = f.createProject(FreeStyleProject.class, "foo");
@@ -111,7 +124,7 @@ public class AuthorizationMatrixPropertyTest {
         }
 
         wc = r.createWebClient().login("alice");
-        wc.getPage(foo);    // this should succeed
+        wc.getPage(foo); // this should succeed
 
         // and build permission should be set, too
         wc.executeOnServer(() -> {
@@ -120,16 +133,19 @@ public class AuthorizationMatrixPropertyTest {
                 foo.checkPermission(Item.DELETE);
                 fail("access should be denied");
             } catch (RuntimeException x) {
-                assertEquals(hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"), x.getMessage());
+                assertEquals(
+                        hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"),
+                        x.getMessage());
             }
             return null;
         });
     }
 
-    @Test public void disabling_permission_inheritance_removes_global_permissions() throws Exception {
+    @Test
+    public void disabling_permission_inheritance_removes_global_permissions() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
-        realm.createAccount("alice","alice");
-        realm.createAccount("bob","bob");
+        realm.createAccount("alice", "alice");
+        realm.createAccount("bob", "bob");
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
@@ -139,7 +155,7 @@ public class AuthorizationMatrixPropertyTest {
         Folder f = r.jenkins.createProject(Folder.class, "d");
         AuthorizationMatrixProperty amp = new AuthorizationMatrixProperty();
         amp.setInheritanceStrategy(new NonInheritingStrategy());
-        amp.add(Item.READ,PermissionEntry.user("alice"));
+        amp.add(Item.READ, PermissionEntry.user("alice"));
         f.getProperties().add(amp);
 
         final FreeStyleProject foo = f.createProject(FreeStyleProject.class, "foo");
@@ -153,7 +169,7 @@ public class AuthorizationMatrixPropertyTest {
         }
 
         wc = r.createWebClient().login("alice");
-        wc.getPage(foo);    // this should succeed
+        wc.getPage(foo); // this should succeed
     }
 
     @Test

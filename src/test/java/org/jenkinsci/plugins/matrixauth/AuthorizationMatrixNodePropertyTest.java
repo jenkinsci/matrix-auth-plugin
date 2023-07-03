@@ -31,11 +31,9 @@ import hudson.security.ACL;
 import hudson.security.ACLContext;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
+import java.util.Collections;
 import java.util.Objects;
 import jenkins.model.Jenkins;
-
-import java.util.Collections;
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,8 +47,8 @@ public class AuthorizationMatrixNodePropertyTest {
     @Test
     public void ensureCreatorHasPermissions() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
-        realm.createAccount("alice","alice");
-        realm.createAccount("bob","bob");
+        realm.createAccount("alice", "alice");
+        realm.createAccount("bob", "bob");
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
@@ -66,8 +64,16 @@ public class AuthorizationMatrixNodePropertyTest {
         }
 
         Assert.assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
-        Assert.assertTrue(node.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Computer.CONFIGURE));
-        Assert.assertFalse(node.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Computer.CONFIGURE));
+        Assert.assertTrue(node.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Computer.CONFIGURE));
+        Assert.assertFalse(node.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("bob", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Computer.CONFIGURE));
     }
 
     // createSlave uses CommandLauncher, which requires RUN_SCRIPTS since 2.73.2

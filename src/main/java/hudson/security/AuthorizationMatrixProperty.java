@@ -1,18 +1,18 @@
 /*
  * The MIT License
- * 
+ *
  * Copyright (c) 2004-2010, Sun Microsystems, Inc., Kohsuke Kawaguchi, Yahoo! Inc., Peter Hayes, Tom Huybrechts
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,6 +23,7 @@
  */
 package hudson.security;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Item;
@@ -32,7 +33,6 @@ import hudson.model.JobPropertyDescriptor;
 import hudson.model.User;
 import hudson.model.listeners.ItemListener;
 import hudson.util.FormValidation;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,8 +48,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.acls.sid.PrincipalSid;
@@ -57,15 +55,15 @@ import org.acegisecurity.acls.sid.Sid;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.matrixauth.AbstractAuthorizationPropertyConverter;
 import org.jenkinsci.plugins.matrixauth.AmbiguityMonitor;
-import org.jenkinsci.plugins.matrixauth.AuthorizationPropertyDescriptor;
 import org.jenkinsci.plugins.matrixauth.AuthorizationProperty;
+import org.jenkinsci.plugins.matrixauth.AuthorizationPropertyDescriptor;
 import org.jenkinsci.plugins.matrixauth.AuthorizationType;
 import org.jenkinsci.plugins.matrixauth.PermissionEntry;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
-import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -103,14 +101,14 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
     private InheritanceStrategy inheritanceStrategy = new InheritParentStrategy();
 
-    private AuthorizationMatrixProperty() {
-    }
+    private AuthorizationMatrixProperty() {}
 
     /**
      * @since 3.0
      */
     // TODO(3.0) is this even needed? Why is the no-arg constructor private?
-    public AuthorizationMatrixProperty(Map<Permission, Set<PermissionEntry>> grantedPermissions, InheritanceStrategy inheritanceStrategy) {
+    public AuthorizationMatrixProperty(
+            Map<Permission, Set<PermissionEntry>> grantedPermissions, InheritanceStrategy inheritanceStrategy) {
         this.inheritanceStrategy = inheritanceStrategy;
         grantedPermissions.forEach((key, value) -> {
             this.grantedPermissions.put(key, new HashSet<>(value));
@@ -127,8 +125,12 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
      */
     @Deprecated
     public AuthorizationMatrixProperty(Map<Permission, Set<String>> grantedPermissions) {
-        for (Map.Entry<Permission,? extends Set<String>> e : grantedPermissions.entrySet()) {
-            this.grantedPermissions.put(e.getKey(), e.getValue().stream().map(sid -> new PermissionEntry(AuthorizationType.EITHER, sid)).collect(Collectors.toSet()));
+        for (Map.Entry<Permission, ? extends Set<String>> e : grantedPermissions.entrySet()) {
+            this.grantedPermissions.put(
+                    e.getKey(),
+                    e.getValue().stream()
+                            .map(sid -> new PermissionEntry(AuthorizationType.EITHER, sid))
+                            .collect(Collectors.toSet()));
         }
     }
 
@@ -182,7 +184,8 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
     @Extension
     @Symbol("authorizationMatrix")
-    public static class DescriptorImpl extends JobPropertyDescriptor implements AuthorizationPropertyDescriptor<AuthorizationMatrixProperty> {
+    public static class DescriptorImpl extends JobPropertyDescriptor
+            implements AuthorizationPropertyDescriptor<AuthorizationMatrixProperty> {
 
         @Override
         public AuthorizationMatrixProperty create() {
@@ -212,7 +215,8 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
 
     private final class AclImpl extends SidACL {
         @CheckForNull
-        @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL",
+        @SuppressFBWarnings(
+                value = "NP_BOOLEAN_RETURN_NULL",
                 justification = "As designed, implements a third state for the ternary logic")
         protected Boolean hasPermission(Sid sid, Permission p) {
             if (AuthorizationMatrixProperty.this.hasPermission(toString(sid), p, sid instanceof PrincipalSid)) {
@@ -247,7 +251,8 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
      */
     @Restricted(DoNotUse.class)
     @SuppressWarnings("unused")
-    public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
+    public static final class ConverterImpl
+            extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixProperty> {
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixProperty.class;
         }
@@ -267,7 +272,8 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         public void onCreated(Item item) {
             AuthorizationStrategy authorizationStrategy = Jenkins.get().getAuthorizationStrategy();
             if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
-                ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
+                ProjectMatrixAuthorizationStrategy strategy =
+                        (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
 
                 if (item instanceof Job) {
                     Job<?, ?> job = (Job<?, ?>) item;
@@ -294,7 +300,10 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
                                 job.save();
                             }
                         } catch (IOException ex) {
-                            LOGGER.log(Level.WARNING, "Failed to grant creator permissions on job " + item.getFullName(), ex);
+                            LOGGER.log(
+                                    Level.WARNING,
+                                    "Failed to grant creator permissions on job " + item.getFullName(),
+                                    ex);
                         }
                     }
                 }

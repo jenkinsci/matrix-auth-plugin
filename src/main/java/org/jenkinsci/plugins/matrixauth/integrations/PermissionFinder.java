@@ -23,6 +23,7 @@
  */
 package org.jenkinsci.plugins.matrixauth.integrations;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.security.Permission;
 import hudson.security.PermissionGroup;
 import java.util.List;
@@ -31,13 +32,11 @@ import java.util.regex.Pattern;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-
-
 /**
  * Implements lookup for {@link Permission}s.
  */
-// Imported from https://github.com/jenkinsci/configuration-as-code-plugin/blob/727c976d137461f146b301f302d1552ca81de75e/plugin/src/main/java/io/jenkins/plugins/casc/util/PermissionFinder.java
+// Imported from
+// https://github.com/jenkinsci/configuration-as-code-plugin/blob/727c976d137461f146b301f302d1552ca81de75e/plugin/src/main/java/io/jenkins/plugins/casc/util/PermissionFinder.java
 @Restricted(NoExternalUse.class)
 public class PermissionFinder {
 
@@ -64,14 +63,14 @@ public class PermissionFinder {
     public static String findPermissionId(String id) {
         List<PermissionGroup> pgs = PermissionGroup.getAll();
         Matcher m = PERMISSION_PATTERN.matcher(id);
-        if(m.matches()) {
+        if (m.matches()) {
             String owner = m.group(1);
             String name = m.group(2);
-            for(PermissionGroup pg : pgs) {
-                if(pg.owner.equals(Permission.class)) {
+            for (PermissionGroup pg : pgs) {
+                if (pg.owner.equals(Permission.class)) {
                     continue;
                 }
-                if(pg.getId().equals(owner)) {
+                if (pg.getId().equals(owner)) {
                     return pg.owner.getName() + "." + name;
                 }
             }

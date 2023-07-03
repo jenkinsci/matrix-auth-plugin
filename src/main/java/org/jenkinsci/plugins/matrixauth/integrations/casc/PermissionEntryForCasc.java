@@ -46,7 +46,8 @@ public class PermissionEntryForCasc implements Comparable<PermissionEntryForCasc
     }
 
     public void setAmbiguous(String ambiguous) {
-        LOGGER.warning(String.format("Setting deprecated attribute 'ambiguous' for '%s' use 'user' or 'group' instead", ambiguous));
+        LOGGER.warning(String.format(
+                "Setting deprecated attribute 'ambiguous' for '%s' use 'user' or 'group' instead", ambiguous));
         this.ambiguous = ambiguous;
     }
 
@@ -72,7 +73,9 @@ public class PermissionEntryForCasc implements Comparable<PermissionEntryForCasc
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PermissionEntryForCasc that = (PermissionEntryForCasc) o;
-        return Objects.equals(user, that.user) && Objects.equals(group, that.group) && permission.equals(that.permission);
+        return Objects.equals(user, that.user)
+                && Objects.equals(group, that.group)
+                && permission.equals(that.permission);
     }
 
     @Override

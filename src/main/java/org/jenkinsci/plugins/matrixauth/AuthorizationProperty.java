@@ -33,6 +33,7 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 public interface AuthorizationProperty extends AuthorizationContainer {
 
     void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy);
+
     InheritanceStrategy getInheritanceStrategy();
 
     /**
@@ -71,5 +72,4 @@ public interface AuthorizationProperty extends AuthorizationContainer {
     default boolean isBlocksInheritance() {
         return getInheritanceStrategy() instanceof NonInheritingStrategy;
     }
-
 }

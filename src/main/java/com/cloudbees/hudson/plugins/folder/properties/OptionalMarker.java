@@ -31,5 +31,4 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
  * @param <T> The class coming from the optional plugin
  */
 @Restricted(NoExternalUse.class)
-public interface OptionalMarker<T> {
-}
+public interface OptionalMarker<T> {}

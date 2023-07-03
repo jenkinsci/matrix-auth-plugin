@@ -26,6 +26,9 @@ package org.jenkinsci.plugins.matrixauth;
 import hudson.model.Descriptor;
 import hudson.security.Permission;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
@@ -33,34 +36,31 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.StaplerRequest;
 
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * Interface with default methods common to all authorization related property descriptors.
- * 
+ *
  */
 @Restricted(NoExternalUse.class)
-public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty> extends AuthorizationContainerDescriptor {
+public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty>
+        extends AuthorizationContainerDescriptor {
 
     Logger LOGGER = Logger.getLogger(AuthorizationPropertyDescriptor.class.getName());
 
     T create();
 
-    default T createNewInstance(StaplerRequest req, JSONObject formData, boolean hasOptionalWrap) throws Descriptor.FormException {
+    default T createNewInstance(StaplerRequest req, JSONObject formData, boolean hasOptionalWrap)
+            throws Descriptor.FormException {
         if (hasOptionalWrap) {
             formData = formData.getJSONObject("useProjectSecurity");
-            if (formData.isNullObject())
-                return null;
+            if (formData.isNullObject()) return null;
         }
 
         T property = create();
 
-        Map<String,Object> data = formData.getJSONObject("data");
+        Map<String, Object> data = formData.getJSONObject("data");
 
-
-        property.setInheritanceStrategy(req.bindJSON(InheritanceStrategy.class, formData.getJSONObject("inheritanceStrategy")));
+        property.setInheritanceStrategy(
+                req.bindJSON(InheritanceStrategy.class, formData.getJSONObject("inheritanceStrategy")));
 
         for (Map.Entry<String, Object> r : data.entrySet()) {
             String permissionEntryString = r.getKey();
@@ -73,7 +73,7 @@ public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty
             if (!(r.getValue() instanceof JSONObject)) {
                 throw new Descriptor.FormException("not an object: " + formData, "data");
             }
-            Map<String,Object> value = (JSONObject) r.getValue();
+            Map<String, Object> value = (JSONObject) r.getValue();
 
             for (Map.Entry<String, Object> e : value.entrySet()) {
                 if (!(e.getValue() instanceof Boolean)) {
@@ -82,7 +82,10 @@ public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty
                 if ((Boolean) e.getValue()) {
                     Permission p = Permission.fromId(e.getKey());
                     if (p == null) {
-                        LOGGER.log(Level.FINE, "Silently skip unknown permission \"{0}\" for sid:\"{1}\", type: {2}", new Object[]{e.getKey(), entry.getSid(), entry.getType()});
+                        LOGGER.log(
+                                Level.FINE,
+                                "Silently skip unknown permission \"{0}\" for sid:\"{1}\", type: {2}",
+                                new Object[] {e.getKey(), entry.getSid(), entry.getType()});
                     } else {
                         property.add(p, entry);
                     }

@@ -23,6 +23,8 @@
  */
 package org.jenkinsci.plugins.matrixauth.inheritance;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.AbstractItem;
@@ -36,13 +38,12 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.springframework.security.core.Authentication;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
-public abstract class InheritanceStrategy extends AbstractDescribableImpl<InheritanceStrategy> implements ExtensionPoint {
+public abstract class InheritanceStrategy extends AbstractDescribableImpl<InheritanceStrategy>
+        implements ExtensionPoint {
     @Restricted(NoExternalUse.class)
     /* package */ static boolean isParentReadPermissionRequired() {
-        return SystemProperties.getBoolean(hudson.security.AuthorizationMatrixProperty.class.getName() + ".checkParentPermissions", true);
+        return SystemProperties.getBoolean(
+                hudson.security.AuthorizationMatrixProperty.class.getName() + ".checkParentPermissions", true);
     }
 
     @Override
@@ -64,8 +65,14 @@ public abstract class InheritanceStrategy extends AbstractDescribableImpl<Inheri
     }
 
     public ACL getEffectiveACL(final ACL acl, final AccessControlled subject) {
-        return ACL.lambda2((a, p) -> hasPermission(a, p, acl, getParentItemACL(subject), Jenkins.get().getAuthorizationStrategy().getRootACL()));
+        return ACL.lambda2((a, p) -> hasPermission(
+                a,
+                p,
+                acl,
+                getParentItemACL(subject),
+                Jenkins.get().getAuthorizationStrategy().getRootACL()));
     }
 
-    protected abstract boolean hasPermission(@NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root);
+    protected abstract boolean hasPermission(
+            @NonNull Authentication a, @NonNull Permission permission, ACL child, @CheckForNull ACL parent, ACL root);
 }

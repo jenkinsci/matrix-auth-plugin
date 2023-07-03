@@ -161,7 +161,7 @@ Release notes for Version 3.0 and newer are published in [GitHub Releases](https
 * Fix regression in 2.0-beta-1 that showed permission group table cells in the config form for groups that did not apply to the current job, folder, or node property.
 * Use PNG icons with transparent background rather than GIF with white background.
 * Fix label of node property introduced in 2.0-beta-1.
-* Show user names in tooltips for checkboxes and buttons in newly added rows.
+* Show user IDs in tooltips for checkboxes and buttons in newly added rows.
 * Internal refactoring to reduce code duplication.
 * Restrict external use of some APIs newly introduced since 1.7.
 

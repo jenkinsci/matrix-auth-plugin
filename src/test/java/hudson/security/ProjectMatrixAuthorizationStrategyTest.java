@@ -1,16 +1,18 @@
 package hudson.security;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlOption;
-import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
 import hudson.util.VersionNumber;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import jenkins.model.Jenkins;
+import org.htmlunit.html.HtmlElement;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlOption;
+import org.htmlunit.html.HtmlSelect;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -20,9 +22,6 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.recipes.LocalData;
 import org.springframework.security.core.Authentication;
 
-import java.util.Collections;
-import java.util.Optional;
-
 public class ProjectMatrixAuthorizationStrategyTest {
 
     @Rule
@@ -31,8 +30,8 @@ public class ProjectMatrixAuthorizationStrategyTest {
     @Test
     public void ensureCreatorHasPermissions() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
-        realm.createAccount("alice","alice");
-        realm.createAccount("bob","bob");
+        realm.createAccount("alice", "alice");
+        realm.createAccount("bob", "bob");
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
@@ -40,24 +39,36 @@ public class ProjectMatrixAuthorizationStrategyTest {
         authorizationStrategy.add(Jenkins.READ, "alice");
         authorizationStrategy.add(Jenkins.READ, "bob");
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
-        
+
         Job<?, ?> job;
         try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
             job = r.createFreeStyleProject();
         }
 
         Assert.assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.READ));
-        Assert.assertFalse(job.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.READ));
+        Assert.assertFalse(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("bob", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.READ));
+        Assert.assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.CONFIGURE));
     }
 
     @Test
     @Issue("JENKINS-58703")
     public void ensureNoJobPropertyDuplication() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
-        realm.createAccount("alice","alice");
-        realm.createAccount("bob","bob");
+        realm.createAccount("alice", "alice");
+        realm.createAccount("bob", "bob");
         r.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
@@ -68,14 +79,27 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
         Job<?, ?> job;
         try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
-            r.jenkins.createProjectFromXML("job", getClass().getResourceAsStream(getClass().getSimpleName() + "/JENKINS-58703.xml"));
+            r.jenkins.createProjectFromXML(
+                    "job", getClass().getResourceAsStream(getClass().getSimpleName() + "/JENKINS-58703.xml"));
             job = r.jenkins.getItem("job", r.jenkins, Job.class);
         }
 
         Assert.assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
-        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2(), Item.READ));
-        Assert.assertTrue(job.getACL().hasPermission2(Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2(), Item.CONFIGURE));
+        Assert.assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.READ));
+        Assert.assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("bob", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.READ));
+        Assert.assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.CONFIGURE));
 
         Assert.assertEquals("one property", 1, job.getAllProperties().size());
     }
@@ -83,8 +107,8 @@ public class ProjectMatrixAuthorizationStrategyTest {
     @Test
     public void submitEmptyPropertyEnsuresPermissionsForSubmitter() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
-        realm.createAccount("alice","alice");
-        realm.createAccount("bob","bob");
+        realm.createAccount("alice", "alice");
+        realm.createAccount("bob", "bob");
         r.jenkins.setSecurityRealm(realm);
 
         r.jenkins.setAuthorizationStrategy(new FullControlOnceLoggedInAuthorizationStrategy());
@@ -96,7 +120,8 @@ public class ProjectMatrixAuthorizationStrategyTest {
         try (ACLContext ignored = ACL.as(User.get("bob", false, Collections.emptyMap()))) {
             Assert.assertTrue("bob is admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
-        Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission2(Jenkins.ANONYMOUS2, Jenkins.ADMINISTER));
+        Assert.assertFalse(
+                "anon is not admin", r.jenkins.getACL().hasPermission2(Jenkins.ANONYMOUS2, Jenkins.ADMINISTER));
 
         JenkinsRule.WebClient wc = r.createWebClient().login("alice");
         configureGlobalMatrixAuthStrategyThroughUI(wc);
@@ -108,7 +133,8 @@ public class ProjectMatrixAuthorizationStrategyTest {
         try (ACLContext ignored = ACL.as(User.get("bob", false, Collections.emptyMap()))) {
             Assert.assertFalse("bob is not admin", r.jenkins.hasPermission(Jenkins.ADMINISTER));
         }
-        Assert.assertFalse("anon is not admin", r.jenkins.getACL().hasPermission2(Jenkins.ANONYMOUS2, Jenkins.ADMINISTER));
+        Assert.assertFalse(
+                "anon is not admin", r.jenkins.getACL().hasPermission2(Jenkins.ANONYMOUS2, Jenkins.ADMINISTER));
     }
 
     @Test
@@ -130,7 +156,10 @@ public class ProjectMatrixAuthorizationStrategyTest {
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
         if (new VersionNumber("2.342").isOlderThanOrEqualTo(Jenkins.getVersion())) {
-            final Optional<HtmlElement> anyOption = form.getElementsByTagName("option").stream().filter(option -> option.getTextContent().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
+            final Optional<HtmlElement> anyOption = form.getElementsByTagName("option").stream()
+                    .filter(option -> option.getTextContent()
+                            .contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName()))
+                    .findAny();
 
             if (!anyOption.isPresent()) {
                 throw new IllegalStateException("expected to find an option");
@@ -139,8 +168,10 @@ public class ProjectMatrixAuthorizationStrategyTest {
             HtmlSelect parent = (HtmlSelect) option.getParentNode();
             parent.setSelectedAttribute(option, true);
         } else {
-            Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream().filter(
-                    lbl -> lbl.asNormalizedText().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName())).findAny();
+            Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream()
+                    .filter(lbl -> lbl.asNormalizedText()
+                            .contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName()))
+                    .findAny();
             if (!anyLabel.isPresent()) {
                 throw new IllegalStateException("expected to find a label");
             }
@@ -163,7 +194,8 @@ public class ProjectMatrixAuthorizationStrategyTest {
         Assert.assertTrue(r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         Assert.assertTrue(r.jenkins.getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy);
 
-        ProjectMatrixAuthorizationStrategy authorizationStrategy = (ProjectMatrixAuthorizationStrategy) r.jenkins.getAuthorizationStrategy();
+        ProjectMatrixAuthorizationStrategy authorizationStrategy =
+                (ProjectMatrixAuthorizationStrategy) r.jenkins.getAuthorizationStrategy();
         Assert.assertTrue(authorizationStrategy.hasExplicitPermission("alice", Jenkins.ADMINISTER));
         Assert.assertFalse(authorizationStrategy.hasExplicitPermission("alice", Jenkins.READ));
         Assert.assertFalse(authorizationStrategy.hasExplicitPermission("bob", Jenkins.ADMINISTER));
@@ -179,7 +211,6 @@ public class ProjectMatrixAuthorizationStrategyTest {
         securityRealm.createAccount("carol", "carol");
         r.jenkins.setSecurityRealm(securityRealm);
 
-
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
         authorizationStrategy.add(Jenkins.ADMINISTER, "admin");
         authorizationStrategy.add(Jenkins.READ, "alice");
@@ -187,18 +218,19 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
         r.jenkins.setAuthorizationStrategy(authorizationStrategy);
 
-
         Folder f = r.jenkins.createProject(Folder.class, "Folder");
 
-        com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty amp = new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.emptyMap());
+        com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty amp =
+                new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.emptyMap());
 
-        amp.add(Item.READ,"alice");
-        amp.add(Item.READ,"bob");
+        amp.add(Item.READ, "alice");
+        amp.add(Item.READ, "bob");
         f.getProperties().add(amp);
 
         Folder aliceProjects = f.createProject(Folder.class, "alice");
 
-        com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty aliceProp = new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.emptyMap());
+        com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty aliceProp =
+                new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.emptyMap());
         aliceProp.setInheritanceStrategy(new NonInheritingStrategy());
         aliceProp.add(Item.READ, "alice");
         aliceProp.add(Item.CONFIGURE, "alice");
@@ -207,9 +239,12 @@ public class ProjectMatrixAuthorizationStrategyTest {
 
         ACL acl = r.jenkins.getAuthorizationStrategy().getACL(aliceProjects);
 
-        Authentication alice = Objects.requireNonNull(User.get("alice", false, Collections.emptyMap())).impersonate2();
-        Authentication admin = Objects.requireNonNull(User.get("admin", false, Collections.emptyMap())).impersonate2();
-        Authentication bob = Objects.requireNonNull(User.get("bob", false, Collections.emptyMap())).impersonate2();
+        Authentication alice = Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                .impersonate2();
+        Authentication admin = Objects.requireNonNull(User.get("admin", false, Collections.emptyMap()))
+                .impersonate2();
+        Authentication bob = Objects.requireNonNull(User.get("bob", false, Collections.emptyMap()))
+                .impersonate2();
 
         Assert.assertTrue(acl.hasPermission2(alice, Item.READ));
         Assert.assertTrue(acl.hasPermission2(alice, Item.CONFIGURE));

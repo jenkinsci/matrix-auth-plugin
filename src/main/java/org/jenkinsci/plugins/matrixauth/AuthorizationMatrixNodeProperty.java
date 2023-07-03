@@ -23,6 +23,8 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Computer;
@@ -36,22 +38,6 @@ import hudson.security.SidACL;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.FormValidation;
-import jenkins.model.Jenkins;
-import jenkins.model.NodeListener;
-import net.sf.json.JSONObject;
-import org.acegisecurity.acls.sid.PrincipalSid;
-import org.acegisecurity.acls.sid.Sid;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.DoNotUse;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
-import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
-
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,6 +45,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.model.Jenkins;
+import jenkins.model.NodeListener;
+import net.sf.json.JSONObject;
+import org.acegisecurity.acls.sid.PrincipalSid;
+import org.acegisecurity.acls.sid.Sid;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 
 public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implements AuthorizationProperty {
 
@@ -78,13 +77,12 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     private InheritanceStrategy inheritanceStrategy = new InheritGlobalStrategy();
 
     @Restricted(NoExternalUse.class)
-    public AuthorizationMatrixNodeProperty() {
-    }
+    public AuthorizationMatrixNodeProperty() {}
 
     public AuthorizationMatrixNodeProperty(Map<Permission, Set<PermissionEntry>> grantedPermissions) {
         // do a deep copy to be safe
-        for (Map.Entry<Permission,Set<PermissionEntry>> e : grantedPermissions.entrySet())
-            this.grantedPermissions.put(e.getKey(),new HashSet<>(e.getValue()));
+        for (Map.Entry<Permission, Set<PermissionEntry>> e : grantedPermissions.entrySet())
+            this.grantedPermissions.put(e.getKey(), new HashSet<>(e.getValue()));
     }
 
     @Override
@@ -117,10 +115,11 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
 
     private final class AclImpl extends SidACL {
         @CheckForNull
-        @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL",
+        @SuppressFBWarnings(
+                value = "NP_BOOLEAN_RETURN_NULL",
                 justification = "As designed, implements a third state for the ternary logic")
         protected Boolean hasPermission(Sid sid, Permission p) {
-            if (AuthorizationMatrixNodeProperty.this.hasPermission(toString(sid),p,sid instanceof PrincipalSid)) {
+            if (AuthorizationMatrixNodeProperty.this.hasPermission(toString(sid), p, sid instanceof PrincipalSid)) {
                 return true;
             }
             return null;
@@ -137,7 +136,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
      */
     @Restricted(NoExternalUse.class)
     @SuppressWarnings("unused")
-    public static final class ConverterImpl extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixNodeProperty> {
+    public static final class ConverterImpl
+            extends AbstractAuthorizationPropertyConverter<AuthorizationMatrixNodeProperty> {
         public boolean canConvert(Class type) {
             return type == AuthorizationMatrixNodeProperty.class;
         }
@@ -148,7 +148,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
     }
 
     @Extension
-    public static class DescriptorImpl extends NodePropertyDescriptor implements AuthorizationPropertyDescriptor<AuthorizationMatrixNodeProperty> {
+    public static class DescriptorImpl extends NodePropertyDescriptor
+            implements AuthorizationPropertyDescriptor<AuthorizationMatrixNodeProperty> {
 
         @Restricted(NoExternalUse.class)
         @Override
@@ -163,7 +164,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         }
 
         @Override
-        public AuthorizationMatrixNodeProperty newInstance(StaplerRequest req, @NonNull JSONObject formData) throws FormException {
+        public AuthorizationMatrixNodeProperty newInstance(StaplerRequest req, @NonNull JSONObject formData)
+                throws FormException {
             return createNewInstance(req, formData, false);
         }
 
@@ -179,14 +181,15 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         }
 
         @Restricted(DoNotUse.class)
+        @SuppressWarnings("lgtm[jenkins/csrf]")
         public FormValidation doCheckName(@AncestorInPath Computer computer, @QueryParameter String value) {
             // Computer isn't a DescriptorByNameOwner before Jenkins 2.78, and then @AncestorInPath doesn't work
-            return doCheckName_(value,
+            return doCheckName_(
+                    value,
                     computer == null ? Jenkins.get() : computer,
                     computer == null ? Jenkins.ADMINISTER : Computer.CONFIGURE);
         }
     }
-
 
     /**
      * Ensure that the user creating a node has Read and Configure permissions
@@ -198,7 +201,8 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
         protected void onCreated(@NonNull Node node) {
             AuthorizationStrategy authorizationStrategy = Jenkins.get().getAuthorizationStrategy();
             if (authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy) {
-                ProjectMatrixAuthorizationStrategy strategy = (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
+                ProjectMatrixAuthorizationStrategy strategy =
+                        (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
 
                 AuthorizationMatrixNodeProperty prop = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
                 if (prop == null) {
@@ -215,7 +219,10 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implemen
                     try {
                         node.getNodeProperties().replace(prop);
                     } catch (IOException ex) {
-                        LOGGER.log(Level.WARNING, "Failed to grant creator permissions on node " + node.getDisplayName(), ex);
+                        LOGGER.log(
+                                Level.WARNING,
+                                "Failed to grant creator permissions on node " + node.getDisplayName(),
+                                ex);
                     }
                 }
             }

@@ -1,10 +1,13 @@
 package org.jenkinsci.plugins.matrixauth;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.FolderContributor;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.html.HtmlFormUtil;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.ExtensionList;
 import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
@@ -15,23 +18,19 @@ import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Objects;
 import jenkins.model.Jenkins;
+import org.htmlunit.FailingHttpStatusCodeException;
+import org.htmlunit.html.HtmlFormUtil;
+import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.MockAuthorizationStrategy;
 import org.jvnet.hudson.test.recipes.LocalData;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Objects;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 
 public class AmbiguityTest {
     @Rule
@@ -137,11 +136,14 @@ public class AmbiguityTest {
         assertAdminMonitorVisible(false);
 
         final FreeStyleProject project = j.createFreeStyleProject();
-        project.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.READ, Collections.singleton(PermissionEntry.group("authenticated"))), new InheritParentStrategy()));
+        project.addProperty(new AuthorizationMatrixProperty(
+                Collections.singletonMap(Item.READ, Collections.singleton(PermissionEntry.group("authenticated"))),
+                new InheritParentStrategy()));
         assertAdminMonitorVisible(false);
 
         final FreeStyleProject project2 = j.createFreeStyleProject();
-        project2.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.READ, Collections.singleton("authenticated"))));
+        project2.addProperty(new AuthorizationMatrixProperty(
+                Collections.singletonMap(Item.READ, Collections.singleton("authenticated"))));
         project2.save();
         assertAdminMonitorVisible(false); // wrong strategy: global, not project based!
 
@@ -157,7 +159,8 @@ public class AmbiguityTest {
         project.removeProperty(AuthorizationMatrixProperty.class);
         assertAdminMonitorVisible(false); // unchanged
 
-        project.addProperty(new AuthorizationMatrixProperty(Collections.singletonMap(Item.READ, Collections.singleton("authenticated"))));
+        project.addProperty(new AuthorizationMatrixProperty(
+                Collections.singletonMap(Item.READ, Collections.singleton("authenticated"))));
         assertAdminMonitorVisible(true);
         project.save();
         assertAdminMonitorVisible(true);
@@ -170,11 +173,14 @@ public class AmbiguityTest {
     @Test
     public void testDataFrom2xReconfiguration() throws Exception {
         assertAdminMonitorVisible(true);
-        AmbiguityMonitor ambiguityMonitor = (AmbiguityMonitor) j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName());
+        AmbiguityMonitor ambiguityMonitor =
+                (AmbiguityMonitor) j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName());
         assertNotNull(ambiguityMonitor);
 
-        ExtensionList<AmbiguityMonitor.Contributor> contributors = j.jenkins.getExtensionList(AmbiguityMonitor.Contributor.class);
-        AmbiguityMonitor.GlobalConfigurationContributor globalConfigurationContributor = contributors.get(AmbiguityMonitor.GlobalConfigurationContributor.class);
+        ExtensionList<AmbiguityMonitor.Contributor> contributors =
+                j.jenkins.getExtensionList(AmbiguityMonitor.Contributor.class);
+        AmbiguityMonitor.GlobalConfigurationContributor globalConfigurationContributor =
+                contributors.get(AmbiguityMonitor.GlobalConfigurationContributor.class);
         AmbiguityMonitor.JobContributor jobContributor = contributors.get(AmbiguityMonitor.JobContributor.class);
         AmbiguityMonitor.NodeContributor nodeContributor = contributors.get(AmbiguityMonitor.NodeContributor.class);
         FolderContributor folderContributor = contributors.get(FolderContributor.class);
@@ -195,7 +201,8 @@ public class AmbiguityTest {
 
         { // migrate all ambiguous entries to user
             final HtmlPage agentPage = wc.goTo("computer/a1/configure");
-            agentPage.executeJavaScript("Array.from(document.querySelectorAll('.migrate_user')).forEach(el => el.click());");
+            agentPage.executeJavaScript(
+                    "Array.from(document.querySelectorAll('.migrate_user')).forEach(el => el.click());");
             HtmlFormUtil.submit(agentPage.getFormByName("config"));
         }
 
@@ -205,11 +212,13 @@ public class AmbiguityTest {
             // object changes on submission, so need to get a new one
             final Node node = j.jenkins.getNode("a1");
             assertNotNull(node);
-            final AuthorizationMatrixNodeProperty nodeProperty = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            final AuthorizationMatrixNodeProperty nodeProperty =
+                    node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
             assertNotNull(nodeProperty);
             assertTrue(nodeProperty.hasExplicitPermission(PermissionEntry.user("anonymous"), Computer.BUILD));
             assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.group("anonymous"), Computer.BUILD));
-            assertFalse(nodeProperty.hasExplicitPermission(new PermissionEntry(AuthorizationType.EITHER, "anonymous"), Computer.CONFIGURE));
+            assertFalse(nodeProperty.hasExplicitPermission(
+                    new PermissionEntry(AuthorizationType.EITHER, "anonymous"), Computer.CONFIGURE));
 
             // we migrated everything to "user", which is weird for 'authenticated' but whatever
             assertTrue(nodeProperty.hasExplicitPermission(PermissionEntry.user("authenticated"), Computer.CONFIGURE));
@@ -217,33 +226,43 @@ public class AmbiguityTest {
             assertTrue(nodeProperty.hasExplicitPermission(PermissionEntry.user("authenticated"), Computer.DISCONNECT));
             assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.CONFIGURE));
             assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.CONNECT));
-            assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.DISCONNECT));
-            assertFalse(nodeProperty.hasExplicitPermission(new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Computer.CONFIGURE));
-            assertFalse(nodeProperty.hasExplicitPermission(new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Computer.CONNECT));
-            assertFalse(nodeProperty.hasExplicitPermission(new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Computer.DISCONNECT));
+            assertFalse(
+                    nodeProperty.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.DISCONNECT));
+            assertFalse(nodeProperty.hasExplicitPermission(
+                    new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Computer.CONFIGURE));
+            assertFalse(nodeProperty.hasExplicitPermission(
+                    new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Computer.CONNECT));
+            assertFalse(nodeProperty.hasExplicitPermission(
+                    new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Computer.DISCONNECT));
         }
 
         { // assert loaded permissions on the folder
             final Folder f = (Folder) j.jenkins.getItemByFullName("F");
             assertNotNull(f);
-            assertTrue(folderContributor.activeFolders.get("F")); // presented by the Redundancy Department of Redundancy
+            assertTrue(
+                    folderContributor.activeFolders.get("F")); // presented by the Redundancy Department of Redundancy
 
-            final com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty = f.getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
+            final com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty =
+                    f.getProperties()
+                            .get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
             assertNotNull(folderProperty);
             for (Permission permission : Arrays.asList(View.CONFIGURE, View.CREATE, View.DELETE, View.READ)) {
                 // legacy authenticated has all 4 permissions, nobody else has any
                 assertFalse(folderProperty.hasExplicitPermission(PermissionEntry.group("authenticated"), permission));
                 assertFalse(folderProperty.hasExplicitPermission(PermissionEntry.user("authenticated"), permission));
-                assertTrue(folderProperty.hasExplicitPermission(new PermissionEntry(AuthorizationType.EITHER, "authenticated"), permission));
+                assertTrue(folderProperty.hasExplicitPermission(
+                        new PermissionEntry(AuthorizationType.EITHER, "authenticated"), permission));
                 assertFalse(folderProperty.hasExplicitPermission(PermissionEntry.group("anonymous"), permission));
                 assertFalse(folderProperty.hasExplicitPermission(PermissionEntry.user("anonymous"), permission));
-                assertFalse(folderProperty.hasExplicitPermission(new PermissionEntry(AuthorizationType.EITHER, "anonymous"), permission));
+                assertFalse(folderProperty.hasExplicitPermission(
+                        new PermissionEntry(AuthorizationType.EITHER, "anonymous"), permission));
             }
         }
 
         { // migrate all ambiguous entries to group
             final HtmlPage agentPage = wc.goTo("job/F/configure");
-            agentPage.executeJavaScript("Array.from(document.querySelectorAll('.migrate_group')).forEach(el => el.click());");
+            agentPage.executeJavaScript(
+                    "Array.from(document.querySelectorAll('.migrate_group')).forEach(el => el.click());");
             HtmlFormUtil.submit(agentPage.getFormByName("config"));
         }
 
@@ -252,16 +271,20 @@ public class AmbiguityTest {
 
             final Folder f = (Folder) j.jenkins.getItemByFullName("F");
             assertNotNull(f);
-            final com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty = f.getProperties().get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
+            final com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty =
+                    f.getProperties()
+                            .get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
             assertNotNull(folderProperty);
             for (Permission permission : Arrays.asList(View.CONFIGURE, View.CREATE, View.DELETE, View.READ)) {
                 // authenticated group has all 4 permissions, nobody else has any
                 assertTrue(folderProperty.hasExplicitPermission(PermissionEntry.group("authenticated"), permission));
                 assertFalse(folderProperty.hasExplicitPermission(PermissionEntry.user("authenticated"), permission));
-                assertFalse(folderProperty.hasExplicitPermission(new PermissionEntry(AuthorizationType.EITHER, "authenticated"), permission));
+                assertFalse(folderProperty.hasExplicitPermission(
+                        new PermissionEntry(AuthorizationType.EITHER, "authenticated"), permission));
                 assertFalse(folderProperty.hasExplicitPermission(PermissionEntry.group("anonymous"), permission));
                 assertFalse(folderProperty.hasExplicitPermission(PermissionEntry.user("anonymous"), permission));
-                assertFalse(folderProperty.hasExplicitPermission(new PermissionEntry(AuthorizationType.EITHER, "anonymous"), permission));
+                assertFalse(folderProperty.hasExplicitPermission(
+                        new PermissionEntry(AuthorizationType.EITHER, "anonymous"), permission));
             }
         }
 
@@ -272,12 +295,16 @@ public class AmbiguityTest {
     @Test
     public void testDataFrom2xDeletion() throws Exception {
         assertAdminMonitorVisible(true);
-        AmbiguityMonitor ambiguityMonitor = (AmbiguityMonitor) j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName());
+        AmbiguityMonitor ambiguityMonitor =
+                (AmbiguityMonitor) j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName());
         assertNotNull(ambiguityMonitor);
 
-        AmbiguityMonitor.GlobalConfigurationContributor globalConfigurationContributor = ExtensionList.lookupSingleton(AmbiguityMonitor.GlobalConfigurationContributor.class);
-        AmbiguityMonitor.JobContributor jobContributor = ExtensionList.lookupSingleton(AmbiguityMonitor.JobContributor.class);
-        AmbiguityMonitor.NodeContributor nodeContributor = ExtensionList.lookupSingleton(AmbiguityMonitor.NodeContributor.class);
+        AmbiguityMonitor.GlobalConfigurationContributor globalConfigurationContributor =
+                ExtensionList.lookupSingleton(AmbiguityMonitor.GlobalConfigurationContributor.class);
+        AmbiguityMonitor.JobContributor jobContributor =
+                ExtensionList.lookupSingleton(AmbiguityMonitor.JobContributor.class);
+        AmbiguityMonitor.NodeContributor nodeContributor =
+                ExtensionList.lookupSingleton(AmbiguityMonitor.NodeContributor.class);
         FolderContributor folderContributor = ExtensionList.lookupSingleton(FolderContributor.class);
 
         assertFalse(globalConfigurationContributor.hasAmbiguousEntries()); // "previously migrated"
@@ -300,8 +327,10 @@ public class AmbiguityTest {
     }
 
     private void assertAdminMonitorVisible(boolean visible) {
-        assertEquals("admin monitor should be visible? ", visible, Objects.requireNonNull(j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName())).isActivated());
+        assertEquals(
+                "admin monitor should be visible? ",
+                visible,
+                Objects.requireNonNull(j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName()))
+                        .isActivated());
     }
-
-
 }

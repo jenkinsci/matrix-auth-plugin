@@ -1,21 +1,22 @@
 package com.cloudbees.hudson.plugins.folder.properties;
 
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import hudson.model.FreeStyleProject;
 import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.IdStrategy;
+import org.htmlunit.FailingHttpStatusCodeException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 public class IdStrategyTest {
     private static final IdStrategy.CaseSensitive CASE_SENSITIVE = new IdStrategy.CaseSensitive();
+
     @Rule
     public JenkinsRule r = new JenkinsRule();
 
@@ -23,6 +24,7 @@ public class IdStrategyTest {
         CaseInsensitiveSecurityRealm() {
             super(false, false, null);
         }
+
         @Override
         public IdStrategy getUserIdStrategy() {
             return IdStrategy.CASE_INSENSITIVE;
@@ -38,6 +40,7 @@ public class IdStrategyTest {
         CaseSensitiveSecurityRealm() {
             super(false, false, null);
         }
+
         @Override
         public IdStrategy getUserIdStrategy() {
             return CASE_SENSITIVE;
@@ -64,7 +67,7 @@ public class IdStrategyTest {
         final FreeStyleProject foo = r.createProject(FreeStyleProject.class, "foo");
 
         JenkinsRule.WebClient wc = r.createWebClient().login("alice");
-        wc.getPage(foo);    // this should succeed
+        wc.getPage(foo); // this should succeed
 
         // and build permission should be set, too
         wc.executeOnServer(() -> {
@@ -73,7 +76,9 @@ public class IdStrategyTest {
                 foo.checkPermission(Item.DELETE);
                 fail("access should be denied");
             } catch (RuntimeException x) {
-                assertEquals(hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"), x.getMessage());
+                assertEquals(
+                        hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"),
+                        x.getMessage());
             }
             return null;
         });
@@ -87,7 +92,7 @@ public class IdStrategyTest {
 
         // now logging with the username case incorrect should still authenticate as the password is a match
         wc = r.createWebClient().login("AliCe", "alice");
-        wc.getPage(foo);    // this should succeed
+        wc.getPage(foo); // this should succeed
 
         // and build permission should be set, too
         wc.executeOnServer(() -> {
@@ -96,7 +101,9 @@ public class IdStrategyTest {
                 foo.checkPermission(Item.DELETE);
                 fail("access should be denied");
             } catch (RuntimeException x) {
-                assertEquals(hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"), x.getMessage());
+                assertEquals(
+                        hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"),
+                        x.getMessage());
             }
             return null;
         });
@@ -116,7 +123,7 @@ public class IdStrategyTest {
 
         final FreeStyleProject foo = r.createProject(FreeStyleProject.class, "foo");
         JenkinsRule.WebClient wc = r.createWebClient().login("alice", "alice");
-        wc.getPage(foo);    // this should succeed
+        wc.getPage(foo); // this should succeed
 
         // and build permission should be set, too
         wc.executeOnServer(() -> {
@@ -125,7 +132,9 @@ public class IdStrategyTest {
                 foo.checkPermission(Item.DELETE);
                 fail("access should be denied");
             } catch (RuntimeException x) {
-                assertEquals(hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"), x.getMessage());
+                assertEquals(
+                        hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"),
+                        x.getMessage());
             }
             return null;
         });
@@ -137,5 +146,4 @@ public class IdStrategyTest {
             assertEquals(401, e.getStatusCode());
         }
     }
-
 }
