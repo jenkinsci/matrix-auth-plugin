@@ -40,8 +40,8 @@ public class AuthorizationMatrixPropertyTest {
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
-                "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['hudson.model.Item.Configure:alice', 'hudson.model.Item.Read:alice', 'hudson.model.Item.Read:bob', 'hudson.scm.SCM.Tag:bob'])])");
+                "properties([authorizationMatrix(entries: [], inheritanceStrategy: nonInheriting())])");
+        // TODO Ignore ambiguous permissions?
     }
 
     @Test
@@ -56,8 +56,7 @@ public class AuthorizationMatrixPropertyTest {
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
-                "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['USER:hudson.model.Item.Configure:alice', 'USER:hudson.model.Item.Read:alice', 'USER:hudson.model.Item.Read:bob', 'USER:hudson.scm.SCM.Tag:bob'])])");
+                "properties([authorizationMatrix(entries: [user(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), user(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
     }
 
     @Test
@@ -79,8 +78,8 @@ public class AuthorizationMatrixPropertyTest {
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
-                "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['hudson.model.Item.Configure:alice', 'hudson.model.Item.Read:alice', 'hudson.model.Item.Read:bob', 'hudson.scm.SCM.Tag:bob'])])");
+                "properties([authorizationMatrix(entries: [], inheritanceStrategy: nonInheriting())])");
+        // TODO Keep ambiguous entries?
 
         Assert.assertTrue(l.getMessages().stream()
                 .anyMatch(m -> m.contains("Tried to add inapplicable permission")
@@ -126,7 +125,7 @@ public class AuthorizationMatrixPropertyTest {
 
         project.setDefinition(new CpsFlowDefinition(
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['hudson.model.Item.Read:bob', 'hudson.model.Item.Configure:bob', 'hudson.scm.SCM.Tag:bob'])])",
+                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure', 'SCM/Tag'])])])",
                 true));
         j.buildAndAssertSuccess(project);
 
@@ -179,7 +178,7 @@ public class AuthorizationMatrixPropertyTest {
 
         project.setDefinition(new CpsFlowDefinition(
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['USER:hudson.model.Item.Read:bob', 'USER:hudson.model.Item.Configure:bob', 'USER:hudson.scm.SCM.Tag:bob'])])",
+                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure', 'SCM/Tag'])])])",
                 true));
         j.buildAndAssertSuccess(project);
 

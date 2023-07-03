@@ -141,6 +141,13 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         FolderContributor.record(owner);
     }
 
+    @Override
+    public List<PropertyEntry> getEntries() {
+        // ReflectionUtils#getPublicProperty / PropertyDescriptor#getPropertyDescriptor doesn't find interface default
+        // methods
+        return AuthorizationProperty.super.getEntries();
+    }
+
     @Extension(optional = true)
     @Symbol("authorizationMatrix")
     public static class DescriptorImpl extends AbstractFolderPropertyDescriptor

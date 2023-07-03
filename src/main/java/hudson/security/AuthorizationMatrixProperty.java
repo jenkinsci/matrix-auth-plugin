@@ -178,6 +178,13 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         return Item.CONFIGURE;
     }
 
+    @Override
+    public List<PropertyEntry> getEntries() {
+        // ReflectionUtils#getPublicProperty / PropertyDescriptor#getPropertyDescriptor doesn't find interface default
+        // methods
+        return AuthorizationProperty.super.getEntries();
+    }
+
     @Extension
     @Symbol("authorizationMatrix")
     public static class DescriptorImpl extends JobPropertyDescriptor
