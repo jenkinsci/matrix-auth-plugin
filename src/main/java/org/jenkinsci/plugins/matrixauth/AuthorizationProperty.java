@@ -140,7 +140,10 @@ public interface AuthorizationProperty extends AuthorizationContainer {
                     }
                     return null;
                 })
-                .filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     abstract class PropertyEntry implements Describable<PropertyEntry>, Comparable<PropertyEntry> {
