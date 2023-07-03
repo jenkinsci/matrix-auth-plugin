@@ -129,7 +129,7 @@ public interface AuthorizationProperty extends AuthorizationContainer {
                             // TODO Figure out what to do with this. New type for ambiguous permissions?
                     }
                 }));
-        SortedSet<PropertyEntry> results = new TreeSet<>(mapping.entrySet().stream()
+        return mapping.entrySet().stream()
                 .map(e -> {
                     final PermissionEntry key = e.getKey();
                     if (key.getType() == AuthorizationType.USER) {
@@ -140,9 +140,7 @@ public interface AuthorizationProperty extends AuthorizationContainer {
                     }
                     return null;
                 })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
-        return new ArrayList<>(results);
+                .filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList());
     }
 
     abstract class PropertyEntry implements Describable<PropertyEntry>, Comparable<PropertyEntry> {
