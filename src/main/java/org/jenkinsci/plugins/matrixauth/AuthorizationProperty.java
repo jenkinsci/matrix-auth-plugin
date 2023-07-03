@@ -23,6 +23,7 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
@@ -128,7 +129,7 @@ public interface AuthorizationProperty extends AuthorizationContainer {
                             // TODO Figure out what to do with this. New type for ambiguous permissions?
                     }
                 }));
-        return mapping.entrySet().stream()
+        SortedSet<PropertyEntry> results = new TreeSet<>(mapping.entrySet().stream()
                 .map(e -> {
                     final PermissionEntry key = e.getKey();
                     if (key.getType() == AuthorizationType.USER) {
@@ -140,10 +141,11 @@ public interface AuthorizationProperty extends AuthorizationContainer {
                     return null;
                 })
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+        return new ArrayList<>(results);
     }
 
-    abstract class PropertyEntry implements Describable<PropertyEntry> {
+    abstract class PropertyEntry implements Describable<PropertyEntry>, Comparable<PropertyEntry> {
         private final String name;
         private final List<String> permissions;
 
@@ -176,6 +178,17 @@ public interface AuthorizationProperty extends AuthorizationContainer {
         @Override
         public int hashCode() {
             return Objects.hash(name, permissions, getClass());
+        }
+
+        @Override
+        public int compareTo(@NonNull AuthorizationProperty.PropertyEntry that) {
+            if (this.getClass() != that.getClass()) {
+                return this.getClass().getName().compareTo(that.getClass().getName());
+            }
+            if (!this.name.equals(that.name)) {
+                return this.name.compareTo(that.name);
+            }
+            return this.permissions.size() - that.permissions.size();
         }
     }
 

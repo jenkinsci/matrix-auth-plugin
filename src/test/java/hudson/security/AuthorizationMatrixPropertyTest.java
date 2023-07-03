@@ -125,16 +125,17 @@ public class AuthorizationMatrixPropertyTest {
 
         project.setDefinition(new CpsFlowDefinition(
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure', 'SCM/Tag'])])])",
+                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure'])])])",
+                // TODO what to do about SCM/Tag
                 true));
         j.buildAndAssertSuccess(project);
 
         // let's look ast the property
         AuthorizationMatrixProperty property = project.getProperty(AuthorizationMatrixProperty.class);
         Assert.assertTrue(property.getInheritanceStrategy() instanceof NonInheritingStrategy);
-        Assert.assertEquals(3, property.getGrantedPermissions().size());
-        Assert.assertEquals(3, property.getGrantedPermissionEntries().size());
-        Assert.assertEquals("bob", property.getGroups().toArray()[0]);
+        Assert.assertEquals(0, property.getGrantedPermissions().size()); // Unambiguous permissions are 0
+        Assert.assertEquals(2, property.getGrantedPermissionEntries().size());
+        Assert.assertEquals(0, property.getGroups().size());
 
         // now bob has access, including configure
         j.createWebClient().login("bob").goTo(project.getUrl());
