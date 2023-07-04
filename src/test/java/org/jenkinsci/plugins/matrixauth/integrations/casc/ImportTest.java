@@ -45,8 +45,9 @@ public class ImportTest {
     private static void should_support_configuration_as_code_ambiguous_formatStep(JenkinsRule r)
             throws ConfiguratorException {
         ConfigurationAsCode.get()
-                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-ambiguous.yml"))
-                        .toExternalForm());
+                .configure(
+                        Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v2-ambiguous.yml"))
+                                .toExternalForm());
 
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
@@ -142,12 +143,12 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission("authenticated", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.DISCONNECT));
         }
-        assertEquals(
-                "no warnings",
-                0,
+        assertTrue(
+                "correct message",
                 Jenkins.logRecords.stream()
-                        .filter(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName()))
-                        .count());
+                        .anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())
+                                && l.getMessage()
+                                        .contains("Loading deprecated attribute 'permissions' for instance of")));
     }
 
     @Test
@@ -157,7 +158,7 @@ public class ImportTest {
 
     private static void should_support_configuration_as_codeStep(JenkinsRule r) throws ConfiguratorException {
         ConfigurationAsCode.get()
-                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code.yml"))
+                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v2.yml"))
                         .toExternalForm());
 
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
@@ -211,12 +212,12 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.DISCONNECT));
         }
-        assertEquals(
-                "no warnings",
-                0,
+        assertTrue(
+                "correct message",
                 Jenkins.logRecords.stream()
-                        .filter(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName()))
-                        .count());
+                        .anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())
+                                && l.getMessage()
+                                        .contains("Loading deprecated attribute 'permissions' for instance of")));
     }
 
     @Test
@@ -226,7 +227,7 @@ public class ImportTest {
 
     private static void legacyTestStep(JenkinsRule r) throws ConfiguratorException {
         ConfigurationAsCode.get()
-                .configure(Objects.requireNonNull(ImportTest.class.getResource("legacy-format.yml"))
+                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v1.yml"))
                         .toExternalForm());
 
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);

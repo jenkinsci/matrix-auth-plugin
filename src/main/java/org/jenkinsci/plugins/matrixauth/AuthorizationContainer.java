@@ -211,14 +211,7 @@ public interface AuthorizationContainer {
                     "Processing a permission assignment in the legacy format (without explicit TYPE prefix): "
                             + shortForm);
         }
-        Permission p = Permission.fromId(permissionString);
-        if (p == null) {
-            // attempt to find the permission based on the 'nice' name, e.g. Overall/Administer
-            p = PermissionFinder.findPermission(permissionString);
-        }
-        if (p == null) {
-            throw new IllegalArgumentException("Failed to parse '" + shortForm + "' --- no such permission");
-        }
+        Permission p = parsePermission(permissionString);
         if (!p.isContainedBy(((AuthorizationContainerDescriptor) getDescriptor()).getPermissionScope())) {
             LOGGER.log(
                     Level.WARNING,
@@ -226,6 +219,19 @@ public interface AuthorizationContainer {
             return;
         }
         add(p, new PermissionEntry(type, sid));
+    }
+
+    @Restricted(NoExternalUse.class)
+    static Permission parsePermission(String permission) {
+        Permission p = Permission.fromId(permission);
+        if (p == null) {
+            // attempt to find the permission based on the 'nice' name, e.g. Overall/Administer
+            p = PermissionFinder.findPermission(permission);
+        }
+        if (p == null) {
+            throw new IllegalArgumentException("Failed to parse '" + permission + "' --- no such permission");
+        }
+        return p;
     }
 
     @Restricted(NoExternalUse.class)

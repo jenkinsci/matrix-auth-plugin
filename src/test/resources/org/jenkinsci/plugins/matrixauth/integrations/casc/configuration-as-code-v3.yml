@@ -1,0 +1,95 @@
+jenkins:
+  authorizationStrategy:
+    projectMatrix:
+      entries:
+        - group: authenticated
+          permissions:
+            - Agent/Build
+            - Agent/Configure
+            - Agent/Connect
+            - Agent/Create
+            - Agent/Delete
+            - Agent/Disconnect
+            - Credentials/Create
+            - Credentials/Delete
+            - Credentials/ManageDomains
+            - Credentials/Update
+            - Credentials/View
+            - Job/Build
+            - Job/Cancel
+            - Job/Configure
+            - Job/Create
+            - Job/Delete
+            - Job/Discover
+            - Job/Move
+            - Job/Read
+            - Job/Workspace
+            - Overall/Administer
+            - Overall/Read
+            - Run/Delete
+            - Run/Replay
+            - Run/Update
+            - View/Configure
+            - View/Create
+            - View/Delete
+            - View/Read
+        - user: anonymous
+          permissions:
+            - Overall/Read
+        - userOrGroup: developer
+          permissions:
+            - Overall/Read
+  nodes:
+  - permanent:
+      launcher:
+        jnlp:
+          workDirSettings:
+            disabled: false
+            failIfWorkDirIsMissing: false
+            internalDir: "remoting"
+      name: "agent1"
+      nodeProperties:
+      - authorizationMatrix:
+          inheritanceStrategy: "inheritingGlobal"
+          entries:
+            - group: authenticated
+              permissions:
+                - Agent/Disconnect
+                - Agent/Build
+            - user: anonymous
+              permissions:
+                - Agent/Build
+            - userOrGroup: developer
+              permissions:
+                - Agent/Configure
+      numExecutors: 1
+      retentionStrategy: "always"
+  securityRealm:
+    local:
+      allowsSignup: true
+      enableCaptcha: false
+jobs:
+- script: >
+    folder('generated') {
+      properties {
+        authorizationMatrix {
+          inheritanceStrategy {
+              nonInheriting()
+          }
+          permissions([
+              'GROUP:Job/Build:authenticated',
+              'GROUP:Job/Configure:authenticated',
+              'GROUP:Job/Delete:authenticated',
+              'GROUP:Job/Read:authenticated',
+          ])
+          entries([
+            group('authenticated') {
+              'Job/Build',
+              'Job/Configure',
+              'Job/Delete',
+              'Job/Read'
+            } 
+          ])
+        }
+      }
+    }
