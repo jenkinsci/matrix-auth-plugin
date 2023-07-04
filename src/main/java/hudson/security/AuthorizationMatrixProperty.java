@@ -134,8 +134,12 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         }
     }
 
+    /**
+     * Exists for reflective Job DSL / Pipeline use only.
+     */
+    @Restricted(DoNotUse.class)
     @DataBoundConstructor
-    public AuthorizationMatrixProperty(List<PropertyEntry> entries) {
+    public AuthorizationMatrixProperty(List<DslEntry> entries) {
         setEntries(entries);
     }
 
@@ -179,9 +183,9 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
     }
 
     @Override
-    public List<PropertyEntry> getEntries() {
-        // ReflectionUtils#getPublicProperty / PropertyDescriptor#getPropertyDescriptor doesn't find interface default
-        // methods
+    @Restricted(DoNotUse.class)
+    public List<DslEntry> getEntries() {
+        // ReflectionUtils#getPublicProperty / PropertyDescriptor#getPropertyDescriptor can't find default methods
         return AuthorizationProperty.super.getEntries();
     }
 

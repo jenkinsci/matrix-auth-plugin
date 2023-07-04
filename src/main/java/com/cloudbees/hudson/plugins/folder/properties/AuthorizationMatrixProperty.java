@@ -109,9 +109,12 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         }
     }
 
-    @DataBoundConstructor // JENKINS-49199: Used for job-dsl
-    @Restricted(NoExternalUse.class)
-    public AuthorizationMatrixProperty(List<PropertyEntry> entries) {
+    /**
+     * Exists for reflective Job DSL / Pipeline use only.
+     */
+    @DataBoundConstructor
+    @Restricted(DoNotUse.class)
+    public AuthorizationMatrixProperty(List<DslEntry> entries) {
         setEntries(entries);
     }
 
@@ -142,9 +145,9 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     @Override
-    public List<PropertyEntry> getEntries() {
-        // ReflectionUtils#getPublicProperty / PropertyDescriptor#getPropertyDescriptor doesn't find interface default
-        // methods
+    @Restricted(DoNotUse.class)
+    public List<DslEntry> getEntries() {
+        // ReflectionUtils#getPublicProperty / PropertyDescriptor#getPropertyDescriptor can't find default methods
         return AuthorizationProperty.super.getEntries();
     }
 

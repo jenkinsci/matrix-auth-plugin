@@ -40,7 +40,7 @@ public class AuthorizationMatrixPropertyTest {
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
-                "properties([authorizationMatrix(entries: [], inheritanceStrategy: nonInheriting())])");
+                "properties([authorizationMatrix(entries: [userOrGroup(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), userOrGroup(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
         // TODO Ignore ambiguous permissions?
     }
 
@@ -78,7 +78,7 @@ public class AuthorizationMatrixPropertyTest {
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
-                "properties([authorizationMatrix(entries: [], inheritanceStrategy: nonInheriting())])");
+                "properties([authorizationMatrix(entries: [userOrGroup(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), userOrGroup(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
         // TODO Keep ambiguous entries?
 
         Assert.assertTrue(l.getMessages().stream()
