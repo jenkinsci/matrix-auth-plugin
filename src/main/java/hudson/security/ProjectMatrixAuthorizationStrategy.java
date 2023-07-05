@@ -99,21 +99,24 @@ public class ProjectMatrixAuthorizationStrategy extends GlobalMatrixAuthorizatio
     @NonNull
     public Set<String> getGroups() {
         Set<String> r = new TreeSet<>(new IdStrategyComparator());
-        r.addAll(super.getGroups());
-        for (Job<?, ?> j : Jenkins.get().getAllItems(Job.class)) {
-            AuthorizationMatrixProperty jobProperty = j.getProperty(AuthorizationMatrixProperty.class);
-            if (jobProperty != null) r.addAll(jobProperty.getGroups());
-        }
-        for (AbstractFolder<?> j : Jenkins.get().getAllItems(AbstractFolder.class)) {
-            com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty =
-                    j.getProperties()
-                            .get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
-            if (folderProperty != null) r.addAll(folderProperty.getGroups());
-        }
-        for (Node node : Jenkins.get().getNodes()) {
-            AuthorizationMatrixNodeProperty nodeProperty = node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
-            if (nodeProperty != null) {
-                r.addAll(nodeProperty.getGroups());
+        try (ACLContext ignored = ACL.as2(ACL.SYSTEM2)) {
+            r.addAll(super.getGroups());
+            for (Job<?, ?> j : Jenkins.get().getAllItems(Job.class)) {
+                AuthorizationMatrixProperty jobProperty = j.getProperty(AuthorizationMatrixProperty.class);
+                if (jobProperty != null) r.addAll(jobProperty.getGroups());
+            }
+            for (AbstractFolder<?> j : Jenkins.get().getAllItems(AbstractFolder.class)) {
+                com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty folderProperty =
+                        j.getProperties()
+                                .get(com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty.class);
+                if (folderProperty != null) r.addAll(folderProperty.getGroups());
+            }
+            for (Node node : Jenkins.get().getNodes()) {
+                AuthorizationMatrixNodeProperty nodeProperty =
+                        node.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+                if (nodeProperty != null) {
+                    r.addAll(nodeProperty.getGroups());
+                }
             }
         }
         return r;
