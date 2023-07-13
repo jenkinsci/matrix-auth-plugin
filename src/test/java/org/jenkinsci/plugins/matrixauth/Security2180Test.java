@@ -102,8 +102,10 @@ public class Security2180Test {
             throws Exception {
         final String jobUrl = job.getUrl();
         // TODO robustness: check queue contents / executor status before scheduling
-        FreeStyleBuild build = job.scheduleBuild2(0, new Cause.UserIdCause("admin")).waitForStart(); // schedule one build now
-        QueueTaskFuture<FreeStyleBuild> future = job.scheduleBuild2(0, new Cause.UserIdCause("admin")); // schedule an additional queue item
+        FreeStyleBuild build =
+                job.scheduleBuild2(0, new Cause.UserIdCause("admin")).waitForStart(); // schedule one build now
+        QueueTaskFuture<FreeStyleBuild> future =
+                job.scheduleBuild2(0, new Cause.UserIdCause("admin")); // schedule an additional queue item
         Assert.assertEquals(1, Jenkins.get().getQueue().getItems().length); // expect there to be one queue item
 
         final JenkinsRule.WebClient webClient = j.createWebClient().withThrowExceptionOnFailingStatusCode(false);
