@@ -23,48 +23,88 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
+import static org.jenkinsci.plugins.matrixauth.AuthorizationType.EITHER;
+import static org.jenkinsci.plugins.matrixauth.AuthorizationType.GROUP;
+import static org.jenkinsci.plugins.matrixauth.AuthorizationType.USER;
+
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Functions;
 import hudson.Util;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
 import hudson.security.UserMayOrMayNotExistException2;
 import hudson.util.FormValidation;
-import hudson.util.VersionNumber;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.jenkins.ui.symbol.Symbol;
+import org.jenkins.ui.symbol.SymbolRequest;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.kohsuke.stapler.Stapler;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @Restricted(NoExternalUse.class)
 class ValidationUtil {
+    private final static String userSymbol;
+    private final static String groupSymbol;
+    private final static String warningSymbol;
+    private final static String alertSymbol;
+
     private ValidationUtil() {
         // do not use
     }
 
-    private static final VersionNumber jenkinsVersion = Jenkins.getVersion();
-
-    static String formatNonExistentUserGroupValidationResponse(String user, String tooltip) {
-        return formatUserGroupValidationResponse(
-                null, "<span style='text-decoration: line-through;'>" + tooltip + ": " + user + "</span>", tooltip);
+    static {
+        userSymbol = getSymbol("person", "icon-sm");
+        groupSymbol = getSymbol("people", "icon-sm");
+        alertSymbol = getSymbol("alert-circle", "icon-md ma-table__icon-alert");
+        warningSymbol = getSymbol("warning", "icon-md ma-table__icon-warning");
     }
 
-    static String formatUserGroupValidationResponse(String img, String label, String tooltip) {
-        if (img == null) {
-            return String.format("<span title='%s'>%s</span>", tooltip, label);
-        }
+    private static String getSymbol(String symbol, String classes) {
+        SymbolRequest.Builder builder = new SymbolRequest.Builder();
 
-        if (jenkinsVersion.isOlderThan(new VersionNumber("2.308"))) {
-            return String.format(
-                    "<span title='%s'><img src='%s%s/images/16x16/%s.png' style='margin-right:0.2em'>%s</span>",
-                    tooltip, Stapler.getCurrentRequest().getContextPath(), Jenkins.RESOURCE_PATH, img, label);
-        } else {
-            return String.format(
-                    "<span title='%s'><img src='%s%s/images/svgs/%s.svg' width='16' style='margin-right:0.2em'>%s</span>",
-                    tooltip, Stapler.getCurrentRequest().getContextPath(), Jenkins.RESOURCE_PATH, img, label);
+        return Symbol.get(builder.withRaw("symbol-" + symbol + "-outline plugin-ionicons-api").withClasses(classes).build());
+    }
+
+    static String formatNonExistentUserGroupValidationResponse(String user, String tooltip) {
+        return formatNonExistentUserGroupValidationResponse(user, tooltip, false);
+    }
+
+    static String formatNonExistentUserGroupValidationResponse(String user, String tooltip, boolean warning) {
+        return formatUserGroupValidationResponse("alert", "<span class='ma-entry-not-found'>" + user + "</span>",
+                tooltip, warning);
+    }
+
+
+    static String formatUserGroupValidationResponse(@NonNull AuthorizationType type, String user, String tooltip) {
+        return formatUserGroupValidationResponse(type.toString(), user, tooltip, false);
+    }
+
+    static String formatUserGroupValidationResponse(@NonNull AuthorizationType type, String user, String tooltip, boolean warning) {
+        return formatUserGroupValidationResponse(type.toString(), user, tooltip, warning);
+    }
+
+    static String formatUserGroupValidationResponse(@NonNull String type, String user, String tooltip, boolean warning) {
+        String symbol;
+        switch (type) {
+            case "GROUP":
+                symbol = groupSymbol;
+                break;
+            case "alert":
+                symbol = alertSymbol;
+                break;
+            case "USER":
+                symbol = userSymbol;
+                break;
+            case "EITHER":
+            default:
+                symbol = "";
+                break;
         }
+        if (warning) {
+            return String.format("<div tooltip='%s' class='ma-table__cell'>%s%s%s</div>", tooltip, warningSymbol, symbol, user);
+        }
+        return String.format("<div tooltip='%s' class='ma-table__cell'>%s%s</div>", tooltip, symbol, user);
     }
 
     static FormValidation validateGroup(String groupName, SecurityRealm sr, boolean ambiguous) {
@@ -72,20 +112,22 @@ class ValidationUtil {
         try {
             sr.loadGroupByGroupname2(groupName, false);
             if (ambiguous) {
-                return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
-                        "user",
-                        escapedSid,
-                        "Group found; but permissions would also be granted to a user of this name"));
+                return FormValidation.respond(FormValidation.Kind.WARNING,
+                        formatUserGroupValidationResponse(GROUP, escapedSid,
+                                "Group found; but permissions would also be granted to a user of this name", true));
             } else {
-                return FormValidation.okWithMarkup(formatUserGroupValidationResponse("user", escapedSid, "Group"));
+                return FormValidation.respond(FormValidation.Kind.OK, formatUserGroupValidationResponse(GROUP,
+                        escapedSid, "Group"));
+
             }
         } catch (UserMayOrMayNotExistException2 e) {
             // undecidable, meaning the group may exist
             if (ambiguous) {
-                return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
-                        "user", escapedSid, "Permissions would also be granted to a user or group of this name"));
+                return FormValidation.respond(FormValidation.Kind.WARNING,
+                        formatUserGroupValidationResponse(GROUP, escapedSid,
+                                "Permissions would also be granted to a user or group of this name", true));
             } else {
-                return FormValidation.ok(groupName);
+                return FormValidation.ok(escapedSid);
             }
         } catch (UsernameNotFoundException e) {
             // fall through next
@@ -104,29 +146,31 @@ class ValidationUtil {
             if (userName.equals(u.getFullName())) {
                 // Sid and full name are identical, no need for tooltip
                 if (ambiguous) {
-                    return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
-                            "person",
-                            escapedSid,
-                            "User found; but permissions would also be granted to a group of this name"));
+                    return FormValidation.respond(FormValidation.Kind.WARNING,
+                            formatUserGroupValidationResponse(USER, escapedSid,
+                                    "User found; but permissions would also be granted to a group of this name", true));
                 } else {
-                    return FormValidation.okWithMarkup(formatUserGroupValidationResponse("person", escapedSid, "User"));
+                    return FormValidation.respond(FormValidation.Kind.OK,
+                            formatUserGroupValidationResponse(USER, escapedSid, "User"));
                 }
             }
             if (ambiguous) {
-                return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
-                        "person",
-                        Util.escape(StringUtils.abbreviate(u.getFullName(), 50)),
-                        "User " + escapedSid
-                                + " found, but permissions would also be granted to a group of this name"));
+                return FormValidation.respond(FormValidation.Kind.WARNING,
+                        formatUserGroupValidationResponse(USER,
+                                Util.escape(StringUtils.abbreviate(u.getFullName(), 50)),
+                                "User " + escapedSid
+                                        + " found, but permissions would also be granted to a group of this name", true));
             } else {
-                return FormValidation.okWithMarkup(formatUserGroupValidationResponse(
-                        "person", Util.escape(StringUtils.abbreviate(u.getFullName(), 50)), "User " + escapedSid));
+                return FormValidation.respond(FormValidation.Kind.OK,
+                        formatUserGroupValidationResponse(USER, Util.escape(StringUtils.abbreviate(u.getFullName(), 50)),
+                                "User " + escapedSid));
             }
         } catch (UserMayOrMayNotExistException2 e) {
             // undecidable, meaning the user may exist
             if (ambiguous) {
-                return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
-                        "person", escapedSid, "Permissions would also be granted to a user or group of this name"));
+                return FormValidation.respond(FormValidation.Kind.WARNING,
+                        formatUserGroupValidationResponse(EITHER, escapedSid,
+                                "Permissions would also be granted to a user or group of this name", true));
             } else {
                 return FormValidation.ok(userName);
             }

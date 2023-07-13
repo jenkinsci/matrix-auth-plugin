@@ -38,7 +38,7 @@
 
 .global-matrix-authorization-strategy-table .caption-row TH {
   font-weight: lighter;
-  padding: 0;
+  border: 1px solid #D3D7CF;
 }
 
 .global-matrix-authorization-strategy-table .caption-row TH span {
@@ -47,11 +47,13 @@
 
 .global-matrix-authorization-strategy-table TD {
   border: 1px solid #D3D7CF;
+  padding: 3px;
 }
 
 .global-matrix-authorization-strategy-table TD.left-most {
   text-align: left;
   border-left: none;
+  vertical-align: middle;
 }
 
 .global-matrix-authorization-strategy-table TD.stop {
@@ -59,6 +61,7 @@
   border-right: 1px solid transparent;
   border-bottom: 1px solid transparent;
   white-space: nowrap;
+  vertical-align: middle;
 }
 
 .matrix-auth-add-user-button {
@@ -75,3 +78,42 @@
   -moz-animation: highlightentry 5s;
   animation: highlightentry 5s;
 }
+
+.global-matrix-authorization-strategy-table .jenkins-checkbox {
+	vertical-align: middle;
+}
+
+.ma-table__cell {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ma-table__cell svg {
+  min-width: 16px;
+}
+
+.ma-table__cell a {
+  height: 16px;
+}
+
+.ma-table__cell a svg {
+  vertical-align: initial!important;
+}
+
+.ma-entry-not-found {
+  text-decoration: line-through;
+  color: red;
+  font-weight: 600;
+}
+
+.ma-table__icon-warning {
+  color: orange;
+  min-width: 24px!important;
+}
+
+.ma-table__icon-alert {
+  color: red;
+  min-width: 24px!important;
+}
+

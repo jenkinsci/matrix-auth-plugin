@@ -2,7 +2,7 @@
  * This handles the addition of new users/groups to the list.
  */
 Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
-  makeButton(e, function (e) {
+  e.onclick = function (e) {
     var dataReference = e.target;
     var master = document.getElementById(dataReference.getAttribute('data-table-id'));
     var table = master.parentNode;
@@ -58,7 +58,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     });
     table.appendChild(copy);
     Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
-  });
+  }
 });
 
 /*
@@ -160,7 +160,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
       tr.removeAttribute('data-checked');
 
       // remove migration buttons from updated row
-      var buttonContainer = findAncestor(this, "TD");
+      var buttonContainer = findAncestor(this, "DIV");
       var migrateButtons = buttonContainer.getElementsByClassName('migrate');
       for (var i = migrateButtons.length - 1; i >= 0; i--) {
         buttonContainer.removeChild(migrateButtons[i]);

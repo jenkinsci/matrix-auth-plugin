@@ -60,16 +60,16 @@ THE SOFTWARE.
         <j:choose>
           <j:when test="${attrs.sid == 'authenticated' and attrs.type == 'GROUP'}">
             <td class="left-most">
-              <span title="authenticated">
-                <l:icon class="icon-user icon-sm" style="margin-right:0.2em"/>${%Authenticated Users}
-              </span>
+              <div title="authenticated" class="ma-table__cell">
+                <l:icon src="symbol-people-outline plugin-ionicons-api" class="icon-sm"/>${%Authenticated Users}
+              </div>
             </td>
           </j:when>
           <j:when test="${attrs.sid == 'anonymous' and attrs.type == 'USER'}">
             <td class="left-most">
-              <span title="anonymous">
-                <l:icon class="icon-person icon-sm" style="margin-right:0.2em"/>${%Anonymous}
-              </span>
+              <div title="anonymous" class="ma-table__cell">
+                <l:icon src="symbol-person-outline plugin-ionicons-api" class="icon-sm"/>${%Anonymous}
+              </div>
             </td>
           </j:when>
           <j:otherwise>
@@ -91,27 +91,29 @@ THE SOFTWARE.
           </j:forEach>
         </j:forEach>
         <local:isEditable sid="${attrs.sid}" type="${attrs.type}">
-          <td class="stop" style="text-align:left;">
-            <a href="#" class="selectall" tooltip="${%selectall(h.escape(attrs.sid))}" data-html-tooltip="${%selectall(h.escape(attrs.sid))}">
-              <img alt="${%Select all}" src="${rootURL}/plugin/matrix-auth/images/select-all.svg" style='margin-right:0.2em' height="16" width="16"/>
-            </a>
-            <a href="#" class="unselectall" tooltip="${%unselectall(h.escape(attrs.sid))}" data-html-tooltip="${%unselectall(h.escape(attrs.sid))}">
-              <img alt="${%Unselect all}" src="${rootURL}/plugin/matrix-auth/images/unselect-all.svg" height="16" width="16"/>
-            </a>
-            <j:if test="${(attrs.sid != 'authenticated' or attrs.type != 'GROUP') and (attrs.sid != 'anonymous' or attrs.type != 'USER')}">
-              <a href="#" class="remove" tooltip="${%remove(h.escape(attrs.sid))}" data-html-tooltip="${%remove(h.escape(attrs.sid))}">
-                <l:icon alt="${%Remove user/group}" class="icon-stop icon-sm" />
+          <td class="stop">
+            <div class="ma-table__cell">
+              <a href="#" class="selectall" tooltip="${%selectall(h.escape(attrs.sid))}" data-html-tooltip="${%selectall(h.escape(attrs.sid))}">
+                <l:icon alt="${%Select all}" src="symbol-select-all plugin-matrix-auth" class="icon-sm"/>
               </a>
-            </j:if>
-            <j:if test="${attrs.type == 'EITHER'}">
-              <!-- migration options -->
-              <a href="#" class="migrate migrate_user" tooltip="${%migrate_user(h.escape(attrs.sid))}" data-html-tooltip="${%migrate_user(h.escape(attrs.sid))}">
-                <l:icon alt="${%Migrate entry to user}" class="icon-person icon-sm" />
+              <a href="#" class="unselectall" tooltip="${%unselectall(h.escape(attrs.sid))}" data-html-tooltip="${%unselectall(h.escape(attrs.sid))}">
+                <l:icon alt="${%Unselect all}" src="symbol-unselect-all plugin-matrix-auth" class="icon-sm"/>
               </a>
-              <a href="#" class="migrate migrate_group" tooltip="${%migrate_group(h.escape(attrs.sid))}" data-html-tooltip="${%migrate_group(h.escape(attrs.sid))}">
-                <l:icon alt="${%Migrate entry to group}" class="icon-user icon-sm" />
-              </a>
-            </j:if>
+              <j:if test="${(attrs.sid != 'authenticated' or attrs.type != 'GROUP') and (attrs.sid != 'anonymous' or attrs.type != 'USER')}">
+                <a href="#" class="remove" tooltip="${%remove(h.escape(attrs.sid))}" data-html-tooltip="${%remove(h.escape(attrs.sid))}">
+                  <l:icon alt="${%Remove user/group}" src="symbol-trash-outline plugin-ionicons-api" class="icon-sm alert-danger" />
+                </a>
+              </j:if>
+              <j:if test="${attrs.type == 'EITHER'}">
+                <!-- migration options -->
+                <a href="#" class="migrate migrate_user" tooltip="${%migrate_user(h.escape(attrs.sid))}" data-html-tooltip="${%migrate_user(h.escape(attrs.sid))}">
+                  <l:icon alt="${%Migrate entry to user}" src="symbol-person-outline plugin-ionicons-api" class="icon-sm" />
+                </a>
+                <a href="#" class="migrate migrate_group" tooltip="${%migrate_group(h.escape(attrs.sid))}" data-html-tooltip="${%migrate_group(h.escape(attrs.sid))}">
+                  <l:icon alt="${%Migrate entry to group}" src="symbol-people-outline plugin-ionicons-api" class="icon-sm" />
+                </a>
+              </j:if>
+            </div>
           </td>
         </local:isEditable>
       </d:tag>
@@ -182,28 +184,26 @@ THE SOFTWARE.
       </tr>
     </table>
     <local:isEditable>
-      <div class="jenkins-!-margin-top-2">
-        <input type="button" class="matrix-auth-add-button" value="${%Add user…}" id="${id}UserButton"
+      <div class="jenkins-!-margin-top-2 jenkins-buttons-row jenkins-buttons-row--equal-width">
+        <button type="button" class="jenkins-button matrix-auth-add-button" id="${id}UserButton"
               data-table-id="${id}"
               data-type="USER"
               data-type-label="${%user}"
               data-message-prompt="${%userPrompt}"
               data-message-empty="${%userEmpty}"
-              data-message-error="${%userError}"
-        />
-        <input type="button" class="matrix-auth-add-button" value="${%Add group…}" id="${id}GroupButton"
+              data-message-error="${%userError}">${%Add user…}</button>
+        <button type="button" class="jenkins-button matrix-auth-add-button" value="" id="${id}GroupButton"
               data-table-id="${id}"
               data-type="GROUP"
               data-type-label="${%group}"
               data-message-prompt="${%groupPrompt}"
               data-message-empty="${%groupEmpty}"
-              data-message-error="${%groupError}"
-        />
+              data-message-error="${%groupError}">${%Add group…}</button>
         <f:helpLink featureName="${%Permissions matrix}" url="${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"/>
-        <f:helpArea />
       </div>
+      <f:helpArea />
       <j:if test="${descriptor.hasAmbiguousEntries(instance)}">
-        <div class="alert alert-warning" data-table-id="${tableid}">
+        <div class="alert alert-warning jenkins-!-margin-top-2" data-table-id="${tableid}">
           ${%ambiguous}
         </div>
       </j:if>
