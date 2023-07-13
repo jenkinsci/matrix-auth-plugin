@@ -48,7 +48,7 @@
 .global-matrix-authorization-strategy-table TD {
   border: 1px solid #D3D7CF;
   padding: 3px;
-	vertical-align: middle;
+  vertical-align: middle;
 }
 
 .global-matrix-authorization-strategy-table TD.left-most {
@@ -61,7 +61,6 @@
   border-right: 1px solid transparent;
   border-bottom: 1px solid transparent;
   white-space: nowrap;
-  vertical-align: middle;
 }
 
 .matrix-auth-add-user-button {
@@ -112,12 +111,12 @@
   font-weight: 600;
 }
 
-.ma-table__icon-warning {
+.mas-table__icon-warning {
   color: orange;
   min-width: 24px!important;
 }
 
-.ma-table__icon-alert {
+.mas-table__icon-alert {
   color: red;
   min-width: 24px!important;
 }

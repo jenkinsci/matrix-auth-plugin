@@ -56,8 +56,8 @@ class ValidationUtil {
     static {
         userSymbol = getSymbol("person", "icon-sm");
         groupSymbol = getSymbol("people", "icon-sm");
-        alertSymbol = getSymbol("alert-circle", "icon-md ma-table__icon-alert");
-        warningSymbol = getSymbol("warning", "icon-md ma-table__icon-warning");
+        alertSymbol = getSymbol("alert-circle", "icon-md mas-table__icon-alert");
+        warningSymbol = getSymbol("warning", "icon-md mas-table__icon-warning");
     }
 
     private static String getSymbol(String symbol, String classes) {
