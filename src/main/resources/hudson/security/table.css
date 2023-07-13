@@ -48,12 +48,12 @@
 .global-matrix-authorization-strategy-table TD {
   border: 1px solid #D3D7CF;
   padding: 3px;
+	vertical-align: middle;
 }
 
 .global-matrix-authorization-strategy-table TD.left-most {
   text-align: left;
   border-left: none;
-  vertical-align: middle;
 }
 
 .global-matrix-authorization-strategy-table TD.stop {
@@ -80,30 +80,35 @@
 }
 
 .global-matrix-authorization-strategy-table .jenkins-checkbox {
-	vertical-align: middle;
+  vertical-align: middle;
 }
 
-.ma-table__cell {
+.mas-table__cell {
   display: flex;
   align-items: center;
   gap: 3px;
 }
 
-.ma-table__cell svg {
+.mas-table__cell svg {
   min-width: 16px;
 }
 
-.ma-table__cell a {
+.mas-table__cell a {
   height: 16px;
 }
 
-.ma-table__cell a svg {
+.mas-table__cell a svg {
   vertical-align: initial!important;
 }
 
-.ma-entry-not-found {
+.mas-table__cell--not-found {
   text-decoration: line-through;
   color: red;
+  font-weight: 600;
+}
+
+.mas-table__cell-warning {
+  color: orange;
   font-weight: 600;
 }
 

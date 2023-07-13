@@ -71,7 +71,7 @@ class ValidationUtil {
     }
 
     static String formatNonExistentUserGroupValidationResponse(String user, String tooltip, boolean warning) {
-        return formatUserGroupValidationResponse("alert", "<span class='ma-entry-not-found'>" + user + "</span>",
+        return formatUserGroupValidationResponse("alert", "<span class='mas-table__cell--not-found'>" + user + "</span>",
                 tooltip, warning);
     }
 
@@ -102,9 +102,9 @@ class ValidationUtil {
                 break;
         }
         if (warning) {
-            return String.format("<div tooltip='%s' class='ma-table__cell'>%s%s%s</div>", tooltip, warningSymbol, symbol, user);
+            return String.format("<div tooltip='%s' class='mas-table__cell mas-table__cell-warning'>%s%s%s</div>", tooltip, warningSymbol, symbol, user);
         }
-        return String.format("<div tooltip='%s' class='ma-table__cell'>%s%s</div>", tooltip, symbol, user);
+        return String.format("<div tooltip='%s' class='mas-table__cell'>%s%s</div>", tooltip, symbol, user);
     }
 
     static FormValidation validateGroup(String groupName, SecurityRealm sr, boolean ambiguous) {

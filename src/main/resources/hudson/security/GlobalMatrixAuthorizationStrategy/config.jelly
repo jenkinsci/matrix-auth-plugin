@@ -60,14 +60,14 @@ THE SOFTWARE.
         <j:choose>
           <j:when test="${attrs.sid == 'authenticated' and attrs.type == 'GROUP'}">
             <td class="left-most">
-              <div title="authenticated" class="ma-table__cell">
+              <div title="authenticated" class="mas-table__cell">
                 <l:icon src="symbol-people-outline plugin-ionicons-api" class="icon-sm"/>${%Authenticated Users}
               </div>
             </td>
           </j:when>
           <j:when test="${attrs.sid == 'anonymous' and attrs.type == 'USER'}">
             <td class="left-most">
-              <div title="anonymous" class="ma-table__cell">
+              <div title="anonymous" class="mas-table__cell">
                 <l:icon src="symbol-person-outline plugin-ionicons-api" class="icon-sm"/>${%Anonymous}
               </div>
             </td>
@@ -80,7 +80,7 @@ THE SOFTWARE.
         <j:forEach var="g" items="${groups}">
           <j:forEach var="p" items="${g.permissions}">
             <j:if test="${descriptor.showPermission(p)}">
-              <td width="*"
+              <td
                   data-implied-by-list="${descriptor.impliedByList(p)}"
                   data-permission-id="${p.id}"
                   data-tooltip-enabled="${%tooltip_enabled(p.group.title, p.name, typeName, attrs.sid)}"
@@ -92,7 +92,7 @@ THE SOFTWARE.
         </j:forEach>
         <local:isEditable sid="${attrs.sid}" type="${attrs.type}">
           <td class="stop">
-            <div class="ma-table__cell">
+            <div class="mas-table__cell">
               <a href="#" class="selectall" tooltip="${%selectall(h.escape(attrs.sid))}" data-html-tooltip="${%selectall(h.escape(attrs.sid))}">
                 <l:icon alt="${%Select all}" src="symbol-select-all plugin-matrix-auth" class="icon-sm"/>
               </a>
