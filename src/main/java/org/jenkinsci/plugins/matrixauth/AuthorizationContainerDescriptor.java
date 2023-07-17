@@ -185,7 +185,7 @@ public interface AuthorizationContainerDescriptor {
             return FormValidation.respond(
                     FormValidation.Kind.OK,
                     formatUserGroupValidationResponse(
-                            type,
+                            AuthorizationType.GROUP,
                             escapedSid,
                             "Internal group found; but permissions would also be granted to a user of this name",
                             true));
@@ -196,7 +196,7 @@ public interface AuthorizationContainerDescriptor {
             return FormValidation.respond(
                     FormValidation.Kind.OK,
                     formatUserGroupValidationResponse(
-                            type,
+                            AuthorizationType.USER,
                             escapedSid,
                             "Internal user found; but permissions would also be granted to a group of this name",
                             true));
