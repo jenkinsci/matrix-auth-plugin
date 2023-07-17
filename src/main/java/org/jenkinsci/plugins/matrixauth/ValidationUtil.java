@@ -177,7 +177,7 @@ class ValidationUtil {
                                 USER,
                                 Util.escape(StringUtils.abbreviate(u.getFullName(), 50)),
                                 "User " + escapedSid
-                                        + " found, but permissions would also be granted to a group of this name",
+                                        + " found; but permissions would also be granted to a group of this name",
                                 true));
             } else {
                 return FormValidation.respond(
