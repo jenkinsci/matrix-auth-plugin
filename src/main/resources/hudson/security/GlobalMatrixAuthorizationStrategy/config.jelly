@@ -101,7 +101,7 @@ THE SOFTWARE.
               </a>
               <j:if test="${(attrs.sid != 'authenticated' or attrs.type != 'GROUP') and (attrs.sid != 'anonymous' or attrs.type != 'USER')}">
                 <a href="#" class="remove" tooltip="${%remove(h.escape(attrs.sid))}" data-html-tooltip="${%remove(h.escape(attrs.sid))}">
-                  <l:icon alt="${%Remove user/group}" src="symbol-trash-outline plugin-ionicons-api" class="icon-sm alert-danger" />
+                  <l:icon alt="${%Remove user/group}" src="symbol-trash-outline plugin-ionicons-api" class="icon-sm icon-red" />
                 </a>
               </j:if>
               <j:if test="${attrs.type == 'EITHER'}">

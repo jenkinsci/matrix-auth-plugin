@@ -94,6 +94,7 @@
 
 .mas-table__cell a {
   height: 16px;
+  color: var(--text-color)
 }
 
 .mas-table__cell a svg {
@@ -102,22 +103,21 @@
 
 .mas-table__cell--not-found {
   text-decoration: line-through;
-  color: red;
+  color: var(--danger);
   font-weight: 600;
 }
 
 .mas-table__cell-warning {
-  color: orange;
+  color: var(--warning);
   font-weight: 600;
 }
 
 .mas-table__icon-warning {
-  color: orange;
+  color: var(--warning);
   min-width: 24px!important;
 }
 
 .mas-table__icon-alert {
-  color: red;
+  color: var(--danger);
   min-width: 24px!important;
 }
-
