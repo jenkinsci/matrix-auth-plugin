@@ -55,7 +55,7 @@ public class ReadOnlyTest {
                 "should contain add group/user button",
                 hasTagWithClassInPage(
                         page,
-                        "span",
+                        "button",
                         "matrix-auth-add-button")); // Behavior.specify / makeButton converts input to button and wraps
         // it in span
     }
@@ -66,7 +66,7 @@ public class ReadOnlyTest {
                 "should not contain add group/user button",
                 hasTagWithClassInPage(
                         page,
-                        "span",
+                        "button",
                         "matrix-auth-add-button")); // Behavior.specify / makeButton converts input to button and wraps
         // it in span
     }

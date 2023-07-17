@@ -161,33 +161,45 @@ public interface AuthorizationContainerDescriptor {
         if (!subject.hasPermission(permission)) {
             // Lacking permissions, so respond based on input only
             if (type == AuthorizationType.USER) {
-                return FormValidation.okWithMarkup(
-                        formatUserGroupValidationResponse("person", escapedSid, "User may or may not exist"));
+                return FormValidation.respond(
+                        FormValidation.Kind.OK,
+                        formatUserGroupValidationResponse(
+                                AuthorizationType.USER, escapedSid, "User may or may not exist"));
             }
             if (type == AuthorizationType.GROUP) {
-                return FormValidation.okWithMarkup(
-                        formatUserGroupValidationResponse("user", escapedSid, "Group may or may not exist"));
+                return FormValidation.respond(
+                        FormValidation.Kind.OK,
+                        formatUserGroupValidationResponse(
+                                AuthorizationType.GROUP, escapedSid, "Group may or may not exist"));
             }
-            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
-                    null, escapedSid, "Permissions would be granted to a user or group of this name"));
+            return FormValidation.respond(
+                    FormValidation.Kind.OK,
+                    formatUserGroupValidationResponse(
+                            "", escapedSid, "Permissions would be granted to a user or group of this name", true));
         }
 
         SecurityRealm sr = Jenkins.get().getSecurityRealm();
 
         if (sid.equals("authenticated") && type == AuthorizationType.EITHER) {
             // system reserved group
-            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
-                    "user",
-                    escapedSid,
-                    "Internal group found; but permissions would also be granted to a user of this name"));
+            return FormValidation.respond(
+                    FormValidation.Kind.OK,
+                    formatUserGroupValidationResponse(
+                            AuthorizationType.GROUP,
+                            escapedSid,
+                            "Internal group found; but permissions would also be granted to a user of this name",
+                            true));
         }
 
         if (sid.equals("anonymous") && type == AuthorizationType.EITHER) {
             // system reserved user
-            return FormValidation.warningWithMarkup(formatUserGroupValidationResponse(
-                    "person",
-                    escapedSid,
-                    "Internal user found; but permissions would also be granted to a group of this name"));
+            return FormValidation.respond(
+                    FormValidation.Kind.OK,
+                    formatUserGroupValidationResponse(
+                            AuthorizationType.USER,
+                            escapedSid,
+                            "Internal user found; but permissions would also be granted to a group of this name",
+                            true));
         }
 
         try {
@@ -199,15 +211,19 @@ public interface AuthorizationContainerDescriptor {
                     if (groupValidation != null) {
                         return groupValidation;
                     }
-                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(
-                            escapedSid, "Group not found")); // TODO i18n (after 3.0)
+                    return FormValidation.respond(
+                            FormValidation.Kind.OK,
+                            formatNonExistentUserGroupValidationResponse(
+                                    escapedSid, "Group not found")); // TODO i18n (after 3.0)
                 case USER:
                     userValidation = ValidationUtil.validateUser(sid, sr, false);
                     if (userValidation != null) {
                         return userValidation;
                     }
-                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(
-                            escapedSid, "User not found")); // TODO i18n (after 3.0)
+                    return FormValidation.respond(
+                            FormValidation.Kind.OK,
+                            formatNonExistentUserGroupValidationResponse(
+                                    escapedSid, "User not found")); // TODO i18n (after 3.0)
                 case EITHER:
                     userValidation = ValidationUtil.validateUser(sid, sr, true);
                     if (userValidation != null) {
@@ -217,8 +233,10 @@ public interface AuthorizationContainerDescriptor {
                     if (groupValidation != null) {
                         return groupValidation;
                     }
-                    return FormValidation.errorWithMarkup(formatNonExistentUserGroupValidationResponse(
-                            escapedSid, "User or group not found")); // TODO i18n (after 3.0)
+                    return FormValidation.respond(
+                            FormValidation.Kind.OK,
+                            formatNonExistentUserGroupValidationResponse(
+                                    escapedSid, "User or group not found", true)); // TODO i18n (after 3.0)
                 default:
                     return FormValidation.error("Unexpected type: " + type);
             }
