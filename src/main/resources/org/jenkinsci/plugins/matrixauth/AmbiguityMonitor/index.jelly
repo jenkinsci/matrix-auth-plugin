@@ -26,8 +26,10 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
     <l:layout title="${it.displayName}">
         <l:side-panel>
-            <l:task href="${rootURL}/" icon="icon-up icon-md" title="${%Back to Dashboard}"/>
-            <l:task href="${rootURL}/manage" icon="icon-gear2 icon-md" title="${%Manage Jenkins}"/>
+            <l:tasks>
+                <l:task href="${rootURL}/" icon="icon-up icon-md" title="${%Back to Dashboard}"/>
+                <l:task href="${rootURL}/manage" icon="icon-gear2 icon-md" title="${%Manage Jenkins}"/>
+            </l:tasks>
         </l:side-panel>
         <l:main-panel>
             <h1>${it.displayName}</h1>

@@ -24,11 +24,11 @@
     <url>https://github.com/${gitHubRepo}</url>
   </scm>
   <properties>
-    <revision>3.1.9</revision>
+    <revision>3.1.11</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <hpi.compatibleSinceVersion>3.2</hpi.compatibleSinceVersion>
-    <jenkins.version>2.361.4</jenkins.version>
+    <jenkins.version>2.387.3</jenkins.version>
     <spotless.check.skip>false</spotless.check.skip>
   </properties>
 
@@ -36,8 +36,8 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.361.x</artifactId>
-        <version>1887.vda_d0ddb_c15c4</version>
+        <artifactId>bom-2.387.x</artifactId>
+        <version>2230.v0cb_4040cde55</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -49,6 +49,10 @@
       <groupId>io.jenkins</groupId>
       <artifactId>configuration-as-code</artifactId>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>ionicons-api</artifactId>
     </dependency>
     <!-- optional plugin dependencies -->
     <dependency>

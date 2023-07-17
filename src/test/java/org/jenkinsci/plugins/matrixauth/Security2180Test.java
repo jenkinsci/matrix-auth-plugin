@@ -15,6 +15,7 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.TopLevelItem;
 import hudson.model.TopLevelItemDescriptor;
+import hudson.model.queue.QueueTaskFuture;
 import hudson.security.ACL;
 import hudson.security.AuthorizationMatrixProperty;
 import hudson.security.Permission;
@@ -101,8 +102,10 @@ public class Security2180Test {
             throws Exception {
         final String jobUrl = job.getUrl();
         // TODO robustness: check queue contents / executor status before scheduling
-        job.scheduleBuild2(0, new Cause.UserIdCause("admin")).waitForStart(); // schedule one build now
-        job.scheduleBuild2(0, new Cause.UserIdCause("admin")); // schedule an additional queue item
+        FreeStyleBuild build =
+                job.scheduleBuild2(0, new Cause.UserIdCause("admin")).waitForStart(); // schedule one build now
+        QueueTaskFuture<FreeStyleBuild> future =
+                job.scheduleBuild2(0, new Cause.UserIdCause("admin")); // schedule an additional queue item
         Assert.assertEquals(1, Jenkins.get().getQueue().getItems().length); // expect there to be one queue item
 
         final JenkinsRule.WebClient webClient = j.createWebClient().withThrowExceptionOnFailingStatusCode(false);
@@ -140,6 +143,8 @@ public class Security2180Test {
                 }
             }
         } finally {
+            future.cancel(true);
+            build.doStop();
             System.clearProperty(propertyName);
         }
     }
