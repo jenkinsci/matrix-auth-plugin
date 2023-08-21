@@ -41,7 +41,6 @@ public class AuthorizationMatrixPropertyTest {
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
                 "properties([authorizationMatrix(entries: [userOrGroup(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), userOrGroup(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
-        // TODO Ignore ambiguous permissions?
     }
 
     @Test
@@ -79,7 +78,6 @@ public class AuthorizationMatrixPropertyTest {
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
                 "properties([authorizationMatrix(entries: [userOrGroup(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), userOrGroup(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
-        // TODO Keep ambiguous entries?
 
         Assert.assertTrue(l.getMessages().stream()
                 .anyMatch(m -> m.contains("Tried to add inapplicable permission")
@@ -125,8 +123,7 @@ public class AuthorizationMatrixPropertyTest {
 
         project.setDefinition(new CpsFlowDefinition(
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure'])])])",
-                // TODO what to do about SCM/Tag
+                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure', 'hudson.scm.SCM.Tag'])])])",
                 true));
         j.buildAndAssertSuccess(project);
 
@@ -134,7 +131,7 @@ public class AuthorizationMatrixPropertyTest {
         AuthorizationMatrixProperty property = project.getProperty(AuthorizationMatrixProperty.class);
         Assert.assertTrue(property.getInheritanceStrategy() instanceof NonInheritingStrategy);
         Assert.assertEquals(0, property.getGrantedPermissions().size()); // Unambiguous permissions are 0
-        Assert.assertEquals(2, property.getGrantedPermissionEntries().size());
+        Assert.assertEquals(3, property.getGrantedPermissionEntries().size());
         Assert.assertEquals(0, property.getGroups().size());
 
         // now bob has access, including configure
@@ -179,7 +176,7 @@ public class AuthorizationMatrixPropertyTest {
 
         project.setDefinition(new CpsFlowDefinition(
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure', 'SCM/Tag'])])])",
+                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure', 'hudson.scm.SCM.Tag'])])])",
                 true));
         j.buildAndAssertSuccess(project);
 
