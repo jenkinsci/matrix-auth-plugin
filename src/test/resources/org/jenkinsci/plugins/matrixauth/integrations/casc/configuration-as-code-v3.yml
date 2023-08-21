@@ -76,19 +76,12 @@ jobs:
           inheritanceStrategy {
               nonInheriting()
           }
+          /* TODO Adapt to https://github.com/jenkinsci/matrix-auth-plugin/pull/144 once that's merged */
           permissions([
               'GROUP:Job/Build:authenticated',
               'GROUP:Job/Configure:authenticated',
               'GROUP:Job/Delete:authenticated',
               'GROUP:Job/Read:authenticated',
-          ])
-          entries([
-            group('authenticated') {
-              'Job/Build',
-              'Job/Configure',
-              'Job/Delete',
-              'Job/Read'
-            } 
           ])
         }
       }

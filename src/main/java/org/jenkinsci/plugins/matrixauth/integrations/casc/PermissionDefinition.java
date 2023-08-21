@@ -1,25 +1,16 @@
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import hudson.security.Permission;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.beanutils.Converter;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
-import org.jenkinsci.plugins.matrixauth.integrations.PermissionFinder;
-import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Wrapper for {@link hudson.security.Permission} referenced in JCasC
  */
 public class PermissionDefinition {
     private Permission permission;
-
-    @DataBoundConstructor
-    public PermissionDefinition(String permission) {
-        this.permission = PermissionFinder.findPermission(permission);
-    }
 
     private PermissionDefinition(Permission permission) {
         this.permission = permission;
@@ -33,22 +24,33 @@ public class PermissionDefinition {
         return new PermissionDefinition(permission);
     }
 
-    public static class ConverterImpl implements Converter {
-        @Override
-        public void marshal(Object o, HierarchicalStreamWriter reader, MarshallingContext marshallingContext) {
-            PermissionDefinition p = (PermissionDefinition) o;
-            reader.setValue(p.permission.group.title + "/" + p.permission.name);
-        }
+    @Override
+    public String toString() {
+        return permission.group.title + "/" + permission.name;
+    }
 
+    public static class StaplerConverterImpl implements Converter {
         @Override
-        public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext unmarshallingContext) {
-            String value = reader.getValue();
-            return PermissionDefinition.forPermission(AuthorizationContainer.parsePermission(value));
-        }
+        public Object convert(Class target, Object o) {
+            if (o == null) {
+                return null;
+            }
 
-        @Override
-        public boolean canConvert(Class type) {
-            return type == PermissionDefinition.class;
+            if (target == PermissionDefinition.class && o instanceof List) {
+                // JCasC export provides an ArrayList<PermissionDefinition> and requests a PermissionDefinition !?
+                return ((List<?>) o)
+                        .stream()
+                                .map(p -> (PermissionDefinition) p)
+                                .map(p -> p.permission.group.title + "/" + p.permission.name)
+                                .collect(Collectors.toList());
+            }
+
+            if (target == PermissionDefinition.class && o instanceof String) {
+                // import provides a String and asks for a PermissionDefinition
+                return PermissionDefinition.forPermission(AuthorizationContainer.parsePermission((String) o));
+            }
+
+            throw new IllegalArgumentException("Failed to convert '" + o + "' to " + target);
         }
     }
 }
