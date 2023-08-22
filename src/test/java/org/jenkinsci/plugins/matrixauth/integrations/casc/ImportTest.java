@@ -38,15 +38,88 @@ public class ImportTest {
             new RealJenkinsRule().withLogger(MatrixAuthorizationStrategyConfigurator.class, Level.WARNING);
 
     @Test
-    public void should_support_configuration_as_code_ambiguous_format() throws Throwable {
-        rr.then(ImportTest::should_support_configuration_as_code_ambiguous_formatStep);
+    public void v3Test() throws Throwable {
+        rr.then(ImportTest::v3TestStep);
     }
 
-    private static void should_support_configuration_as_code_ambiguous_formatStep(JenkinsRule r)
-            throws ConfiguratorException {
+    private static void v3TestStep(JenkinsRule r) throws ConfiguratorException {
         ConfigurationAsCode.get()
-                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-ambiguous.yml"))
+                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v3.yml"))
                         .toExternalForm());
+
+        assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
+        AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
+        assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
+        ProjectMatrixAuthorizationStrategy projectMatrixAuthorizationStrategy =
+                (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
+        { // global
+            final List<PermissionEntry> entries = projectMatrixAuthorizationStrategy.getAllPermissionEntries();
+            assertEquals("2 real sids (we ignore anon/user)", 2, entries.size());
+            assertThat(
+                    entries,
+                    hasItems(
+                            new PermissionEntry(AuthorizationType.GROUP, "authenticated"),
+                            new PermissionEntry(AuthorizationType.EITHER, "developer")));
+            assertTrue(
+                    "anon can read",
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission(
+                            PermissionEntry.user("anonymous"), Jenkins.READ));
+            assertTrue(
+                    "authenticated can read",
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission(
+                            PermissionEntry.group("authenticated"), Jenkins.READ));
+            assertTrue(
+                    "authenticated can build",
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission(
+                            PermissionEntry.group("authenticated"), Item.BUILD));
+            assertTrue(
+                    "authenticated can delete jobs",
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission(
+                            PermissionEntry.group("authenticated"), Item.DELETE));
+            assertTrue(
+                    "authenticated can administer",
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission(
+                            PermissionEntry.group("authenticated"), Jenkins.ADMINISTER));
+        }
+        { // item from Job DSL
+            Folder folder = (Folder) r.jenkins.getItem("generated");
+            assertNotNull(folder);
+            AuthorizationMatrixProperty property = folder.getProperties().get(AuthorizationMatrixProperty.class);
+            assertTrue("folder property inherits", property.getInheritanceStrategy() instanceof NonInheritingStrategy);
+            assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.BUILD));
+            assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.READ));
+            assertFalse(property.hasExplicitPermission(PermissionEntry.user("anonymous"), Item.READ));
+            assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.CONFIGURE));
+            assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.DELETE));
+        }
+        { // agent
+            final Node agent = r.jenkins.getNode("agent1");
+            assertNotNull(agent);
+            AuthorizationMatrixNodeProperty property = agent.getNodeProperty(AuthorizationMatrixNodeProperty.class);
+            assertNotNull(property);
+            assertTrue(property.getInheritanceStrategy() instanceof InheritGlobalStrategy);
+            assertTrue(property.hasExplicitPermission(PermissionEntry.user("anonymous"), Computer.BUILD));
+            assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.BUILD));
+            assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.DISCONNECT));
+        }
+        assertEquals(
+                "no messages",
+                0,
+                Jenkins.logRecords.stream()
+                        .filter(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName()))
+                        .count());
+    }
+
+    @Test
+    public void v2AmbiguousTest() throws Throwable {
+        rr.then(ImportTest::v2AmbiguousTestStep);
+    }
+
+    private static void v2AmbiguousTestStep(JenkinsRule r) throws ConfiguratorException {
+        ConfigurationAsCode.get()
+                .configure(
+                        Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v2-ambiguous.yml"))
+                                .toExternalForm());
 
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
@@ -142,22 +215,22 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission("authenticated", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.DISCONNECT));
         }
-        assertEquals(
-                "no warnings",
-                0,
+        assertTrue(
+                "correct message",
                 Jenkins.logRecords.stream()
-                        .filter(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName()))
-                        .count());
+                        .anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())
+                                && l.getMessage()
+                                        .contains("Loading deprecated attribute 'permissions' for instance of")));
     }
 
     @Test
-    public void should_support_configuration_as_code() throws Throwable {
-        rr.then(ImportTest::should_support_configuration_as_codeStep);
+    public void v2Test() throws Throwable {
+        rr.then(ImportTest::v2TestStep);
     }
 
-    private static void should_support_configuration_as_codeStep(JenkinsRule r) throws ConfiguratorException {
+    private static void v2TestStep(JenkinsRule r) throws ConfiguratorException {
         ConfigurationAsCode.get()
-                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code.yml"))
+                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v2.yml"))
                         .toExternalForm());
 
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
@@ -211,22 +284,22 @@ public class ImportTest {
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.DISCONNECT));
         }
-        assertEquals(
-                "no warnings",
-                0,
+        assertTrue(
+                "correct message",
                 Jenkins.logRecords.stream()
-                        .filter(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName()))
-                        .count());
+                        .anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())
+                                && l.getMessage()
+                                        .contains("Loading deprecated attribute 'permissions' for instance of")));
     }
 
     @Test
-    public void legacyTest() throws Throwable {
-        rr.then(ImportTest::legacyTestStep);
+    public void v1Test() throws Throwable {
+        rr.then(ImportTest::v1TestStep);
     }
 
-    private static void legacyTestStep(JenkinsRule r) throws ConfiguratorException {
+    private static void v1TestStep(JenkinsRule r) throws ConfiguratorException {
         ConfigurationAsCode.get()
-                .configure(Objects.requireNonNull(ImportTest.class.getResource("legacy-format.yml"))
+                .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v1.yml"))
                         .toExternalForm());
 
         assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);

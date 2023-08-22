@@ -34,7 +34,7 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
  *
  * @since 3.0
  */
-public class PermissionEntry {
+public class PermissionEntry implements Comparable<PermissionEntry> {
     private final AuthorizationType type;
     private final String sid;
 
@@ -109,5 +109,14 @@ public class PermissionEntry {
     @Override
     public String toString() {
         return "PermissionEntry{" + "type=" + type + ", sid='" + sid + "'" + '}';
+    }
+
+    @Override
+    public int compareTo(@NonNull PermissionEntry o) {
+        final int type = getType().compareTo(o.getType());
+        if (type != 0) {
+            return type;
+        }
+        return this.getSid().compareTo(o.getSid());
     }
 }
