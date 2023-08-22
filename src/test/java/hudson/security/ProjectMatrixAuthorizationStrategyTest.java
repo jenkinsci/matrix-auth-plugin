@@ -8,7 +8,6 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
-import hudson.util.VersionNumber;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
@@ -164,29 +163,17 @@ public class ProjectMatrixAuthorizationStrategyTest {
     private void configureGlobalMatrixAuthStrategyThroughUI(JenkinsRule.WebClient wc) throws Exception {
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
-        if (new VersionNumber("2.342").isOlderThanOrEqualTo(Jenkins.getVersion())) {
-            final Optional<HtmlElement> anyOption = form.getElementsByTagName("option").stream()
-                    .filter(option -> option.getTextContent()
-                            .contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName()))
-                    .findAny();
+        final Optional<HtmlElement> anyOption = form.getElementsByTagName("option").stream()
+                .filter(option ->
+                        option.getTextContent().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName()))
+                .findAny();
 
-            if (!anyOption.isPresent()) {
-                throw new IllegalStateException("expected to find an option");
-            }
-            HtmlOption option = (HtmlOption) anyOption.get();
-            HtmlSelect parent = (HtmlSelect) option.getParentNode();
-            parent.setSelectedAttribute(option, true);
-        } else {
-            Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream()
-                    .filter(lbl -> lbl.asNormalizedText()
-                            .contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName()))
-                    .findAny();
-            if (!anyLabel.isPresent()) {
-                throw new IllegalStateException("expected to find a label");
-            }
-            HtmlElement label = anyLabel.get();
-            label.click();
+        if (!anyOption.isPresent()) {
+            throw new IllegalStateException("expected to find an option");
         }
+        HtmlOption option = (HtmlOption) anyOption.get();
+        HtmlSelect parent = (HtmlSelect) option.getParentNode();
+        parent.setSelectedAttribute(option, true);
         r.submit(form);
     }
 
