@@ -23,6 +23,7 @@ import hudson.security.ProjectMatrixAuthorizationStrategy;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import jenkins.model.DirectlyModifiableTopLevelItemGroup;
 import jenkins.model.Jenkins;
 import org.htmlunit.Page;
@@ -31,9 +32,12 @@ import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SleepBuilder;
 
@@ -43,8 +47,25 @@ public class Security2180Test {
     private static final Map<Permission, Set<String>> ANONYMOUS_CAN_ITEM_READ =
             Collections.singletonMap(Item.READ, Collections.singleton("anonymous"));
 
+    private static final Logger LOGGER = Logger.getLogger(Security2180Test.class.getName());
+
+    @ClassRule
+    public static BuildWatcher watcher = new BuildWatcher();
+
     @Rule
     public JenkinsRule j = new JenkinsRule();
+
+    @After
+    public void stopBuilds() throws Exception {
+        for (FreeStyleProject p : j.jenkins.allItems(FreeStyleProject.class)) {
+            for (FreeStyleBuild b : p.getBuilds()) {
+                LOGGER.info(() -> "Stopping " + b + "…");
+                b.doStop();
+                j.waitForCompletion(b);
+                LOGGER.info(() -> "…done.");
+            }
+        }
+    }
 
     /**
      * Helper method that creates a nested folder structure: Each parameter but the last creates a folder, the last one
