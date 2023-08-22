@@ -104,7 +104,7 @@ public interface AuthorizationProperty extends AuthorizationContainer {
     }
 
     /**
-     * Getter supporting nicer DSL syntax for Job DLS and Pipeline job property definitions.
+     * Getter supporting nicer DSL syntax for Job DSL and Pipeline job property definitions.
      * @return a list of {@link DslEntry}
      */
     default List<DslEntry> getEntries() {
