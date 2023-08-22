@@ -9,6 +9,7 @@ import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -87,9 +88,10 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
                         (c1, c2) -> {
                             /* unused */
                         });
-        final Set<DefinitionEntry> result = intermediate.entrySet().stream()
+        final List<DefinitionEntry> result = intermediate.entrySet().stream()
                 .map(entry -> new DefinitionEntry(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toSet());
+                .sorted(Comparator.comparing(DefinitionEntry::getPermissionEntry))
+                .collect(Collectors.toList());
         return result;
     }
 

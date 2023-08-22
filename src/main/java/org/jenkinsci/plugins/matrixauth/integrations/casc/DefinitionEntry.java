@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jenkinsci.plugins.matrixauth.AuthorizationType;
 import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -24,7 +25,7 @@ public class DefinitionEntry {
     }
 
     public List<PermissionDefinition> getPermissions() {
-        return permissions;
+        return permissions.stream().sorted().collect(Collectors.toList());
     }
 
     public PermissionEntry getPermissionEntry() {

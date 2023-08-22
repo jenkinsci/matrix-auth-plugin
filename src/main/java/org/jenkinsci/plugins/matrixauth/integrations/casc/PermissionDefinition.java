@@ -1,7 +1,9 @@
 package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.security.Permission;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.commons.beanutils.Converter;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
@@ -9,7 +11,7 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
 /**
  * Wrapper for {@link hudson.security.Permission} referenced in JCasC
  */
-public class PermissionDefinition {
+public class PermissionDefinition implements Comparable<PermissionDefinition> {
     private Permission permission;
 
     private PermissionDefinition(Permission permission) {
@@ -27,6 +29,24 @@ public class PermissionDefinition {
     @Override
     public String toString() {
         return permission.group.title + "/" + permission.name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PermissionDefinition that = (PermissionDefinition) o;
+        return Objects.equals(permission.toString(), that.permission.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(permission.toString());
+    }
+
+    @Override
+    public int compareTo(@NonNull PermissionDefinition o) {
+        return this.toString().compareTo(o.toString());
     }
 
     public static class StaplerConverterImpl implements Converter {

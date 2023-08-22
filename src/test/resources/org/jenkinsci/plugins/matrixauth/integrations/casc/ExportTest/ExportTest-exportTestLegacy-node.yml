@@ -1,0 +1,12 @@
+entries:
+- permissions:
+  - "Agent/Build"
+  userOrGroup: "anonymous"
+- permissions:
+  - "Agent/Build"
+  - "Agent/Configure"
+  - "Agent/Connect"
+  - "Agent/Delete"
+  - "Agent/Disconnect"
+  userOrGroup: "authenticated"
+inheritanceStrategy: "inheritingGlobal"
