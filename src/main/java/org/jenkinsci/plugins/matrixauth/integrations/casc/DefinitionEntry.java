@@ -27,9 +27,7 @@ public class DefinitionEntry {
 
     @DataBoundSetter
     public void setUserOrGroup(Child child) {
-        requireNoPermissionType();
-        this.type = AuthorizationType.EITHER;
-        this.child = child;
+        setNew(AuthorizationType.EITHER, child);
     }
 
     public Child getUserOrGroup() {
@@ -38,9 +36,7 @@ public class DefinitionEntry {
 
     @DataBoundSetter
     public void setUser(Child child) {
-        requireNoPermissionType();
-        this.type = AuthorizationType.USER;
-        this.child = child;
+        setNew(AuthorizationType.USER, child);
     }
 
     public Child getUser() {
@@ -49,22 +45,23 @@ public class DefinitionEntry {
 
     @DataBoundSetter
     public void setGroup(Child child) {
-        requireNoPermissionType();
-        this.type = AuthorizationType.GROUP;
+        setNew(AuthorizationType.GROUP, child);
+    }
+
+    private void setNew(AuthorizationType type, Child child) {
+        if (this.type != null) {
+            throw new IllegalStateException(
+                    "Can only configure one of: 'user', 'group', 'userOrGroup', but attempted to redefine to '"
+                            + authorizationTypeToKey(type) + "' with name '" + child.name + "' after '"
+                            + authorizationTypeToKey(this.type) + "' was already set to '"
+                            + this.child.name + "'");
+        }
+        this.type = type;
         this.child = child;
     }
 
     public Child getGroup() {
         return type == AuthorizationType.GROUP ? child : null;
-    }
-
-    private void requireNoPermissionType() {
-        if (type != null) {
-            throw new IllegalStateException(
-                    "Can only configure one of: 'user', 'group', 'userOrGroup', but redefine after '"
-                            + authorizationTypeToKey(type) + "' was already set to '"
-                            + child.name + "'");
-        }
     }
 
     public Child child() {
@@ -91,6 +88,7 @@ public class DefinitionEntry {
         throw new IllegalStateException("Unexpected 'type': " + type);
     }
 
+    @Restricted(NoExternalUse.class)
     public static class Child {
         final List<PermissionDefinition> permissions;
         final String name;
