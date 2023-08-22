@@ -39,7 +39,7 @@ Depending on the entity being configured, all or a subset of the following _inhe
 
 Matrix Authorization Strategy Plugin has full support for use in Configuration as Code and Job DSL.
 
-For an example combining the two, see [this `configuration-as-code.yml` test resource](https://github.com/jenkinsci/matrix-auth-plugin/blob/master/src/test/resources/org/jenkinsci/plugins/matrixauth/integrations/casc/configuration-as-code.yml).
+For an example combining the two, see [this `configuration-as-code.yml` test resource](https://github.com/jenkinsci/matrix-auth-plugin/blob/master/src/test/resources/org/jenkinsci/plugins/matrixauth/integrations/casc/configuration-as-code-v3.yml).
 
 
 ## Caveats

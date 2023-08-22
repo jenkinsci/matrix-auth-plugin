@@ -58,8 +58,12 @@ public class AuthorizationMatrixNodePropertyConfigurator extends BaseConfigurato
     public Set<Attribute<AuthorizationMatrixNodeProperty, ?>> describe() {
         return new HashSet<>(Arrays.asList(
                 new MultivaluedAttribute<AuthorizationMatrixNodeProperty, String>("permissions", String.class)
-                        .getter(MatrixAuthorizationStrategyConfigurator::getPermissions)
-                        .setter(MatrixAuthorizationStrategyConfigurator::setPermissions),
+                        .getter(unused -> null)
+                        .setter(MatrixAuthorizationStrategyConfigurator::setLegacyPermissions),
+                new MultivaluedAttribute<AuthorizationMatrixNodeProperty, DefinitionEntry>(
+                                "entries", DefinitionEntry.class)
+                        .getter(MatrixAuthorizationStrategyConfigurator::getEntries)
+                        .setter(MatrixAuthorizationStrategyConfigurator::setEntries),
                 new DescribableAttribute<AuthorizationMatrixNodeProperty, InheritanceStrategy>(
                         "inheritanceStrategy", InheritanceStrategy.class)));
     }
