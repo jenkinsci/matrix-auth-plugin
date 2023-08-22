@@ -38,7 +38,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
       }
     }
 
-    var tooltipAttributeName = getTooltipAttributeName();
+    var tooltipAttributeName = 'data-html-tooltip';
 
     findElementsBySelector(copy, ".stop a").forEach(function(item) {
       let oldTitle = item.getAttribute("title");
@@ -205,19 +205,6 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
 });
 
 /*
- * Determine which attribute to set tooltips in. Changed in Jenkins 2.379 with Tippy and data-html-tooltip support.
- */
-function getTooltipAttributeName() {
-  let coreVersion = document.body.getAttribute('data-version');
-  if (coreVersion === null) {
-    return 'tooltip'
-  }
-  // TODO remove after minimum version is 2.379 or higher
-  let tippySupported = coreVersion >= '2.379';
-  return tippySupported ? 'data-html-tooltip' : 'tooltip';
-}
-
-/*
  * Whenever permission assignments change, this ensures that implied permissions get their checkboxes disabled.
  */
 Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
@@ -227,15 +214,14 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     return;
   }
 
-  var tooltipAttributeName = getTooltipAttributeName();
+  var tooltipAttributeName = 'data-html-tooltip';
 
   var impliedByString = findAncestor(e, "TD").getAttribute('data-implied-by-list');
   var impliedByList = impliedByString.split(" ");
   var tr = findAncestor(e,"TR");
   e.disabled = false;
   let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
-  e.setAttribute(tooltipAttributeName, tooltip); // before 2.335 -- TODO remove once baseline is new enough
-  e.nextSibling.setAttribute(tooltipAttributeName, tooltip); // 2.335+
+  e.nextSibling.setAttribute(tooltipAttributeName, tooltip);
 
   for (var i = 0; i < impliedByList.length; i++) {
     var permissionId = impliedByList[i];
@@ -244,8 +230,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
       if (reference.checked) {
         e.disabled = true;
         let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled'));
-        e.setAttribute(tooltipAttributeName, tooltip); // before 2.335 -- TODO remove once baseline is new enough
-        e.nextSibling.setAttribute(tooltipAttributeName, tooltip); // 2.335+
+        e.nextSibling.setAttribute(tooltipAttributeName, tooltip);
       }
     }
   }
