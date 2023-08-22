@@ -89,17 +89,21 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
                             /* unused */
                         });
         final List<DefinitionEntry> result = intermediate.entrySet().stream()
-                .map(entry -> new DefinitionEntry(entry.getKey(), entry.getValue()))
-                .sorted(Comparator.comparing(DefinitionEntry::getPermissionEntry))
+                .map(entry -> new DefinitionEntry(
+                        entry.getKey().getType(),
+                        new DefinitionEntry.Child(entry.getKey().getSid(), entry.getValue())))
+                .sorted(Comparator.comparing(DefinitionEntry::permissionEntry))
                 .collect(Collectors.toList());
         return result;
     }
 
     public static void setEntries(AuthorizationContainer container, Collection<DefinitionEntry> entries) {
         entries.forEach(e -> {
-            e.getPermissions().stream().map(PermissionDefinition::getPermission).forEach(p -> {
-                container.add(p, e.getPermissionEntry());
-            });
+            e.child().getPermissions().stream()
+                    .map(PermissionDefinition::getPermission)
+                    .forEach(p -> {
+                        container.add(p, e.permissionEntry());
+                    });
         });
     }
 

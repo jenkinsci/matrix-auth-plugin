@@ -7,10 +7,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.commons.beanutils.Converter;
 import org.jenkinsci.plugins.matrixauth.AuthorizationContainer;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 /**
  * Wrapper for {@link hudson.security.Permission} referenced in JCasC
  */
+@Restricted(NoExternalUse.class)
 public class PermissionDefinition implements Comparable<PermissionDefinition> {
     private Permission permission;
 

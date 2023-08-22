@@ -4,77 +4,75 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jenkinsci.plugins.matrixauth.AuthorizationType;
 import org.jenkinsci.plugins.matrixauth.PermissionEntry;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  * Entry for type-safe permission definitions in JCasC YAML.
  */
+@Restricted(NoExternalUse.class)
 public class DefinitionEntry {
-    private final List<PermissionDefinition> permissions;
-    private PermissionEntry permissionEntry;
+    private AuthorizationType type;
+    private Child child;
 
     @DataBoundConstructor
-    public DefinitionEntry(List<PermissionDefinition> permissions) {
-        this.permissions = permissions;
-    }
+    public DefinitionEntry() {}
 
-    public DefinitionEntry(PermissionEntry entry, List<PermissionDefinition> permissions) {
-        this.permissionEntry = entry;
-        this.permissions = permissions;
-    }
-
-    public List<PermissionDefinition> getPermissions() {
-        return permissions.stream().sorted().collect(Collectors.toList());
-    }
-
-    public PermissionEntry getPermissionEntry() {
-        return permissionEntry;
+    public DefinitionEntry(AuthorizationType type, Child child) {
+        this.child = child;
+        this.type = type;
     }
 
     @DataBoundSetter
-    public void setUserOrGroup(String userOrGroup) {
+    public void setUserOrGroup(Child child) {
         requireNoPermissionType();
-        this.permissionEntry = new PermissionEntry(AuthorizationType.EITHER, userOrGroup);
+        this.type = AuthorizationType.EITHER;
+        this.child = child;
     }
 
-    public String getUserOrGroup() {
-        return permissionEntry == null
-                ? null
-                : permissionEntry.getType() == AuthorizationType.EITHER ? permissionEntry.getSid() : null;
+    public Child getUserOrGroup() {
+        return type == AuthorizationType.EITHER ? child : null;
     }
 
     @DataBoundSetter
-    public void setUser(String user) {
+    public void setUser(Child child) {
         requireNoPermissionType();
-        this.permissionEntry = PermissionEntry.user(user);
+        this.type = AuthorizationType.USER;
+        this.child = child;
     }
 
-    public String getUser() {
-        return permissionEntry == null
-                ? null
-                : permissionEntry.getType() == AuthorizationType.USER ? permissionEntry.getSid() : null;
+    public Child getUser() {
+        return type == AuthorizationType.USER ? child : null;
     }
 
     @DataBoundSetter
-    public void setGroup(String group) {
+    public void setGroup(Child child) {
         requireNoPermissionType();
-        this.permissionEntry = PermissionEntry.group(group);
+        this.type = AuthorizationType.GROUP;
+        this.child = child;
     }
 
-    public String getGroup() {
-        return permissionEntry == null
-                ? null
-                : permissionEntry.getType() == AuthorizationType.GROUP ? permissionEntry.getSid() : null;
+    public Child getGroup() {
+        return type == AuthorizationType.GROUP ? child : null;
     }
 
     private void requireNoPermissionType() {
-        if (permissionEntry != null) {
+        if (type != null) {
             throw new IllegalStateException(
                     "Can only configure one of: 'user', 'group', 'userOrGroup', but redefine after '"
-                            + authorizationTypeToKey(permissionEntry.getType()) + "' was already set to '"
-                            + permissionEntry.getSid() + "'");
+                            + authorizationTypeToKey(type) + "' was already set to '"
+                            + child.name + "'");
         }
+    }
+
+    public Child child() {
+        return child;
+    }
+
+    public PermissionEntry permissionEntry() {
+        return new PermissionEntry(type, child.name);
     }
 
     private static String authorizationTypeToKey(AuthorizationType type) {
@@ -91,5 +89,24 @@ public class DefinitionEntry {
             return "userOrGroup";
         }
         throw new IllegalStateException("Unexpected 'type': " + type);
+    }
+
+    public static class Child {
+        final List<PermissionDefinition> permissions;
+        final String name;
+
+        @DataBoundConstructor
+        public Child(String name, List<PermissionDefinition> permissions) {
+            this.name = name;
+            this.permissions = permissions;
+        }
+
+        public List<PermissionDefinition> getPermissions() {
+            return permissions.stream().sorted().collect(Collectors.toList());
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 }
