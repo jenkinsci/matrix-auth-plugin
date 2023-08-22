@@ -38,7 +38,7 @@
 
 .global-matrix-authorization-strategy-table .caption-row TH {
   font-weight: lighter;
-  padding: 0;
+  border: 1px solid #D3D7CF;
 }
 
 .global-matrix-authorization-strategy-table .caption-row TH span {
@@ -47,6 +47,8 @@
 
 .global-matrix-authorization-strategy-table TD {
   border: 1px solid #D3D7CF;
+  padding: 3px;
+  vertical-align: middle;
 }
 
 .global-matrix-authorization-strategy-table TD.left-most {
@@ -74,4 +76,48 @@
   -webkit-animation: highlightentry 5s;
   -moz-animation: highlightentry 5s;
   animation: highlightentry 5s;
+}
+
+.global-matrix-authorization-strategy-table .jenkins-checkbox {
+  vertical-align: middle;
+}
+
+.mas-table__cell {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.mas-table__cell svg {
+  min-width: 16px;
+}
+
+.mas-table__cell a {
+  height: 16px;
+  color: var(--text-color)
+}
+
+.mas-table__cell a svg {
+  vertical-align: initial!important;
+}
+
+.mas-table__cell--not-found {
+  text-decoration: line-through;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.mas-table__cell-warning {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.mas-table__icon-warning {
+  color: var(--warning);
+  min-width: 24px!important;
+}
+
+.mas-table__icon-alert {
+  color: var(--danger);
+  min-width: 24px!important;
 }

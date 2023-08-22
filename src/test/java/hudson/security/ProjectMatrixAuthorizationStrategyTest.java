@@ -1,18 +1,26 @@
 package hudson.security;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+
 import com.cloudbees.hudson.plugins.folder.Folder;
+import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
-import hudson.util.VersionNumber;
+import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import jenkins.model.Jenkins;
 import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlOption;
 import org.htmlunit.html.HtmlSelect;
+import org.jenkinsci.plugins.matrixauth.PermissionEntry;
+import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -155,29 +163,17 @@ public class ProjectMatrixAuthorizationStrategyTest {
     private void configureGlobalMatrixAuthStrategyThroughUI(JenkinsRule.WebClient wc) throws Exception {
         HtmlForm form = wc.goTo("configureSecurity").getFormByName("config");
 
-        if (new VersionNumber("2.342").isOlderThanOrEqualTo(Jenkins.getVersion())) {
-            final Optional<HtmlElement> anyOption = form.getElementsByTagName("option").stream()
-                    .filter(option -> option.getTextContent()
-                            .contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName()))
-                    .findAny();
+        final Optional<HtmlElement> anyOption = form.getElementsByTagName("option").stream()
+                .filter(option ->
+                        option.getTextContent().contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName()))
+                .findAny();
 
-            if (!anyOption.isPresent()) {
-                throw new IllegalStateException("expected to find an option");
-            }
-            HtmlOption option = (HtmlOption) anyOption.get();
-            HtmlSelect parent = (HtmlSelect) option.getParentNode();
-            parent.setSelectedAttribute(option, true);
-        } else {
-            Optional<HtmlElement> anyLabel = form.getElementsByTagName("label").stream()
-                    .filter(lbl -> lbl.asNormalizedText()
-                            .contains(GlobalMatrixAuthorizationStrategy.DESCRIPTOR.getDisplayName()))
-                    .findAny();
-            if (!anyLabel.isPresent()) {
-                throw new IllegalStateException("expected to find a label");
-            }
-            HtmlElement label = anyLabel.get();
-            label.click();
+        if (!anyOption.isPresent()) {
+            throw new IllegalStateException("expected to find an option");
         }
+        HtmlOption option = (HtmlOption) anyOption.get();
+        HtmlSelect parent = (HtmlSelect) option.getParentNode();
+        parent.setSelectedAttribute(option, true);
         r.submit(form);
     }
 
@@ -265,6 +261,27 @@ public class ProjectMatrixAuthorizationStrategyTest {
             Assert.fail();
         } catch (Exception expected) {
             // expected
+        }
+    }
+
+    @Test
+    public void getGroupsAlwaysEverything() throws IOException {
+        HudsonPrivateSecurityRealm securityRealm = new HudsonPrivateSecurityRealm(false, false, null);
+        r.jenkins.setSecurityRealm(securityRealm);
+
+        ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
+        authorizationStrategy.add(Jenkins.READ, PermissionEntry.group("group1"));
+        r.jenkins.setAuthorizationStrategy(authorizationStrategy);
+
+        final Folder f = r.jenkins.createProject(Folder.class, "F");
+        final FreeStyleProject job = f.createProject(FreeStyleProject.class, "job");
+        job.addProperty(new AuthorizationMatrixProperty(
+                Map.of(Item.READ, Set.of(PermissionEntry.group("group2"))), new InheritParentStrategy()));
+
+        assertThat(authorizationStrategy.getGroups(), containsInAnyOrder("group1", "group2"));
+
+        try (ACLContext ignored = ACL.as2(Jenkins.ANONYMOUS2)) {
+            assertThat(authorizationStrategy.getGroups(), containsInAnyOrder("group1", "group2"));
         }
     }
 }
