@@ -134,13 +134,13 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
         }
     }
 
+    /**
+     * Exists for reflective Job DSL / Pipeline use only.
+     */
+    @Restricted(DoNotUse.class)
     @DataBoundConstructor
-    public AuthorizationMatrixProperty(List<String> permissions) {
-        for (String str : permissions) {
-            if (str != null) {
-                this.add(str);
-            }
-        }
+    public AuthorizationMatrixProperty(List<DslEntry> entries) {
+        setEntries(entries);
     }
 
     /**
@@ -180,6 +180,13 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>> implemen
     @Override
     public Permission getEditingPermission() {
         return Item.CONFIGURE;
+    }
+
+    @Override
+    @Restricted(DoNotUse.class)
+    public List<DslEntry> getEntries() {
+        // ReflectionUtils#getPublicProperty / PropertyDescriptor#getPropertyDescriptor can't find default methods
+        return AuthorizationProperty.super.getEntries();
     }
 
     @Extension
