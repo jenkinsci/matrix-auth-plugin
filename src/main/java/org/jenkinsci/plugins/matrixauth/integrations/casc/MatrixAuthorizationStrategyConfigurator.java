@@ -108,18 +108,6 @@ public abstract class MatrixAuthorizationStrategyConfigurator<T extends Authoriz
     }
 
     /**
-     * Extract container's permissions as a List of "TYPE:PERMISSION:sid"
-     */
-    public static Collection<String> getLegacyPermissions(AuthorizationContainer container) {
-        return container.getGrantedPermissionEntries().entrySet().stream()
-                .flatMap(e -> e.getValue().stream()
-                        .map(v -> v.getType().toPrefix() + e.getKey().group.getId() + "/" + e.getKey().name + ":"
-                                + v.getSid()))
-                .sorted()
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Configure container's permissions from a List of "PERMISSION:sid" or "TYPE:PERMISSION:sid"
      */
     public static void setLegacyPermissions(AuthorizationContainer container, Collection<String> permissions) {
