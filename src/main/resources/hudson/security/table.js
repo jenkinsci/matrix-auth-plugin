@@ -236,10 +236,6 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     }
   }
 
-  if (window.registerTooltips) {
-    window.registerTooltips(e.nextSibling.parentElement);
-  }
-
   e.onchange = function() {
     Behaviour.applySubtree(findAncestor(this,"TABLE"), true);
     return true;
