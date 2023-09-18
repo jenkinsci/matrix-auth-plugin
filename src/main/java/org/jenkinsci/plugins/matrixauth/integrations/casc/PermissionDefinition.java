@@ -31,7 +31,7 @@ public class PermissionDefinition implements Comparable<PermissionDefinition> {
 
     @Override
     public String toString() {
-        return permission.group.title + "/" + permission.name;
+        return permission.group.getId() + "/" + permission.name;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class PermissionDefinition implements Comparable<PermissionDefinition> {
                 return ((List<?>) o)
                         .stream()
                                 .map(p -> (PermissionDefinition) p)
-                                .map(p -> p.permission.group.title + "/" + p.permission.name)
+                                .map(p -> p.permission.group.getId() + "/" + p.permission.name)
                                 .collect(Collectors.toList());
             }
 
