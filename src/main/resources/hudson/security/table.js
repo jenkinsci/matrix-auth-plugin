@@ -61,11 +61,9 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
   }
 });
 
-  function escapeHTML(text) {
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(text));
-        return div.innerHTML;
-    }
+function escapeHTML(html) {
+  return html.replace(/'/g, "&apos;").replace(/"/g, "&quot;").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 /*
  * Behavior for the element removing a permission assignment row for a user/group
  */
