@@ -28,7 +28,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
       copy = master.cloneNode(true); // for IE
     copy.removeAttribute("id");
     copy.removeAttribute("style");
-    copy.firstChild.innerHTML = YAHOO.lang.escapeHTML(name); // TODO consider setting innerText
+    copy.firstChild.innerHTML = escapeHTML(name); // TODO consider setting innerText
     copy.setAttribute("name",'['+type+':'+name+']');
 
     for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
@@ -61,6 +61,11 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
   }
 });
 
+  function escapeHTML(text) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
 /*
  * Behavior for the element removing a permission assignment row for a user/group
  */
@@ -233,7 +238,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
   var impliedByList = impliedByString.split(" ");
   var tr = findAncestor(e,"TR");
   e.disabled = false;
-  let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
+  let tooltip = escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-enabled'));
   e.setAttribute(tooltipAttributeName, tooltip); // before 2.335 -- TODO remove once baseline is new enough
   e.nextSibling.setAttribute(tooltipAttributeName, tooltip); // 2.335+
 
@@ -243,7 +248,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
     if (reference !== null) {
       if (reference.checked) {
         e.disabled = true;
-        let tooltip = YAHOO.lang.escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled'));
+        let tooltip = escapeHTML(findAncestor(e, "TD").getAttribute('data-tooltip-disabled'));
         e.setAttribute(tooltipAttributeName, tooltip); // before 2.335 -- TODO remove once baseline is new enough
         e.nextSibling.setAttribute(tooltipAttributeName, tooltip); // 2.335+
       }
