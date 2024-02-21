@@ -52,7 +52,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import jenkins.model.Jenkins;
 import jenkins.model.NodeListener;
-import jenkins.model.Nodes;
 import jenkins.util.SystemProperties;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -153,6 +152,11 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
             }
 
             @Override
+            protected void onUpdated(Node oldOne, Node newOne) {
+                record(newOne);
+            }
+
+            @Override
             protected void onDeleted(@NonNull Node node) {
                 if (!DISABLE) {
                     remove(node.getNodeName());
@@ -238,29 +242,13 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
     }
 
     @Extension
-    public static class NodeAndJobSaveableListenerImpl extends SaveableListener {
+    public static class JobSaveableListenerImpl extends SaveableListener {
         @Override
         public void onChange(final Saveable o, final XmlFile file) {
             if (!AmbiguityMonitor.isGatheringData()) {
                 return; // The below is a bit much when we're not doing anything in the end, so get out early
             }
             try {
-                if (o instanceof Nodes) {
-                    LOGGER.log(Level.FINEST, () -> "Recording update to Saveable " + o + " stored in " + file);
-
-                    // Cf. Nodes#persistNode, hacky but probably the best we can do
-                    final String nodeName = file.getFile().getParentFile().getName();
-                    // Nodes is @Restricted but the Saveable we inform listeners about, so go through Jenkins#getNode
-                    // instead
-                    final Node node = Jenkins.get().getNode(nodeName);
-                    LOGGER.log(
-                            Level.FINER,
-                            () -> "Determined node name " + nodeName + " from file " + file + " and found node "
-                                    + node);
-                    if (node != null) {
-                        NodeContributor.record(node);
-                    }
-                }
                 if (o instanceof Job) {
                     LOGGER.log(Level.FINEST, () -> "Recording update to Saveable " + o + " stored in " + file);
 
