@@ -1,7 +1,11 @@
 package org.jenkinsci.plugins.matrixauth.inheritance;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty;
+import hudson.XmlFile;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
@@ -63,7 +67,8 @@ public class InheritanceMigrationTest {
         {
             Job<?, ?> job = (Job<?, ?>) j.jenkins.getItemByFullName("folder/inheritNone");
             Assert.assertNotNull(job);
-            Assert.assertTrue(job.getConfigFile().asString().contains("blocksInheritance"));
+            XmlFile configFile = job.getConfigFile();
+            assertThat("correct contents of " + configFile, configFile.asString(), containsString("blocksInheritance"));
             hudson.security.AuthorizationMatrixProperty prop =
                     job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
             Assert.assertTrue(prop.isBlocksInheritance());
