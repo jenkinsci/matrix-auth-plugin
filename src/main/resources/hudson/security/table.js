@@ -9,55 +9,51 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     var type = dataReference.getAttribute('data-type');
     var typeLabel = dataReference.getAttribute('data-type-label');
 
-    var name = prompt(dataReference.getAttribute('data-message-prompt'));
-    if (name == null) {
-      return;
-    }
-    if(name=="") {
-      alert(dataReference.getAttribute('data-message-empty'));
-      return;
-    }
-    if(findElementsBySelector(table,"TR").find(function(n){return n.getAttribute("name")=='['+type+':'+name+']';})!=null) {
-      alert(dataReference.getAttribute('data-message-error'));
-      return;
-    }
-
-    if(document.importNode!=null)
-      copy = document.importNode(master,true);
-    else
-      copy = master.cloneNode(true); // for IE
-    copy.removeAttribute("id");
-    copy.removeAttribute("style");
-    copy.firstChild.innerHTML = YAHOO.lang.escapeHTML(name); // TODO consider setting innerText
-    copy.setAttribute("name",'['+type+':'+name+']');
-
-    for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
-      if (child.hasAttribute('data-permission-id')) {
-        child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
-        child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
+    var name = dialog.prompt(dataReference.getAttribute('data-message-title'), {
+      message: dataReference.getAttribute('data-message-prompt')
+    }).then ((name) => {
+      if(findElementsBySelector(table,"TR").find(function(n){return n.getAttribute("name")=='['+type+':'+name+']';})!=null) {
+        dialog.alert(dataReference.getAttribute('data-message-error'));
+        return;
       }
-    }
 
-    var tooltipAttributeName = getTooltipAttributeName();
+      if(document.importNode!=null)
+        copy = document.importNode(master,true);
+      else
+        copy = master.cloneNode(true); // for IE
+      copy.removeAttribute("id");
+      copy.removeAttribute("style");
+      copy.firstChild.innerHTML = YAHOO.lang.escapeHTML(name); // TODO consider setting innerText
+      copy.setAttribute("name",'['+type+':'+name+']');
 
-    findElementsBySelector(copy, ".stop a").forEach(function(item) {
-      let oldTitle = item.getAttribute("title");
-      if (oldTitle !== null) {
-        item.setAttribute("title", oldTitle.replace("__SID__", name).replace("__TYPE__", typeLabel));
+      for(var child = copy.firstChild; child !== null; child = child.nextSibling) {
+        if (child.hasAttribute('data-permission-id')) {
+          child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
+          child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
+        }
       }
-      item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
-    });
 
-    findElementsBySelector(copy, "input[type=checkbox]").forEach(function(item) {
-      const tooltip = item.getAttribute(tooltipAttributeName);
-      if (tooltip) {
-        item.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
-      } else {
-        item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
-      }
-    });
-    table.appendChild(copy);
-    Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
+      var tooltipAttributeName = getTooltipAttributeName();
+
+      findElementsBySelector(copy, ".stop a").forEach(function(item) {
+        let oldTitle = item.getAttribute("title");
+        if (oldTitle !== null) {
+          item.setAttribute("title", oldTitle.replace("__SID__", name).replace("__TYPE__", typeLabel));
+        }
+        item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
+      });
+
+      findElementsBySelector(copy, "input[type=checkbox]").forEach(function(item) {
+        const tooltip = item.getAttribute(tooltipAttributeName);
+        if (tooltip) {
+          item.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
+        } else {
+          item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
+        }
+      });
+      table.appendChild(copy);
+      Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
+    }, () => {});
   }
 });
 
