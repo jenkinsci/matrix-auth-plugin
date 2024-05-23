@@ -190,14 +190,14 @@ THE SOFTWARE.
               data-type="USER"
               data-type-label="${%user}"
               data-message-prompt="${%userPrompt}"
-              data-message-empty="${%userEmpty}"
+              data-message-title="${%Add user}"
               data-message-error="${%userError}">${%Add user…}</button>
         <button type="button" class="jenkins-button matrix-auth-add-button" value="" id="${id}GroupButton"
               data-table-id="${id}"
               data-type="GROUP"
               data-type-label="${%group}"
               data-message-prompt="${%groupPrompt}"
-              data-message-empty="${%groupEmpty}"
+              data-message-title="${%Add group}"
               data-message-error="${%groupError}">${%Add group…}</button>
         <f:helpLink featureName="${%Permissions matrix}" url="${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"/>
       </div>
