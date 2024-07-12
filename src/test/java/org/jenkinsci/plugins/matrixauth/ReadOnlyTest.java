@@ -53,22 +53,14 @@ public class ReadOnlyTest {
         final HtmlPage page = initAndAssertPresent(configurationUrl);
         Assert.assertTrue(
                 "should contain add group/user button",
-                hasTagWithClassInPage(
-                        page,
-                        "button",
-                        "matrix-auth-add-button")); // Behavior.specify / makeButton converts input to button and wraps
-        // it in span
+                hasTagWithClassInPage(page, "button", "matrix-auth-add-button"));
     }
 
     private void assertPresentAndReadOnly(String configurationUrl) throws IOException, SAXException {
         final HtmlPage page = initAndAssertPresent(configurationUrl);
         Assert.assertFalse(
                 "should not contain add group/user button",
-                hasTagWithClassInPage(
-                        page,
-                        "button",
-                        "matrix-auth-add-button")); // Behavior.specify / makeButton converts input to button and wraps
-        // it in span
+                hasTagWithClassInPage(page, "button", "matrix-auth-add-button"));
     }
 
     @Before
