@@ -1,4 +1,4 @@
-/* global Behaviour, FormChecker, findElementsBySelector, findAncestor */
+/* global Behaviour, dialog, FormChecker, findElementsBySelector, findAncestor */
 
 function matrixAuthEscapeHtml(html) {
   return html.replace(/'/g, "&apos;").replace(/"/g, "&quot;").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -15,54 +15,50 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     const type = dataReference.getAttribute('data-type');
     const typeLabel = dataReference.getAttribute('data-type-label');
 
-    const name = prompt(dataReference.getAttribute('data-message-prompt'));
-    if (name == null) {
-      return;
-    }
-    if (name === "") {
-      alert(dataReference.getAttribute('data-message-empty'));
-      return;
-    }
-    if (findElementsBySelector(table,"TR").find(function(n){
-      return n.getAttribute("name") === '[' + type + ':' + name + ']';
-    }) !== null) {
-      alert(dataReference.getAttribute('data-message-error'));
-      return;
-    }
-
-    const copy = document.importNode(master,true);
-    copy.removeAttribute("id");
-    copy.removeAttribute("style");
-    copy.firstChild.innerHTML = matrixAuthEscapeHtml(name); // TODO consider setting innerText
-    copy.setAttribute("name",'[' + type + ':' + name + ']');
-
-    for (let child = copy.firstChild; child !== null; child = child.nextSibling) {
-      if (child.hasAttribute('data-permission-id')) {
-        child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
-        child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
+    const name = dialog.prompt(dataReference.getAttribute('data-message-title'), {
+      message: dataReference.getAttribute('data-message-prompt')
+    }).then ((name) => {
+      if (findElementsBySelector(table,"TR").find(function(n){
+        return n.getAttribute("name") === '[' + type + ':' + name + ']';
+      }) !== null) {
+        dialog.alert(dataReference.getAttribute('data-message-error'));
+        return;
       }
-    }
 
-    const tooltipAttributeName = 'data-html-tooltip';
+      const copy = document.importNode(master,true);
+      copy.removeAttribute("id");
+      copy.removeAttribute("style");
+      copy.firstChild.innerHTML = matrixAuthEscapeHtml(name); // TODO consider setting innerText
+      copy.setAttribute("name",'[' + type + ':' + name + ']');
 
-    findElementsBySelector(copy, ".stop a").forEach(function(item) {
-      let oldTitle = item.getAttribute("title");
-      if (oldTitle !== null) {
-        item.setAttribute("title", oldTitle.replace("__SID__", name).replace("__TYPE__", typeLabel));
+      for (let child = copy.firstChild; child !== null; child = child.nextSibling) {
+        if (child.hasAttribute('data-permission-id')) {
+          child.setAttribute("data-tooltip-enabled", child.getAttribute("data-tooltip-enabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
+          child.setAttribute("data-tooltip-disabled", child.getAttribute("data-tooltip-disabled").replace("__SID__", name).replace("__TYPE__", typeLabel));
+        }
       }
-      item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
-    });
 
-    findElementsBySelector(copy, "input[type=checkbox]").forEach(function(item) {
-      const tooltip = item.getAttribute(tooltipAttributeName);
-      if (tooltip) {
-        item.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
-      } else {
-        item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
-      }
-    });
-    table.appendChild(copy);
-    Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
+      const tooltipAttributeName = 'data-html-tooltip';
+
+      findElementsBySelector(copy, ".stop a").forEach(function(item) {
+        let oldTitle = item.getAttribute("title");
+        if (oldTitle !== null) {
+          item.setAttribute("title", oldTitle.replace("__SID__", name).replace("__TYPE__", typeLabel));
+        }
+        item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
+      });
+
+      findElementsBySelector(copy, "input[type=checkbox]").forEach(function(item) {
+        const tooltip = item.getAttribute(tooltipAttributeName);
+        if (tooltip) {
+          item.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
+        } else {
+          item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
+        }
+      });
+      table.appendChild(copy);
+      Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
+    }, () => {});
   }
 });
 
