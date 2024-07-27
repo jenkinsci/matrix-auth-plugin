@@ -24,10 +24,10 @@
     <url>https://github.com/${gitHubRepo}</url>
   </scm>
   <properties>
-    <revision>3.1.11</revision>
+    <revision>3.2.3</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
-    <hpi.compatibleSinceVersion>3.0</hpi.compatibleSinceVersion>
+    <hpi.compatibleSinceVersion>3.2</hpi.compatibleSinceVersion>
     <jenkins.version>2.387.3</jenkins.version>
     <spotless.check.skip>false</spotless.check.skip>
   </properties>

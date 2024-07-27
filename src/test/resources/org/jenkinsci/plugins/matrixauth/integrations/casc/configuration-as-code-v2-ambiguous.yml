@@ -62,12 +62,12 @@ jobs:
             inheritanceStrategy {
                 nonInheriting()
             }
-            permissions([
-                'Job/Build:authenticated',
-                'Job/Configure:authenticated',
-                'Job/Delete:authenticated',
-                'Job/Read:authenticated',
-            ])
+            entries {
+              group {
+                name('authenticated')
+                permissions([ 'Job/Build', 'Job/Configure', 'Job/Delete', 'Job/Read' ])
+              }
+            }
           }
         }
       }

@@ -109,12 +109,13 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
         }
     }
 
-    @DataBoundConstructor // JENKINS-49199: Used for job-dsl
-    @Restricted(NoExternalUse.class)
-    public AuthorizationMatrixProperty(List<String> permissions) {
-        for (String permission : permissions) {
-            add(permission);
-        }
+    /**
+     * Exists for reflective Job DSL / Pipeline use only.
+     */
+    @DataBoundConstructor
+    @Restricted(DoNotUse.class)
+    public AuthorizationMatrixProperty(List<DslEntry> entries) {
+        setEntries(entries);
     }
 
     @Override
@@ -141,6 +142,13 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     protected void setOwner(@NonNull AbstractFolder<?> owner) {
         super.setOwner(owner);
         FolderContributor.record(owner);
+    }
+
+    @Override
+    @Restricted(DoNotUse.class)
+    public List<DslEntry> getEntries() {
+        // ReflectionUtils#getPublicProperty / PropertyDescriptor#getPropertyDescriptor can't find default methods
+        return AuthorizationProperty.super.getEntries();
     }
 
     @Extension(optional = true)

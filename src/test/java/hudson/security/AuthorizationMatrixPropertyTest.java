@@ -40,8 +40,7 @@ public class AuthorizationMatrixPropertyTest {
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
-                "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['hudson.model.Item.Configure:alice', 'hudson.model.Item.Read:alice', 'hudson.model.Item.Read:bob', 'hudson.scm.SCM.Tag:bob'])])");
+                "properties([authorizationMatrix(entries: [userOrGroup(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), userOrGroup(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
     }
 
     @Test
@@ -56,8 +55,7 @@ public class AuthorizationMatrixPropertyTest {
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
-                "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['USER:hudson.model.Item.Configure:alice', 'USER:hudson.model.Item.Read:alice', 'USER:hudson.model.Item.Read:bob', 'USER:hudson.scm.SCM.Tag:bob'])])");
+                "properties([authorizationMatrix(entries: [user(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), user(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
     }
 
     @Test
@@ -79,8 +77,7 @@ public class AuthorizationMatrixPropertyTest {
         SnippetizerTester tester = new SnippetizerTester(j);
         tester.assertRoundTrip(
                 new JobPropertyStep(Collections.singletonList(property)),
-                "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['hudson.model.Item.Configure:alice', 'hudson.model.Item.Read:alice', 'hudson.model.Item.Read:bob', 'hudson.scm.SCM.Tag:bob'])])");
+                "properties([authorizationMatrix(entries: [userOrGroup(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), userOrGroup(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
 
         Assert.assertTrue(l.getMessages().stream()
                 .anyMatch(m -> m.contains("Tried to add inapplicable permission")
@@ -126,16 +123,16 @@ public class AuthorizationMatrixPropertyTest {
 
         project.setDefinition(new CpsFlowDefinition(
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['hudson.model.Item.Read:bob', 'hudson.model.Item.Configure:bob', 'hudson.scm.SCM.Tag:bob'])])",
+                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure', 'hudson.scm.SCM.Tag'])])])",
                 true));
         j.buildAndAssertSuccess(project);
 
         // let's look ast the property
         AuthorizationMatrixProperty property = project.getProperty(AuthorizationMatrixProperty.class);
         Assert.assertTrue(property.getInheritanceStrategy() instanceof NonInheritingStrategy);
-        Assert.assertEquals(3, property.getGrantedPermissions().size());
+        Assert.assertEquals(0, property.getGrantedPermissions().size()); // Unambiguous permissions are 0
         Assert.assertEquals(3, property.getGrantedPermissionEntries().size());
-        Assert.assertEquals("bob", property.getGroups().toArray()[0]);
+        Assert.assertEquals(0, property.getGroups().size());
 
         // now bob has access, including configure
         j.createWebClient().login("bob").goTo(project.getUrl());
@@ -179,7 +176,7 @@ public class AuthorizationMatrixPropertyTest {
 
         project.setDefinition(new CpsFlowDefinition(
                 "properties([authorizationMatrix(inheritanceStrategy: nonInheriting(), "
-                        + "permissions: ['USER:hudson.model.Item.Read:bob', 'USER:hudson.model.Item.Configure:bob', 'USER:hudson.scm.SCM.Tag:bob'])])",
+                        + "entries: [user(name: 'bob', permissions: ['Job/Read', 'Job/Configure', 'hudson.scm.SCM.Tag'])])])",
                 true));
         j.buildAndAssertSuccess(project);
 
