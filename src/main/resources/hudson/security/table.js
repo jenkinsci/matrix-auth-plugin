@@ -15,21 +15,21 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     const type = dataReference.getAttribute('data-type');
     const typeLabel = dataReference.getAttribute('data-type-label');
 
-    const name = dialog.prompt(dataReference.getAttribute('data-message-title'), {
+    dialog.prompt(dataReference.getAttribute('data-message-title'), {
       message: dataReference.getAttribute('data-message-prompt')
     }).then ((name) => {
-      if (findElementsBySelector(table,"TR").find(function(n){
+      if (findElementsBySelector(table, "TR").find(function(n){
         return n.getAttribute("name") === '[' + type + ':' + name + ']';
       }) != null) {
         dialog.alert(dataReference.getAttribute('data-message-error'));
         return;
       }
 
-      const copy = document.importNode(master,true);
+      const copy = document.importNode(master, true);
       copy.removeAttribute("id");
       copy.removeAttribute("style");
       copy.firstChild.innerHTML = matrixAuthEscapeHtml(name); // TODO consider setting innerText
-      copy.setAttribute("name",'[' + type + ':' + name + ']');
+      copy.setAttribute("name", '[' + type + ':' + name + ']');
 
       for (let child = copy.firstChild; child !== null; child = child.nextSibling) {
         if (child.hasAttribute('data-permission-id')) {
@@ -57,7 +57,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
         }
       });
       table.appendChild(copy);
-      Behaviour.applySubtree(findAncestor(table,"TABLE"),true);
+      Behaviour.applySubtree(findAncestor(table, "TABLE"), true);
     }, () => {});
   }
 });
@@ -69,9 +69,9 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.remove"
   e.onclick = function() {
     // Run ambiguity warning removal code: If all ambiguous rows are deleted, the warning needs to go as well
     // Order of operations: Find table ancestor, remove row, iterate over leftover rows
-    const table = findAncestor(this,"TABLE");
+    const table = findAncestor(this, "TABLE");
 
-    const tr = findAncestor(this,"TR");
+    const tr = findAncestor(this, "TR");
     tr.parentNode.removeChild(tr);
 
     const tableRows = table.getElementsByTagName('tr');
@@ -101,12 +101,14 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.remove"
  */
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.selectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   e.onclick = function() {
-    var tr = findAncestor(this,"TR");
-    var inputs = tr.getElementsByTagName("INPUT");
-    for(var i=0; i < inputs.length; i++){
-        if(inputs[i].type == "checkbox") inputs[i].checked = true;
+    const tr = findAncestor(this, "TR");
+    const inputs = tr.getElementsByTagName("INPUT");
+    for (let i=0; i < inputs.length; i++) {
+      if (inputs[i].type === "checkbox") {
+        inputs[i].checked = true;
+      }
     }
-    Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
+    Behaviour.applySubtree(findAncestor(this, "TABLE"), true);
     return false;
   };
 });
@@ -116,12 +118,14 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.selecta
  */
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselectall", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   e.onclick = function() {
-    var tr = findAncestor(this,"TR");
-    var inputs = tr.getElementsByTagName("INPUT");
-    for(var i=0; i < inputs.length; i++){
-      if(inputs[i].type == "checkbox") inputs[i].checked = false;
+    const tr = findAncestor(this, "TR");
+    const inputs = tr.getElementsByTagName("INPUT");
+    for (let i = 0; i < inputs.length; i++) {
+      if (inputs[i].type === "checkbox") {
+        inputs[i].checked = false;
+      }
     }
-    Behaviour.applySubtree(findAncestor(this,"TABLE"),true);
+    Behaviour.applySubtree(findAncestor(this, "TABLE"), true);
     return false;
   };
 });
@@ -131,7 +135,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.unselec
  */
 Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate", 'GlobalMatrixAuthorizationStrategy', 0, function(e) {
   e.onclick = function() {
-    const tr = findAncestor(this,"TR");
+    const tr = findAncestor(this, "TR");
     const name = tr.getAttribute('name');
 
     let newName = name.replace('[EITHER:', '[USER:'); // migrate_user behavior
@@ -139,7 +143,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TD.stop A.migrate
       newName = name.replace('[EITHER:', '[GROUP:');
     }
 
-    const table = findAncestor(this,"TABLE");
+    const table = findAncestor(this, "TABLE");
     const tableRows = table.getElementsByTagName('tr');
     let newNameElement = null;
     for (let i = 0; i < tableRows.length; i++) {
@@ -233,7 +237,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table td input", 'Globa
   }
 
   e.onchange = function() {
-    Behaviour.applySubtree(findAncestor(this,"TABLE"), true);
+    Behaviour.applySubtree(findAncestor(this, "TABLE"), true);
     return true;
   };
 });
@@ -246,7 +250,7 @@ Behaviour.specify(".global-matrix-authorization-strategy-table TR.permission-row
     return;
   }
   if (!e.hasAttribute('data-checked')) {
-    FormChecker.delayedCheck(e.getAttribute('data-descriptor-url') + "/checkName?value="+encodeURIComponent(e.getAttribute("name")),"GET",e.firstChild);
+    FormChecker.delayedCheck(e.getAttribute('data-descriptor-url') + "/checkName?value=" + encodeURIComponent(e.getAttribute("name")), "GET", e.firstChild);
     e.setAttribute('data-checked', 'true');
   }
 });
