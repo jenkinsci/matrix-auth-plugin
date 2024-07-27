@@ -20,7 +20,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
     }).then ((name) => {
       if (findElementsBySelector(table,"TR").find(function(n){
         return n.getAttribute("name") === '[' + type + ':' + name + ']';
-      }) !== null) {
+      }) != null) {
         dialog.alert(dataReference.getAttribute('data-message-error'));
         return;
       }
