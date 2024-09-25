@@ -28,8 +28,7 @@
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <hpi.compatibleSinceVersion>3.2</hpi.compatibleSinceVersion>
-    <!-- TODO https://github.com/jenkinsci/jenkins/pull/9672 -->
-    <jenkins.version>2.475-rc35288.066b_83e3322c</jenkins.version>
+    <jenkins.version>2.475</jenkins.version>
     <!-- TODO JENKINS-73339 until in parent POM -->
     <jenkins-test-harness.version>2254.vcff7a_d4969e5</jenkins-test-harness.version>
     <maven.compiler.release>17</maven.compiler.release>
