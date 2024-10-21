@@ -49,11 +49,11 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
       });
 
       findElementsBySelector(copy, "input[type=checkbox]").forEach(function(item) {
-        const tooltip = item.getAttribute(tooltipAttributeName);
+        const tooltip = item.nextSibling.getAttribute(tooltipAttributeName);
         if (tooltip) {
-          item.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
+          item.nextSibling.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
         } else {
-          item.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
+          item.nextSibling.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
         }
       });
       table.appendChild(copy);
