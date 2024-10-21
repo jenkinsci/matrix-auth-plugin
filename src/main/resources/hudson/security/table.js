@@ -41,6 +41,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
       const tooltipAttributeName = 'data-html-tooltip';
 
       findElementsBySelector(copy, ".stop a").forEach(function(item) {
+        // TODO Clean this up, `title` should be long obsolete.
         let oldTitle = item.getAttribute("title");
         if (oldTitle !== null) {
           item.setAttribute("title", oldTitle.replace("__SID__", name).replace("__TYPE__", typeLabel));
@@ -53,6 +54,7 @@ Behaviour.specify(".matrix-auth-add-button", 'GlobalMatrixAuthorizationStrategy'
         if (tooltip) {
           item.nextSibling.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
         } else {
+          // TODO Clean this up, `title` should be long obsolete.
           item.nextSibling.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
         }
       });
