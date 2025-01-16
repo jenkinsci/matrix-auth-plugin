@@ -23,7 +23,6 @@
  */
 package org.jenkinsci.plugins.matrixauth;
 
-import hudson.Util;
 import hudson.model.Descriptor;
 import hudson.security.Permission;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
@@ -35,7 +34,6 @@ import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerRequest2;
 
 /**
@@ -51,32 +49,6 @@ public interface AuthorizationPropertyDescriptor<T extends AuthorizationProperty
     T create();
 
     default T createNewInstance(StaplerRequest2 req, JSONObject formData, boolean hasOptionalWrap)
-            throws Descriptor.FormException {
-        if (Util.isOverridden(
-                AuthorizationPropertyDescriptor.class,
-                getClass(),
-                "createNewInstance",
-                StaplerRequest.class,
-                JSONObject.class,
-                boolean.class)) {
-            return createNewInstance(
-                    req != null ? StaplerRequest.fromStaplerRequest2(req) : null, formData, hasOptionalWrap);
-        } else {
-            return createNewInstanceImpl(req, formData, hasOptionalWrap);
-        }
-    }
-
-    /**
-     * @deprecated use {@link #createNewInstance(StaplerRequest2, JSONObject, boolean)}
-     */
-    @Deprecated
-    default T createNewInstance(StaplerRequest req, JSONObject formData, boolean hasOptionalWrap)
-            throws Descriptor.FormException {
-        return createNewInstanceImpl(
-                req != null ? StaplerRequest.toStaplerRequest2(req) : null, formData, hasOptionalWrap);
-    }
-
-    private T createNewInstanceImpl(StaplerRequest2 req, JSONObject formData, boolean hasOptionalWrap)
             throws Descriptor.FormException {
         if (hasOptionalWrap) {
             formData = formData.getJSONObject("useProjectSecurity");
