@@ -56,7 +56,7 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 /**
  * Role-based authorization via a matrix.
@@ -162,7 +162,7 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy imp
         }
 
         @Override
-        public AuthorizationStrategy newInstance(StaplerRequest req, @NonNull JSONObject formData)
+        public AuthorizationStrategy newInstance(StaplerRequest2 req, @NonNull JSONObject formData)
                 throws FormException {
             // TODO Is there a way to pull this up into AuthorizationContainerDescriptor and share code with
             // AuthorizationPropertyDescriptor?
