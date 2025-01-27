@@ -1,2 +1,6 @@
 # mvn spotless:apply
 4d0e23d0861ee54bcf40dc3070969584c4eb2de5
+
+# https://github.com/jenkinsci/matrix-auth-plugin/pull/165
+# npx prettier --print-width 999 -w src/main/resources/hudson/security/table.js
+b5ff96ff53ffb8f5abef09575acb05c38a17b811
