@@ -112,7 +112,7 @@ public interface AuthorizationContainerDescriptor {
     }
 
     @Restricted(DoNotUse.class) // Jelly only
-    default boolean hasAmbiguousEntries(AuthorizationContainer container) {
+    default boolean hasAmbiguousEntries(AuthorizationContainer<?> container) {
         if (container == null) {
             return false;
         }

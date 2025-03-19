@@ -48,7 +48,7 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 @Restricted(NoExternalUse.class)
-public interface AuthorizationProperty extends AuthorizationContainer {
+public interface AuthorizationProperty<T extends Describable<T>> extends AuthorizationContainer<T> {
 
     void setInheritanceStrategy(InheritanceStrategy inheritanceStrategy);
 
