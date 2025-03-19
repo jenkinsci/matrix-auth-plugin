@@ -59,7 +59,8 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest2;
 
-public class AuthorizationMatrixNodeProperty extends NodeProperty<Node> implements AuthorizationProperty {
+public class AuthorizationMatrixNodeProperty extends NodeProperty<Node>
+        implements AuthorizationProperty<NodeProperty<?>> {
 
     private final transient SidACL acl = new AclImpl();
 

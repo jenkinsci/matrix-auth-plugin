@@ -62,7 +62,8 @@ import org.kohsuke.stapler.StaplerRequest2;
  * Role-based authorization via a matrix.
  */
 // TODO: think about the concurrency commitment of this class
-public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy implements AuthorizationContainer {
+public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy
+        implements AuthorizationContainer<AuthorizationStrategy> {
     private final transient SidACL acl = new AclImpl();
 
     /**

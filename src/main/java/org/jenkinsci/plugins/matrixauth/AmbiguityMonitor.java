@@ -234,7 +234,7 @@ public class AmbiguityMonitor extends AdministrativeMonitor {
         }
     }
 
-    public static boolean hasAmbiguousEntries(final AuthorizationContainer container) {
+    public static boolean hasAmbiguousEntries(final AuthorizationContainer<?> container) {
         if (container == null) {
             return false;
         }

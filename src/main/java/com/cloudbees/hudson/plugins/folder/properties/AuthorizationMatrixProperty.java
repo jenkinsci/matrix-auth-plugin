@@ -75,7 +75,7 @@ import org.kohsuke.stapler.verb.GET;
  * Holds ACL for {@link ProjectMatrixAuthorizationStrategy}.
  */
 public class AuthorizationMatrixProperty extends AbstractFolderProperty<AbstractFolder<?>>
-        implements AuthorizationProperty {
+        implements AuthorizationProperty<AbstractFolderProperty<?>> {
 
     private final transient SidACL acl = new AclImpl();
 
