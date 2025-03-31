@@ -24,7 +24,7 @@
 package org.jenkinsci.plugins.matrixauth;
 
 import hudson.init.InitMilestone;
-import hudson.model.Descriptor;
+import hudson.model.Describable;
 import hudson.security.AuthorizationStrategy;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
@@ -48,7 +48,7 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 @Restricted(NoExternalUse.class)
-public interface AuthorizationContainer {
+public interface AuthorizationContainer<T extends Describable<T>> extends Describable<T> {
 
     Logger LOGGER = Logger.getLogger(AuthorizationContainer.class.getName());
 
@@ -170,9 +170,6 @@ public interface AuthorizationContainer {
      * Internal only: Record use of a (possible) group sid to be later returned in {@link #getGroups()}.
      */
     void recordGroup(String sid);
-
-    @SuppressWarnings("rawtypes")
-    Descriptor getDescriptor();
 
     /**
      * Works like {@link #add(Permission, PermissionEntry)} but takes both parameters
