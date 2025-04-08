@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.matrixauth;
 import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatNonExistentUserGroupValidationResponse;
 import static org.jenkinsci.plugins.matrixauth.ValidationUtil.formatUserGroupValidationResponse;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Functions;
 import hudson.security.AccessControlled;
@@ -139,7 +140,7 @@ public interface AuthorizationContainerDescriptor {
     // Not used directly by Stapler due to the trailing _ (this prevented method confusion around 1.415).
     @Restricted(NoExternalUse.class)
     default FormValidation doCheckName_(
-            @NonNull String value, @NonNull AccessControlled subject, @NonNull Permission permission) {
+            @NonNull String value, @CheckForNull AccessControlled subject, @NonNull Permission permission) {
 
         final String unbracketedValue = value.substring(1, value.length() - 1); // remove leading [ and trailing ]
 
@@ -158,8 +159,8 @@ public interface AuthorizationContainerDescriptor {
 
         String escapedSid = Functions.escape(sid);
 
-        if (!subject.hasPermission(permission)) {
-            // Lacking permissions, so respond based on input only
+        if (subject == null || !subject.hasPermission(permission)) {
+            // Lacking permissions or having a null subject, so respond based on input only
             if (type == AuthorizationType.USER) {
                 return FormValidation.respond(
                         FormValidation.Kind.OK,
