@@ -31,6 +31,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Functions;
 import hudson.Util;
 import hudson.model.User;
+import hudson.security.GroupDetails;
 import hudson.security.SecurityRealm;
 import hudson.security.UserMayOrMayNotExistException2;
 import hudson.util.FormValidation;
@@ -115,7 +116,8 @@ class ValidationUtil {
     static FormValidation validateGroup(String groupName, SecurityRealm sr, boolean ambiguous) {
         String escapedSid = Functions.escape(groupName);
         try {
-            sr.loadGroupByGroupname2(groupName, false);
+            GroupDetails details = sr.loadGroupByGroupname2(groupName, false);
+            escapedSid = Util.escape(StringUtils.abbreviate(details.getDisplayName(), 50));
             if (ambiguous) {
                 return FormValidation.respond(
                         FormValidation.Kind.WARNING,
