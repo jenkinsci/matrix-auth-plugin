@@ -294,8 +294,8 @@ public class Security2180Test {
         final String contentAsString = htmlPage.getWebResponse().getContentAsString();
         assertThat(contentAsString, not(containsString("job/folder/job/job"))); // Fails while unfixed
         if (Functions.isWindows()) {
-            // Wait a few seconds so that files are closed before test cleanup
-            Thread.sleep(3031);
+            // Wait several seconds so that files are closed before test cleanup
+            Thread.sleep(5000);
         }
     }
 
