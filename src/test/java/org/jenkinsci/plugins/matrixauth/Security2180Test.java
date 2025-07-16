@@ -8,6 +8,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
+import hudson.Functions;
 import hudson.model.Cause;
 import hudson.model.Executor;
 import hudson.model.FreeStyleBuild;
@@ -292,6 +293,10 @@ public class Security2180Test {
         final HtmlPage htmlPage = webClient.goTo("");
         final String contentAsString = htmlPage.getWebResponse().getContentAsString();
         assertThat(contentAsString, not(containsString("job/folder/job/job"))); // Fails while unfixed
+        if (Functions.isWindows()) {
+            // Wait several seconds so that files are closed before test cleanup
+            Thread.sleep(5000);
+        }
     }
 
     @Test
