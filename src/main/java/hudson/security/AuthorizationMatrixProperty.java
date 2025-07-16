@@ -24,7 +24,6 @@
 package hudson.security;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.Job;
@@ -223,9 +222,6 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>>
 
     private final class AclImpl extends SidACL {
         @CheckForNull
-        @SuppressFBWarnings(
-                value = "NP_BOOLEAN_RETURN_NULL",
-                justification = "As designed, implements a third state for the ternary logic")
         protected Boolean hasPermission(Sid sid, Permission p) {
             if (AuthorizationMatrixProperty.this.hasPermission(toString(sid), p, sid instanceof PrincipalSid)) {
                 return true;

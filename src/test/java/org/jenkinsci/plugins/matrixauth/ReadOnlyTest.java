@@ -1,5 +1,8 @@
 package org.jenkinsci.plugins.matrixauth;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.cloudbees.hudson.plugins.folder.Folder;
 import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
@@ -13,18 +16,37 @@ import java.util.Objects;
 import jenkins.model.Jenkins;
 import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.xml.sax.SAXException;
 
 @Issue("JENKINS-62202")
-public class ReadOnlyTest {
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class ReadOnlyTest {
+
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+
+        Jenkins.SYSTEM_READ.enabled = true;
+        Item.EXTENDED_READ.enabled = true;
+        Computer.EXTENDED_READ.enabled = true;
+        Jenkins.get().setSecurityRealm(j.createDummySecurityRealm());
+        final ProjectMatrixAuthorizationStrategy strategy = new ProjectMatrixAuthorizationStrategy();
+        {
+            strategy.add(Jenkins.READ, "anonymous");
+            strategy.add(Jenkins.SYSTEM_READ, "anonymous");
+            strategy.add(Item.READ, "anonymous");
+            strategy.add(Item.EXTENDED_READ, "anonymous");
+            strategy.add(Computer.EXTENDED_READ, "anonymous");
+        }
+        Jenkins.get().setAuthorizationStrategy(strategy);
+    }
 
     private static boolean containsClassName(String className, String value) {
         Objects.requireNonNull(className, "className");
@@ -43,45 +65,28 @@ public class ReadOnlyTest {
     private HtmlPage initAndAssertPresent(String configurationUrl) throws IOException, SAXException {
         JenkinsRule.WebClient wc = j.createWebClient();
         final HtmlPage page = wc.goTo(configurationUrl);
-        Assert.assertTrue(
-                "contains permission container",
-                hasTagWithClassInPage(page, "table", "global-matrix-authorization-strategy-table"));
+        assertTrue(
+                hasTagWithClassInPage(page, "table", "global-matrix-authorization-strategy-table"),
+                "contains permission container");
         return page;
     }
 
     private void assertPresentAndEditable(String configurationUrl) throws IOException, SAXException {
         final HtmlPage page = initAndAssertPresent(configurationUrl);
-        Assert.assertTrue(
-                "should contain add group/user button",
-                hasTagWithClassInPage(page, "button", "matrix-auth-add-button"));
+        assertTrue(
+                hasTagWithClassInPage(page, "button", "matrix-auth-add-button"),
+                "should contain add group/user button");
     }
 
     private void assertPresentAndReadOnly(String configurationUrl) throws IOException, SAXException {
         final HtmlPage page = initAndAssertPresent(configurationUrl);
-        Assert.assertFalse(
-                "should not contain add group/user button",
-                hasTagWithClassInPage(page, "button", "matrix-auth-add-button"));
-    }
-
-    @Before
-    public void prepare() {
-        Jenkins.SYSTEM_READ.enabled = true;
-        Item.EXTENDED_READ.enabled = true;
-        Computer.EXTENDED_READ.enabled = true;
-        Jenkins.get().setSecurityRealm(j.createDummySecurityRealm());
-        final ProjectMatrixAuthorizationStrategy strategy = new ProjectMatrixAuthorizationStrategy();
-        {
-            strategy.add(Jenkins.READ, "anonymous");
-            strategy.add(Jenkins.SYSTEM_READ, "anonymous");
-            strategy.add(Item.READ, "anonymous");
-            strategy.add(Item.EXTENDED_READ, "anonymous");
-            strategy.add(Computer.EXTENDED_READ, "anonymous");
-        }
-        Jenkins.get().setAuthorizationStrategy(strategy);
+        assertFalse(
+                hasTagWithClassInPage(page, "button", "matrix-auth-add-button"),
+                "should not contain add group/user button");
     }
 
     @Test
-    public void testGlobalConfiguration() throws IOException, SAXException {
+    void testGlobalConfiguration() throws IOException, SAXException {
         assertPresentAndReadOnly("configureSecurity");
 
         ((ProjectMatrixAuthorizationStrategy) Jenkins.get().getAuthorizationStrategy())
@@ -90,7 +95,7 @@ public class ReadOnlyTest {
     }
 
     @Test
-    public void testJobConfiguration() throws IOException, SAXException {
+    void testJobConfiguration() throws IOException, SAXException {
         final FreeStyleProject job =
                 j.createFreeStyleProject(); // While 2.223 changed the UI (readOnlyMode), the basic behavior by this
         // plugin remains the same due to permission check
@@ -108,7 +113,7 @@ public class ReadOnlyTest {
     }
 
     @Test
-    public void testFolderConfiguration() throws IOException, SAXException {
+    void testFolderConfiguration() throws IOException, SAXException {
         final Folder folder = Jenkins.get().createProject(Folder.class, "testFolder");
         folder.addProperty(
                 new com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty(Collections.emptyMap()));
@@ -121,7 +126,7 @@ public class ReadOnlyTest {
     }
 
     @Test
-    public void testAgentConfigurationGlobally() throws Exception {
+    void testAgentConfigurationGlobally() throws Exception {
         final Slave agent = j.createSlave();
         agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
         assertPresentAndReadOnly("computer/" + agent.getNodeName() + "/configure");
@@ -132,7 +137,7 @@ public class ReadOnlyTest {
     }
 
     @Test
-    public void testAgentConfigurationPerAgent() throws Exception {
+    void testAgentConfigurationPerAgent() throws Exception {
         final Slave agent = j.createSlave();
         agent.setNodeProperties(Collections.singletonList(new AuthorizationMatrixNodeProperty()));
         assertPresentAndReadOnly("computer/" + agent.getNodeName() + "/configure");

@@ -25,7 +25,6 @@ package hudson.security;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.PluginManager;
 import hudson.model.Descriptor;
@@ -114,9 +113,6 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy
 
     private final class AclImpl extends SidACL {
         @CheckForNull
-        @SuppressFBWarnings(
-                value = "NP_BOOLEAN_RETURN_NULL",
-                justification = "As designed, implements a third state for the ternary logic")
         protected Boolean hasPermission(Sid p, Permission permission) {
             if (GlobalMatrixAuthorizationStrategy.this.hasPermission(
                     toString(p), permission, p instanceof PrincipalSid)) return true;
