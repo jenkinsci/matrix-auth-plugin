@@ -2,10 +2,7 @@ package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty;
@@ -26,19 +23,19 @@ import org.jenkinsci.plugins.matrixauth.AuthorizationType;
 import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.RealJenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.RealJenkinsExtension;
 
-public class ImportTest {
+class ImportTest {
 
-    @Rule
-    public RealJenkinsRule rr =
-            new RealJenkinsRule().withLogger(MatrixAuthorizationStrategyConfigurator.class, Level.WARNING);
+    @RegisterExtension
+    private final RealJenkinsExtension rr =
+            new RealJenkinsExtension().withLogger(MatrixAuthorizationStrategyConfigurator.class, Level.WARNING);
 
     @Test
-    public void v3Test() throws Throwable {
+    void v3Test() throws Throwable {
         rr.then(ImportTest::v3TestStep);
     }
 
@@ -47,45 +44,46 @@ public class ImportTest {
                 .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v3.yml"))
                         .toExternalForm());
 
-        assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
+        assertInstanceOf(HudsonPrivateSecurityRealm.class, r.jenkins.getSecurityRealm(), "security realm");
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
-        assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
+        assertInstanceOf(ProjectMatrixAuthorizationStrategy.class, authorizationStrategy, "authorization strategy");
         ProjectMatrixAuthorizationStrategy projectMatrixAuthorizationStrategy =
                 (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
         { // global
             final List<PermissionEntry> entries = projectMatrixAuthorizationStrategy.getAllPermissionEntries();
-            assertEquals("2 real sids (we ignore anon/user)", 2, entries.size());
+            assertEquals(2, entries.size(), "2 real sids (we ignore anon/user)");
             assertThat(
                     entries,
                     hasItems(
                             new PermissionEntry(AuthorizationType.GROUP, "authenticated"),
                             new PermissionEntry(AuthorizationType.EITHER, "developer")));
             assertTrue(
-                    "anon can read",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.user("anonymous"), Jenkins.READ));
+                            PermissionEntry.user("anonymous"), Jenkins.READ),
+                    "anon can read");
             assertTrue(
-                    "authenticated can read",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Jenkins.READ));
+                            PermissionEntry.group("authenticated"), Jenkins.READ),
+                    "authenticated can read");
             assertTrue(
-                    "authenticated can build",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Item.BUILD));
+                            PermissionEntry.group("authenticated"), Item.BUILD),
+                    "authenticated can build");
             assertTrue(
-                    "authenticated can delete jobs",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Item.DELETE));
+                            PermissionEntry.group("authenticated"), Item.DELETE),
+                    "authenticated can delete jobs");
             assertTrue(
-                    "authenticated can administer",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Jenkins.ADMINISTER));
+                            PermissionEntry.group("authenticated"), Jenkins.ADMINISTER),
+                    "authenticated can administer");
         }
         { // item from Job DSL
             Folder folder = (Folder) r.jenkins.getItem("generated");
             assertNotNull(folder);
             AuthorizationMatrixProperty property = folder.getProperties().get(AuthorizationMatrixProperty.class);
-            assertTrue("folder property inherits", property.getInheritanceStrategy() instanceof NonInheritingStrategy);
+            assertInstanceOf(
+                    NonInheritingStrategy.class, property.getInheritanceStrategy(), "folder property inherits");
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.READ));
             assertFalse(property.hasExplicitPermission(PermissionEntry.user("anonymous"), Item.READ));
@@ -97,21 +95,21 @@ public class ImportTest {
             assertNotNull(agent);
             AuthorizationMatrixNodeProperty property = agent.getNodeProperty(AuthorizationMatrixNodeProperty.class);
             assertNotNull(property);
-            assertTrue(property.getInheritanceStrategy() instanceof InheritGlobalStrategy);
+            assertInstanceOf(InheritGlobalStrategy.class, property.getInheritanceStrategy());
             assertTrue(property.hasExplicitPermission(PermissionEntry.user("anonymous"), Computer.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.DISCONNECT));
         }
         assertEquals(
-                "no messages",
                 0,
                 Jenkins.logRecords.stream()
                         .filter(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName()))
-                        .count());
+                        .count(),
+                "no messages");
     }
 
     @Test
-    public void v2AmbiguousTest() throws Throwable {
+    void v2AmbiguousTest() throws Throwable {
         rr.then(ImportTest::v2AmbiguousTestStep);
     }
 
@@ -121,84 +119,85 @@ public class ImportTest {
                         Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v2-ambiguous.yml"))
                                 .toExternalForm());
 
-        assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
+        assertInstanceOf(HudsonPrivateSecurityRealm.class, r.jenkins.getSecurityRealm(), "security realm");
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
-        assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
+        assertInstanceOf(ProjectMatrixAuthorizationStrategy.class, authorizationStrategy, "authorization strategy");
         ProjectMatrixAuthorizationStrategy projectMatrixAuthorizationStrategy =
                 (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
         { // global
             assertEquals(
-                    "two ambiguous sids",
                     2,
-                    projectMatrixAuthorizationStrategy.getAllPermissionEntries().size());
+                    projectMatrixAuthorizationStrategy.getAllPermissionEntries().size(),
+                    "two ambiguous sids");
             assertThat(
                     projectMatrixAuthorizationStrategy.getAllPermissionEntries(),
                     hasItems(
                             new PermissionEntry(AuthorizationType.EITHER, "anonymous"),
                             new PermissionEntry(AuthorizationType.EITHER, "authenticated")));
             assertTrue(
-                    "anon can read",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.READ));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.READ),
+                    "anon can read");
             assertTrue(
-                    "authenticated can read",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.READ));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.READ),
+                    "authenticated can read");
             assertTrue(
-                    "authenticated can build",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.BUILD));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.BUILD),
+                    "authenticated can build");
             assertTrue(
-                    "authenticated can delete jobs",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE),
+                    "authenticated can delete jobs");
             assertTrue(
-                    "authenticated can administer",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER),
+                    "authenticated can administer");
 
             assertFalse(
-                    "anon (user) cannot explicitly read",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.user("anonymous"), Jenkins.READ));
+                            PermissionEntry.user("anonymous"), Jenkins.READ),
+                    "anon (user) cannot explicitly read");
             assertFalse(
-                    "authenticated can read",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Jenkins.READ));
+                            PermissionEntry.group("authenticated"), Jenkins.READ),
+                    "authenticated can read");
             assertFalse(
-                    "authenticated can build",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Item.BUILD));
+                            PermissionEntry.group("authenticated"), Item.BUILD),
+                    "authenticated can build");
             assertFalse(
-                    "authenticated can delete jobs",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Item.DELETE));
+                            PermissionEntry.group("authenticated"), Item.DELETE),
+                    "authenticated can delete jobs");
             assertFalse(
-                    "authenticated can administer",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Jenkins.ADMINISTER));
+                            PermissionEntry.group("authenticated"), Jenkins.ADMINISTER),
+                    "authenticated can administer");
 
             assertTrue(
-                    "anon (either) can read",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            new PermissionEntry(AuthorizationType.EITHER, "anonymous"), Jenkins.READ));
+                            new PermissionEntry(AuthorizationType.EITHER, "anonymous"), Jenkins.READ),
+                    "anon (either) can read");
             assertTrue(
-                    "authenticated (either) can read",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Jenkins.READ));
+                            new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Jenkins.READ),
+                    "authenticated (either) can read");
             assertTrue(
-                    "authenticated (either) can build",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Item.BUILD));
+                            new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Item.BUILD),
+                    "authenticated (either) can build");
             assertTrue(
-                    "authenticated (either) can delete jobs",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Item.DELETE));
+                            new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Item.DELETE),
+                    "authenticated (either) can delete jobs");
             assertTrue(
-                    "authenticated (either) can administer",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Jenkins.ADMINISTER));
+                            new PermissionEntry(AuthorizationType.EITHER, "authenticated"), Jenkins.ADMINISTER),
+                    "authenticated (either) can administer");
         }
         { // item from Job DSL
             Folder folder = (Folder) r.jenkins.getItem("generated");
             assertNotNull(folder);
             AuthorizationMatrixProperty property = folder.getProperties().get(AuthorizationMatrixProperty.class);
-            assertTrue("folder property inherits", property.getInheritanceStrategy() instanceof NonInheritingStrategy);
+            assertInstanceOf(
+                    NonInheritingStrategy.class, property.getInheritanceStrategy(), "folder property inherits");
             assertTrue(property.hasExplicitPermission("authenticated", Item.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Item.READ));
             assertFalse(property.hasExplicitPermission("anonymous", Item.READ));
@@ -210,21 +209,21 @@ public class ImportTest {
             assertNotNull(agent1);
             AuthorizationMatrixNodeProperty property = agent1.getNodeProperty(AuthorizationMatrixNodeProperty.class);
             assertNotNull(property);
-            assertTrue(property.getInheritanceStrategy() instanceof InheritGlobalStrategy);
+            assertInstanceOf(InheritGlobalStrategy.class, property.getInheritanceStrategy());
             assertTrue(property.hasExplicitPermission("anonymous", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.BUILD));
             assertTrue(property.hasExplicitPermission("authenticated", Computer.DISCONNECT));
         }
         assertTrue(
-                "correct message",
                 Jenkins.logRecords.stream()
                         .anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())
                                 && l.getMessage()
-                                        .contains("Loading deprecated attribute 'permissions' for instance of")));
+                                        .contains("Loading deprecated attribute 'permissions' for instance of")),
+                "correct message");
     }
 
     @Test
-    public void v2Test() throws Throwable {
+    void v2Test() throws Throwable {
         rr.then(ImportTest::v2TestStep);
     }
 
@@ -233,41 +232,42 @@ public class ImportTest {
                 .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v2.yml"))
                         .toExternalForm());
 
-        assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
+        assertInstanceOf(HudsonPrivateSecurityRealm.class, r.jenkins.getSecurityRealm(), "security realm");
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
-        assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
+        assertInstanceOf(ProjectMatrixAuthorizationStrategy.class, authorizationStrategy, "authorization strategy");
         ProjectMatrixAuthorizationStrategy projectMatrixAuthorizationStrategy =
                 (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
         { // global
             final List<PermissionEntry> entries = projectMatrixAuthorizationStrategy.getAllPermissionEntries();
-            assertEquals("one real sid (we ignore anon/user)", 1, entries.size());
+            assertEquals(1, entries.size(), "one real sid (we ignore anon/user)");
             assertThat(entries, hasItems(new PermissionEntry(AuthorizationType.GROUP, "authenticated")));
             assertTrue(
-                    "anon can read",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.user("anonymous"), Jenkins.READ));
+                            PermissionEntry.user("anonymous"), Jenkins.READ),
+                    "anon can read");
             assertTrue(
-                    "authenticated can read",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Jenkins.READ));
+                            PermissionEntry.group("authenticated"), Jenkins.READ),
+                    "authenticated can read");
             assertTrue(
-                    "authenticated can build",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Item.BUILD));
+                            PermissionEntry.group("authenticated"), Item.BUILD),
+                    "authenticated can build");
             assertTrue(
-                    "authenticated can delete jobs",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Item.DELETE));
+                            PermissionEntry.group("authenticated"), Item.DELETE),
+                    "authenticated can delete jobs");
             assertTrue(
-                    "authenticated can administer",
                     projectMatrixAuthorizationStrategy.hasExplicitPermission(
-                            PermissionEntry.group("authenticated"), Jenkins.ADMINISTER));
+                            PermissionEntry.group("authenticated"), Jenkins.ADMINISTER),
+                    "authenticated can administer");
         }
         { // item from Job DSL
             Folder folder = (Folder) r.jenkins.getItem("generated");
             assertNotNull(folder);
             AuthorizationMatrixProperty property = folder.getProperties().get(AuthorizationMatrixProperty.class);
-            assertTrue("folder property inherits", property.getInheritanceStrategy() instanceof NonInheritingStrategy);
+            assertInstanceOf(
+                    NonInheritingStrategy.class, property.getInheritanceStrategy(), "folder property inherits");
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Item.READ));
             assertFalse(property.hasExplicitPermission(PermissionEntry.user("anonymous"), Item.READ));
@@ -279,21 +279,21 @@ public class ImportTest {
             assertNotNull(agent);
             AuthorizationMatrixNodeProperty property = agent.getNodeProperty(AuthorizationMatrixNodeProperty.class);
             assertNotNull(property);
-            assertTrue(property.getInheritanceStrategy() instanceof InheritGlobalStrategy);
+            assertInstanceOf(InheritGlobalStrategy.class, property.getInheritanceStrategy());
             assertTrue(property.hasExplicitPermission(PermissionEntry.user("anonymous"), Computer.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.BUILD));
             assertTrue(property.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.DISCONNECT));
         }
         assertTrue(
-                "correct message",
                 Jenkins.logRecords.stream()
                         .anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())
                                 && l.getMessage()
-                                        .contains("Loading deprecated attribute 'permissions' for instance of")));
+                                        .contains("Loading deprecated attribute 'permissions' for instance of")),
+                "correct message");
     }
 
     @Test
-    public void v1Test() throws Throwable {
+    void v1Test() throws Throwable {
         rr.then(ImportTest::v1TestStep);
     }
 
@@ -302,45 +302,47 @@ public class ImportTest {
                 .configure(Objects.requireNonNull(ImportTest.class.getResource("configuration-as-code-v1.yml"))
                         .toExternalForm());
 
-        assertTrue("security realm", r.jenkins.getSecurityRealm() instanceof HudsonPrivateSecurityRealm);
+        assertInstanceOf(HudsonPrivateSecurityRealm.class, r.jenkins.getSecurityRealm(), "security realm");
         AuthorizationStrategy authorizationStrategy = r.jenkins.getAuthorizationStrategy();
-        assertTrue("authorization strategy", authorizationStrategy instanceof ProjectMatrixAuthorizationStrategy);
+        assertInstanceOf(ProjectMatrixAuthorizationStrategy.class, authorizationStrategy, "authorization strategy");
         ProjectMatrixAuthorizationStrategy projectMatrixAuthorizationStrategy =
                 (ProjectMatrixAuthorizationStrategy) authorizationStrategy;
         { // global
             assertEquals(
-                    "two ambiguous sids",
                     2,
-                    projectMatrixAuthorizationStrategy.getAllPermissionEntries().size());
+                    projectMatrixAuthorizationStrategy.getAllPermissionEntries().size(),
+                    "two ambiguous sids");
             assertThat(
                     projectMatrixAuthorizationStrategy.getAllPermissionEntries(),
                     hasItems(
                             new PermissionEntry(AuthorizationType.EITHER, "anonymous"),
                             new PermissionEntry(AuthorizationType.EITHER, "authenticated")));
             assertTrue(
-                    "anon can read",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.READ));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("anonymous", Jenkins.READ),
+                    "anon can read");
             assertTrue(
-                    "authenticated can read",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.READ));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.READ),
+                    "authenticated can read");
             assertTrue(
-                    "authenticated can build",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.BUILD));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.BUILD),
+                    "authenticated can build");
             assertTrue(
-                    "authenticated can delete jobs",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Item.DELETE),
+                    "authenticated can delete jobs");
             assertTrue(
-                    "authenticated can administer",
-                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER));
+                    projectMatrixAuthorizationStrategy.hasExplicitPermission("authenticated", Jenkins.ADMINISTER),
+                    "authenticated can administer");
         }
 
-        assertTrue("at least one warning", Jenkins.logRecords.stream().anyMatch(l -> l.getLoggerName()
-                .equals(MatrixAuthorizationStrategyConfigurator.class.getName())));
         assertTrue(
-                "correct message",
+                Jenkins.logRecords.stream().anyMatch(l -> l.getLoggerName()
+                        .equals(MatrixAuthorizationStrategyConfigurator.class.getName())),
+                "at least one warning");
+        assertTrue(
                 Jenkins.logRecords.stream()
                         .anyMatch(l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())
                                 && l.getMessage()
-                                        .contains("Loading deprecated attribute 'grantedPermissions' for instance")));
+                                        .contains("Loading deprecated attribute 'grantedPermissions' for instance")),
+                "correct message");
     }
 }

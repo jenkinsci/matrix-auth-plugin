@@ -2,8 +2,8 @@ package org.jenkinsci.plugins.matrixauth.inheritance;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty;
