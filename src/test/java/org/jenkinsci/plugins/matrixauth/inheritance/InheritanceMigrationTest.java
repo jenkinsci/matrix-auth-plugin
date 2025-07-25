@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.matrixauth.inheritance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.not;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty;
@@ -36,7 +37,7 @@ class InheritanceMigrationTest {
         {
             Folder folder = (Folder) j.jenkins.getItemByFullName("folder");
             assertNotNull(folder);
-            assertTrue(folder.getConfigFile().asString().contains("blocksInheritance"));
+            assertThat(folder.getConfigFile().asString(), containsString("blocksInheritance"));
             AuthorizationMatrixProperty prop = (folder).getProperties().get(AuthorizationMatrixProperty.class);
             assertTrue(prop.isBlocksInheritance());
             assertInstanceOf(NonInheritingStrategy.class, prop.getInheritanceStrategy());
@@ -46,11 +47,11 @@ class InheritanceMigrationTest {
             assertFalse(folder.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
             assertFalse(folder.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
             folder.save();
-            assertFalse(folder.getConfigFile().asString().contains("blocksInheritance"));
+            assertThat(folder.getConfigFile().asString(), not(containsString("blocksInheritance")));
 
             folder = (Folder) j.jenkins.getItemByFullName("folder1");
             assertNotNull(folder);
-            assertTrue(folder.getConfigFile().asString().contains("blocksInheritance"));
+            assertThat(folder.getConfigFile().asString(), containsString("blocksInheritance"));
             prop = (folder).getProperties().get(AuthorizationMatrixProperty.class);
             assertTrue(prop.isBlocksInheritance());
             assertInstanceOf(NonInheritingStrategy.class, prop.getInheritanceStrategy());
@@ -67,7 +68,7 @@ class InheritanceMigrationTest {
             assertFalse(prop.hasPermission("bob", Item.READ));
             assertFalse(folder.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
             folder.save();
-            assertFalse(folder.getConfigFile().asString().contains("blocksInheritance"));
+            assertThat(folder.getConfigFile().asString(), not(containsString("blocksInheritance")));
         }
 
         {
@@ -85,11 +86,11 @@ class InheritanceMigrationTest {
                             User.get("admin").impersonate(),
                             Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
             job.save();
-            assertFalse(job.getConfigFile().asString().contains("blocksInheritance"));
+            assertThat(job.getConfigFile().asString(), not(containsString("blocksInheritance")));
 
             job = (Job<?, ?>) j.jenkins.getItemByFullName("job");
             assertNotNull(job);
-            assertTrue(job.getConfigFile().asString().contains("blocksInheritance"));
+            assertThat(job.getConfigFile().asString(), containsString("blocksInheritance"));
             prop = job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
             assertFalse(prop.isBlocksInheritance());
             assertInstanceOf(InheritParentStrategy.class, prop.getInheritanceStrategy());
@@ -98,7 +99,7 @@ class InheritanceMigrationTest {
             assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.READ));
             assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.CONFIGURE));
             job.save();
-            assertFalse(job.getConfigFile().asString().contains("blocksInheritance"));
+            assertThat(job.getConfigFile().asString(), not(containsString("blocksInheritance")));
         }
     }
 }
