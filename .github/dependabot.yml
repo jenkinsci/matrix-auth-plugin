@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+    ignore:
+      # BOM and build dependencies are excluded, they are released far too often and matter too little
+      - dependency-name: "io.jenkins.tools.bom:bom-2.*.x"
+      - dependency-name: "io.jenkins.tools.incrementals:git-changelist-maven-extension"
+      - dependency-name: "org.jenkins-ci.plugins:plugin"
