@@ -25,7 +25,6 @@ package org.jenkinsci.plugins.matrixauth;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Node;
@@ -116,9 +115,6 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node>
 
     private final class AclImpl extends SidACL {
         @CheckForNull
-        @SuppressFBWarnings(
-                value = "NP_BOOLEAN_RETURN_NULL",
-                justification = "As designed, implements a third state for the ternary logic")
         protected Boolean hasPermission(Sid sid, Permission p) {
             if (AuthorizationMatrixNodeProperty.this.hasPermission(toString(sid), p, sid instanceof PrincipalSid)) {
                 return true;

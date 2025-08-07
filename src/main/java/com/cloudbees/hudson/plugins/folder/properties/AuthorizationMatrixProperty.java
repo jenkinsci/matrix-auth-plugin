@@ -26,8 +26,8 @@ package com.cloudbees.hudson.plugins.folder.properties;
 import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderProperty;
 import com.cloudbees.hudson.plugins.folder.AbstractFolderPropertyDescriptor;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.AbstractItem;
 import hudson.model.Item;
@@ -183,7 +183,7 @@ public class AuthorizationMatrixProperty extends AbstractFolderProperty<Abstract
     }
 
     private final class AclImpl extends SidACL {
-        @SuppressFBWarnings(value = "NP_BOOLEAN_RETURN_NULL", justification = "Because that is the way this SPI works")
+        @CheckForNull
         protected Boolean hasPermission(Sid sid, Permission p) {
             if (AuthorizationMatrixProperty.this.hasPermission(toString(sid), p, sid instanceof PrincipalSid))
                 return true;
