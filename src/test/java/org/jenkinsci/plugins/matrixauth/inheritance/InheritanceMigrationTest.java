@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.matrixauth.inheritance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.AuthorizationMatrixProperty;
@@ -11,71 +12,76 @@ import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.User;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.recipes.LocalData;
 
-public class InheritanceMigrationTest {
+@WithJenkins
+class InheritanceMigrationTest {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
     @LocalData
     @SuppressWarnings("deprecation")
-    public void testInheritanceMigration() throws Exception {
-        Assert.assertTrue(j.jenkins.getAuthorizationStrategy() instanceof ProjectMatrixAuthorizationStrategy);
+    void testInheritanceMigration() throws Exception {
+        assertInstanceOf(ProjectMatrixAuthorizationStrategy.class, j.jenkins.getAuthorizationStrategy());
 
         {
             Folder folder = (Folder) j.jenkins.getItemByFullName("folder");
-            Assert.assertNotNull(folder);
+            assertNotNull(folder);
             assertThat(folder.getConfigFile().asString(), containsString("blocksInheritance"));
             AuthorizationMatrixProperty prop = (folder).getProperties().get(AuthorizationMatrixProperty.class);
-            Assert.assertTrue(prop.isBlocksInheritance());
-            Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
-            Assert.assertTrue(prop.hasExplicitPermission("admin", Item.CONFIGURE));
-            Assert.assertTrue(prop.hasExplicitPermission("admin", Item.READ));
-            Assert.assertTrue(prop.hasExplicitPermission("admin", Item.CREATE));
-            Assert.assertFalse(folder.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
-            Assert.assertFalse(folder.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
+            assertTrue(prop.isBlocksInheritance());
+            assertInstanceOf(NonInheritingStrategy.class, prop.getInheritanceStrategy());
+            assertTrue(prop.hasExplicitPermission("admin", Item.CONFIGURE));
+            assertTrue(prop.hasExplicitPermission("admin", Item.READ));
+            assertTrue(prop.hasExplicitPermission("admin", Item.CREATE));
+            assertFalse(folder.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
+            assertFalse(folder.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
             folder.save();
             assertThat(folder.getConfigFile().asString(), not(containsString("blocksInheritance")));
 
             folder = (Folder) j.jenkins.getItemByFullName("folder1");
-            Assert.assertNotNull(folder);
+            assertNotNull(folder);
             assertThat(folder.getConfigFile().asString(), containsString("blocksInheritance"));
             prop = (folder).getProperties().get(AuthorizationMatrixProperty.class);
-            Assert.assertTrue(prop.isBlocksInheritance());
-            Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
-            Assert.assertTrue(prop.hasExplicitPermission("admin", Item.CONFIGURE));
-            Assert.assertFalse(prop.hasExplicitPermission("admin", Item.READ));
-            Assert.assertTrue(folder.getACL()
+            assertTrue(prop.isBlocksInheritance());
+            assertInstanceOf(NonInheritingStrategy.class, prop.getInheritanceStrategy());
+            assertTrue(prop.hasExplicitPermission("admin", Item.CONFIGURE));
+            assertFalse(prop.hasExplicitPermission("admin", Item.READ));
+            assertTrue(folder.getACL()
                     .hasPermission(
                             User.get("admin").impersonate(),
                             Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
-            Assert.assertTrue(folder.getACL().hasPermission(User.get("admin").impersonate(), Item.CONFIGURE));
-            Assert.assertTrue(prop.hasExplicitPermission("alice", Item.CONFIGURE));
-            Assert.assertTrue(prop.hasExplicitPermission("alice", Item.READ));
-            Assert.assertTrue(folder.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
-            Assert.assertFalse(prop.hasPermission("bob", Item.READ));
-            Assert.assertFalse(folder.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
+            assertTrue(folder.getACL().hasPermission(User.get("admin").impersonate(), Item.CONFIGURE));
+            assertTrue(prop.hasExplicitPermission("alice", Item.CONFIGURE));
+            assertTrue(prop.hasExplicitPermission("alice", Item.READ));
+            assertTrue(folder.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
+            assertFalse(prop.hasPermission("bob", Item.READ));
+            assertFalse(folder.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
             folder.save();
             assertThat(folder.getConfigFile().asString(), not(containsString("blocksInheritance")));
         }
 
         {
             Job<?, ?> job = (Job<?, ?>) j.jenkins.getItemByFullName("folder/inheritNone");
-            Assert.assertNotNull(job);
+            assertNotNull(job);
             XmlFile configFile = job.getConfigFile();
             assertThat("correct contents of " + configFile, configFile.asString(), containsString("blocksInheritance"));
             hudson.security.AuthorizationMatrixProperty prop =
                     job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
-            Assert.assertTrue(prop.isBlocksInheritance());
-            Assert.assertEquals(0, prop.getGrantedPermissions().size());
-            Assert.assertTrue(prop.getInheritanceStrategy() instanceof NonInheritingStrategy);
-            Assert.assertTrue(job.getACL()
+            assertTrue(prop.isBlocksInheritance());
+            assertEquals(0, prop.getGrantedPermissions().size());
+            assertInstanceOf(NonInheritingStrategy.class, prop.getInheritanceStrategy());
+            assertTrue(job.getACL()
                     .hasPermission(
                             User.get("admin").impersonate(),
                             Item.READ)); // change from before (JENKINS-24878/JENKINS-37904)
@@ -83,15 +89,15 @@ public class InheritanceMigrationTest {
             assertThat(job.getConfigFile().asString(), not(containsString("blocksInheritance")));
 
             job = (Job<?, ?>) j.jenkins.getItemByFullName("job");
-            Assert.assertNotNull(job);
+            assertNotNull(job);
             assertThat(job.getConfigFile().asString(), containsString("blocksInheritance"));
             prop = job.getProperty(hudson.security.AuthorizationMatrixProperty.class);
-            Assert.assertFalse(prop.isBlocksInheritance());
-            Assert.assertTrue(prop.getInheritanceStrategy() instanceof InheritParentStrategy);
-            Assert.assertTrue(job.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
-            Assert.assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
-            Assert.assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.READ));
-            Assert.assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.CONFIGURE));
+            assertFalse(prop.isBlocksInheritance());
+            assertInstanceOf(InheritParentStrategy.class, prop.getInheritanceStrategy());
+            assertTrue(job.getACL().hasPermission(User.get("bob").impersonate(), Item.READ));
+            assertTrue(job.getACL().hasPermission(User.get("alice").impersonate(), Item.READ));
+            assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.READ));
+            assertTrue(job.getACL().hasPermission(User.get("admin").impersonate(), Item.CONFIGURE));
             job.save();
             assertThat(job.getConfigFile().asString(), not(containsString("blocksInheritance")));
         }

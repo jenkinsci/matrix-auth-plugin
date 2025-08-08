@@ -1,7 +1,8 @@
 package com.cloudbees.hudson.plugins.folder.properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import hudson.model.FreeStyleProject;
 import hudson.model.Hudson;
@@ -10,15 +11,22 @@ import hudson.security.HudsonPrivateSecurityRealm;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
 import jenkins.model.IdStrategy;
 import org.htmlunit.FailingHttpStatusCodeException;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class IdStrategyTest {
+@WithJenkins
+class IdStrategyTest {
+
     private static final IdStrategy.CaseSensitive CASE_SENSITIVE = new IdStrategy.CaseSensitive();
 
-    @Rule
-    public JenkinsRule r = new JenkinsRule();
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     private static class CaseInsensitiveSecurityRealm extends HudsonPrivateSecurityRealm {
         CaseInsensitiveSecurityRealm() {
@@ -53,20 +61,20 @@ public class IdStrategyTest {
     }
 
     @Test
-    public void insensitive() throws Exception {
+    void insensitive() throws Exception {
         HudsonPrivateSecurityRealm realm = new CaseInsensitiveSecurityRealm();
         realm.createAccount("alice", "alice");
-        r.jenkins.setSecurityRealm(realm);
+        j.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
-        r.jenkins.setAuthorizationStrategy(as);
+        j.jenkins.setAuthorizationStrategy(as);
         as.add(Hudson.READ, "authenticated");
         as.add(Item.READ, "alicE");
         as.add(Item.BUILD, "aLice");
 
-        final FreeStyleProject foo = r.createProject(FreeStyleProject.class, "foo");
+        final FreeStyleProject foo = j.createProject(FreeStyleProject.class, "foo");
 
-        JenkinsRule.WebClient wc = r.createWebClient().login("alice");
+        JenkinsRule.WebClient wc = j.createWebClient().login("alice");
         wc.getPage(foo); // this should succeed
 
         // and build permission should be set, too
@@ -83,15 +91,12 @@ public class IdStrategyTest {
             return null;
         });
 
-        try {
-            r.createWebClient().login("AliCe");
-            fail();
-        } catch (FailingHttpStatusCodeException e) {
-            assertEquals(401, e.getStatusCode());
-        }
+        FailingHttpStatusCodeException e = assertThrows(
+                FailingHttpStatusCodeException.class, () -> j.createWebClient().login("AliCe"));
+        assertEquals(401, e.getStatusCode());
 
         // now logging with the username case incorrect should still authenticate as the password is a match
-        wc = r.createWebClient().login("AliCe", "alice");
+        wc = j.createWebClient().login("AliCe", "alice");
         wc.getPage(foo); // this should succeed
 
         // and build permission should be set, too
@@ -110,40 +115,34 @@ public class IdStrategyTest {
     }
 
     @Test
-    public void sensitive() throws Exception {
+    void sensitive() throws Exception {
         HudsonPrivateSecurityRealm realm = new CaseSensitiveSecurityRealm();
         realm.createAccount("alice", "alice");
-        r.jenkins.setSecurityRealm(realm);
+        j.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy as = new ProjectMatrixAuthorizationStrategy();
-        r.jenkins.setAuthorizationStrategy(as);
+        j.jenkins.setAuthorizationStrategy(as);
         as.add(Hudson.READ, "authenticated");
         as.add(Item.READ, "alice");
         as.add(Item.BUILD, "alice");
 
-        final FreeStyleProject foo = r.createProject(FreeStyleProject.class, "foo");
-        JenkinsRule.WebClient wc = r.createWebClient().login("alice", "alice");
+        final FreeStyleProject foo = j.createProject(FreeStyleProject.class, "foo");
+        JenkinsRule.WebClient wc = j.createWebClient().login("alice", "alice");
         wc.getPage(foo); // this should succeed
 
         // and build permission should be set, too
         wc.executeOnServer(() -> {
             foo.checkPermission(Item.BUILD);
-            try {
-                foo.checkPermission(Item.DELETE);
-                fail("access should be denied");
-            } catch (RuntimeException x) {
-                assertEquals(
-                        hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"),
-                        x.getMessage());
-            }
+            RuntimeException x = assertThrows(
+                    RuntimeException.class, () -> foo.checkPermission(Item.DELETE), "access should be denied");
+            assertEquals(
+                    hudson.security.Messages.AccessDeniedException2_MissingPermission("alice", "Job/Delete"),
+                    x.getMessage());
             return null;
         });
 
-        try {
-            r.createWebClient().login("Alice", "alice");
-            fail();
-        } catch (FailingHttpStatusCodeException e) {
-            assertEquals(401, e.getStatusCode());
-        }
+        FailingHttpStatusCodeException e = assertThrows(
+                FailingHttpStatusCodeException.class, () -> j.createWebClient().login("Alice", "alice"));
+        assertEquals(401, e.getStatusCode());
     }
 }

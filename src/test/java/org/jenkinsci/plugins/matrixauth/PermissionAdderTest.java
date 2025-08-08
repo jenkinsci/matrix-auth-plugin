@@ -1,5 +1,8 @@
 package org.jenkinsci.plugins.matrixauth;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import hudson.model.User;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
@@ -8,21 +11,20 @@ import java.util.Collections;
 import java.util.Objects;
 import jenkins.model.Jenkins;
 import org.htmlunit.ElementNotFoundException;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.JenkinsSessionRule;
+import org.jvnet.hudson.test.junit.jupiter.JenkinsSessionExtension;
 
-public class PermissionAdderTest {
+class PermissionAdderTest {
 
-    @Rule
-    public JenkinsSessionRule sessions = new JenkinsSessionRule();
+    @RegisterExtension
+    private final JenkinsSessionExtension sessions = new JenkinsSessionExtension();
 
     @Test
     @Issue("JENKINS-20520")
-    public void ensureSavingAfterInitialUser() throws Throwable {
+    void ensureSavingAfterInitialUser() throws Throwable {
         sessions.then(j -> {
             j.jenkins.setSecurityRealm(new HudsonPrivateSecurityRealm(true, false, null));
             j.jenkins.setAuthorizationStrategy(new GlobalMatrixAuthorizationStrategy());
@@ -40,10 +42,10 @@ public class PermissionAdderTest {
             }
             signup.submit(j);
             User alice = User.get("alice", false, Collections.emptyMap());
-            Assert.assertNotNull(alice);
-            Assert.assertTrue(j.jenkins.getACL().hasPermission2(alice.impersonate2(), Jenkins.ADMINISTER));
+            assertNotNull(alice);
+            assertTrue(j.jenkins.getACL().hasPermission2(alice.impersonate2(), Jenkins.ADMINISTER));
         });
-        sessions.then(j -> Assert.assertTrue(j.jenkins
+        sessions.then(j -> assertTrue(j.jenkins
                 .getACL()
                 .hasPermission2(
                         Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
