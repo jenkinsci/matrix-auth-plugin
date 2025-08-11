@@ -1,5 +1,9 @@
 package hudson.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import hudson.model.Item;
 import hudson.scm.SCM;
 import java.util.Collections;
@@ -13,23 +17,27 @@ import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.cps.SnippetizerTester;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.multibranch.JobPropertyStep;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.LoggerRule;
+import org.jvnet.hudson.test.LogRecorder;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class AuthorizationMatrixPropertyTest {
+@WithJenkins
+class AuthorizationMatrixPropertyTest {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    private final LogRecorder l = new LogRecorder();
 
-    @Rule
-    public LoggerRule l = new LoggerRule();
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
-    public void testSnippetizer() throws Exception {
+    void testSnippetizer() throws Exception {
         AuthorizationMatrixProperty property =
                 new AuthorizationMatrixProperty(Collections.emptyMap(), new InheritParentStrategy());
         property.add(Item.CONFIGURE, "alice");
@@ -44,7 +52,7 @@ public class AuthorizationMatrixPropertyTest {
     }
 
     @Test
-    public void testSnippetizer2() throws Exception {
+    void testSnippetizer2() throws Exception {
         AuthorizationMatrixProperty property =
                 new AuthorizationMatrixProperty(Collections.emptyMap(), new InheritParentStrategy());
         property.add(Item.CONFIGURE, PermissionEntry.user("alice"));
@@ -60,7 +68,7 @@ public class AuthorizationMatrixPropertyTest {
 
     @Test
     @Issue("JENKINS-46944")
-    public void testSnippetizerInapplicablePermission() throws Exception {
+    void testSnippetizerInapplicablePermission() throws Exception {
         AuthorizationMatrixProperty property =
                 new AuthorizationMatrixProperty(Collections.emptyMap(), new InheritParentStrategy());
         l.record(AuthorizationContainer.class, Level.WARNING).capture(3);
@@ -79,18 +87,18 @@ public class AuthorizationMatrixPropertyTest {
                 new JobPropertyStep(Collections.singletonList(property)),
                 "properties([authorizationMatrix(entries: [userOrGroup(name: 'alice', permissions: ['Job/Configure', 'Job/Read']), userOrGroup(name: 'bob', permissions: ['Job/Read', 'SCM/Tag'])], inheritanceStrategy: nonInheriting())])");
 
-        Assert.assertTrue(l.getMessages().stream()
+        assertTrue(l.getMessages().stream()
                 .anyMatch(m -> m.contains("Tried to add inapplicable permission")
                         && m.contains("Hudson,Read")
                         && m.contains("carol")));
-        Assert.assertTrue(l.getMessages().stream()
+        assertTrue(l.getMessages().stream()
                 .anyMatch(m -> m.contains("Tried to add inapplicable permission")
                         && m.contains("Hudson,Administer")
                         && m.contains("dave")));
     }
 
     @Test
-    public void testPipelineReconfiguration() throws Exception {
+    void testPipelineReconfiguration() throws Exception {
 
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(true, false, null);
         realm.createAccount("alice", "alice");
@@ -129,10 +137,10 @@ public class AuthorizationMatrixPropertyTest {
 
         // let's look ast the property
         AuthorizationMatrixProperty property = project.getProperty(AuthorizationMatrixProperty.class);
-        Assert.assertTrue(property.getInheritanceStrategy() instanceof NonInheritingStrategy);
-        Assert.assertEquals(0, property.getGrantedPermissions().size()); // Unambiguous permissions are 0
-        Assert.assertEquals(3, property.getGrantedPermissionEntries().size());
-        Assert.assertEquals(0, property.getGroups().size());
+        assertInstanceOf(NonInheritingStrategy.class, property.getInheritanceStrategy());
+        assertEquals(0, property.getGrantedPermissions().size()); // Unambiguous permissions are 0
+        assertEquals(3, property.getGrantedPermissionEntries().size());
+        assertEquals(0, property.getGroups().size());
 
         // now bob has access, including configure
         j.createWebClient().login("bob").goTo(project.getUrl());
@@ -143,7 +151,7 @@ public class AuthorizationMatrixPropertyTest {
     }
 
     @Test
-    public void testPipelineReconfiguration2() throws Exception {
+    void testPipelineReconfiguration2() throws Exception {
 
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(true, false, null);
         realm.createAccount("alice", "alice");
@@ -182,10 +190,10 @@ public class AuthorizationMatrixPropertyTest {
 
         // let's look ast the property
         AuthorizationMatrixProperty property = project.getProperty(AuthorizationMatrixProperty.class);
-        Assert.assertTrue(property.getInheritanceStrategy() instanceof NonInheritingStrategy);
-        Assert.assertEquals(0, property.getGrantedPermissions().size()); // typed entries are not listed here
-        Assert.assertEquals(3, property.getGrantedPermissionEntries().size());
-        Assert.assertEquals(0, property.getGroups().size());
+        assertInstanceOf(NonInheritingStrategy.class, property.getInheritanceStrategy());
+        assertEquals(0, property.getGrantedPermissions().size()); // typed entries are not listed here
+        assertEquals(3, property.getGrantedPermissionEntries().size());
+        assertEquals(0, property.getGroups().size());
 
         // now bob has access, including configure
         j.createWebClient().login("bob").goTo(project.getUrl());

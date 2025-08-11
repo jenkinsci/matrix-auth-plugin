@@ -2,8 +2,8 @@ package org.jenkinsci.plugins.matrixauth.integrations.casc;
 
 import static io.jenkins.plugins.casc.misc.Util.toStringFromYamlFile;
 import static io.jenkins.plugins.casc.misc.Util.toYamlString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import hudson.model.Node;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
@@ -13,19 +13,25 @@ import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.model.CNode;
 import java.util.Objects;
 import org.jenkinsci.plugins.matrixauth.AuthorizationMatrixNodeProperty;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.recipes.LocalData;
 
-public class ExportTest {
+@WithJenkins
+class ExportTest {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
     @LocalData
-    public void exportTestLegacy() throws Exception {
+    void exportTestLegacy() throws Exception {
         ConfiguratorRegistry registry = ConfiguratorRegistry.get();
         ConfigurationContext context = new ConfigurationContext(registry);
 
@@ -62,7 +68,7 @@ public class ExportTest {
 
     @Test
     @LocalData
-    public void exportTest() throws Exception {
+    void exportTest() throws Exception {
         ConfiguratorRegistry registry = ConfiguratorRegistry.get();
         ConfigurationContext context = new ConfigurationContext(registry);
 
