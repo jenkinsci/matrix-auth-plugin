@@ -1,3 +1,5 @@
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+---
 version: 2
 updates:
   - package-ecosystem: "maven"
@@ -10,3 +12,7 @@ updates:
       - dependency-name: "io.jenkins.tools.bom:bom-2.*.x"
       - dependency-name: "io.jenkins.tools.incrementals:git-changelist-maven-extension"
       - dependency-name: "org.jenkins-ci.plugins:plugin"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
