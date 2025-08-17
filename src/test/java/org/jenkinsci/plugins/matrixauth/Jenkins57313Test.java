@@ -1,30 +1,39 @@
 package org.jenkinsci.plugins.matrixauth;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import jenkins.model.Jenkins;
 import org.htmlunit.html.HtmlPage;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class Jenkins57313Test {
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class Jenkins57313Test {
+
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
     @Issue("JENKINS-57313")
-    public void testFormValidation() throws Exception {
+    void testFormValidation() throws Exception {
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         GlobalMatrixAuthorizationStrategy authorizationStrategy = new GlobalMatrixAuthorizationStrategy();
         authorizationStrategy.add(Jenkins.ADMINISTER, "anonymous");
         j.jenkins.setAuthorizationStrategy(authorizationStrategy);
         HtmlPage page = j.createWebClient()
                 .goTo(authorizationStrategy.getDescriptor().getDescriptorUrl() + "/checkName?value=[USER:alice]");
-        Assert.assertEquals(200, page.getWebResponse().getStatusCode());
+        assertEquals(200, page.getWebResponse().getStatusCode());
         String responseText = page.getWebResponse().getContentAsString();
-        Assert.assertTrue(responseText.contains("alice"));
-        Assert.assertTrue(responseText.contains("User"));
+        assertTrue(responseText.contains("alice"));
+        assertTrue(responseText.contains("User"));
     }
 }

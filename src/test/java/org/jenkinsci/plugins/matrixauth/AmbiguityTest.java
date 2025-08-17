@@ -1,10 +1,6 @@
 package org.jenkinsci.plugins.matrixauth;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.hudson.plugins.folder.properties.FolderContributor;
@@ -26,18 +22,28 @@ import org.htmlunit.FailingHttpStatusCodeException;
 import org.htmlunit.html.HtmlFormUtil;
 import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.LogRecorder;
 import org.jvnet.hudson.test.MockAuthorizationStrategy;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.recipes.LocalData;
 
-public class AmbiguityTest {
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class AmbiguityTest {
+
+    private final LogRecorder l = new LogRecorder();
+
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
-    public void anonymousIsUser() throws Exception {
+    void anonymousIsUser() throws Exception {
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         final GlobalMatrixAuthorizationStrategy userStrategy = new GlobalMatrixAuthorizationStrategy();
         userStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.USER, "anonymous"));
@@ -56,7 +62,7 @@ public class AmbiguityTest {
     }
 
     @Test
-    public void anonymousIsAlsoGroup() throws Exception { // this wasn't always the case in older Jenkinses, but is now.
+    void anonymousIsAlsoGroup() throws Exception { // this wasn't always the case in older Jenkinses, but is now.
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         final GlobalMatrixAuthorizationStrategy groupStrategy = new GlobalMatrixAuthorizationStrategy();
         groupStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.GROUP, "anonymous"));
@@ -67,7 +73,7 @@ public class AmbiguityTest {
     }
 
     @Test
-    public void authenticatedIsAGroup() throws Exception {
+    void authenticatedIsAGroup() throws Exception {
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         final GlobalMatrixAuthorizationStrategy userStrategy = new GlobalMatrixAuthorizationStrategy();
         userStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.GROUP, "authenticated"));
@@ -81,7 +87,7 @@ public class AmbiguityTest {
         groupStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.USER, "authenticated"));
         j.jenkins.setAuthorizationStrategy(groupStrategy);
         FailingHttpStatusCodeException ex = assertThrows(FailingHttpStatusCodeException.class, () -> wc.goTo(""));
-        assertEquals("permission denied", 403, ex.getStatusCode());
+        assertEquals(403, ex.getStatusCode(), "permission denied");
 
         // Legacy config would still work
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
@@ -93,7 +99,7 @@ public class AmbiguityTest {
     }
 
     @Test
-    public void usersAreUsers() throws Exception {
+    void usersAreUsers() throws Exception {
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         final GlobalMatrixAuthorizationStrategy userStrategy = new GlobalMatrixAuthorizationStrategy();
         userStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.USER, "alice"));
@@ -107,7 +113,7 @@ public class AmbiguityTest {
         groupStrategy.add(Jenkins.READ, new PermissionEntry(AuthorizationType.GROUP, "alice"));
         j.jenkins.setAuthorizationStrategy(groupStrategy);
         FailingHttpStatusCodeException ex = assertThrows(FailingHttpStatusCodeException.class, () -> wc.goTo(""));
-        assertEquals("permission denied", 403, ex.getStatusCode());
+        assertEquals(403, ex.getStatusCode(), "permission denied");
 
         // Legacy config would still work
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
@@ -119,7 +125,7 @@ public class AmbiguityTest {
     }
 
     @Test
-    public void adminMonitorAppearsAndDisappears() throws Exception {
+    void adminMonitorAppearsAndDisappears() throws Exception {
         assertAdminMonitorVisible(false);
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         final GlobalMatrixAuthorizationStrategy userStrategy = new GlobalMatrixAuthorizationStrategy();
@@ -171,7 +177,7 @@ public class AmbiguityTest {
 
     @LocalData
     @Test
-    public void testDataFrom2xReconfiguration() throws Exception {
+    void testDataFrom2xReconfiguration() throws Exception {
         assertAdminMonitorVisible(true);
         AmbiguityMonitor ambiguityMonitor =
                 (AmbiguityMonitor) j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName());
@@ -293,7 +299,7 @@ public class AmbiguityTest {
 
     @LocalData
     @Test
-    public void testDataFrom2xDeletion() throws Exception {
+    void testDataFrom2xDeletion() throws Exception {
         assertAdminMonitorVisible(true);
         AmbiguityMonitor ambiguityMonitor =
                 (AmbiguityMonitor) j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName());
@@ -328,9 +334,9 @@ public class AmbiguityTest {
 
     private void assertAdminMonitorVisible(boolean visible) {
         assertEquals(
-                "admin monitor should be visible? ",
                 visible,
                 Objects.requireNonNull(j.jenkins.getAdministrativeMonitor(AmbiguityMonitor.class.getName()))
-                        .isActivated());
+                        .isActivated(),
+                "admin monitor should be visible? ");
     }
 }

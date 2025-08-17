@@ -3,9 +3,7 @@ package org.jenkinsci.plugins.matrixauth;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
 import hudson.Functions;
@@ -33,16 +31,16 @@ import org.jenkinsci.plugins.matrixauth.inheritance.InheritGlobalStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritanceStrategy;
 import org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.BuildWatcher;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SleepBuilder;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class Security2180Test {
+@WithJenkins
+class Security2180Test {
+
     private static final String BUILD_CONTENT = "Started by user";
     private static final String JOB_CONTENT = "Full project name: folder/job";
     private static final Map<Permission, Set<String>> ANONYMOUS_CAN_ITEM_READ =
@@ -50,14 +48,15 @@ public class Security2180Test {
 
     private static final Logger LOGGER = Logger.getLogger(Security2180Test.class.getName());
 
-    @ClassRule
-    public static BuildWatcher watcher = new BuildWatcher();
+    private JenkinsRule j;
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
-    @After
-    public void stopBuilds() throws Exception {
+    @AfterEach
+    void stopBuilds() throws Exception {
         for (FreeStyleProject p : j.jenkins.allItems(FreeStyleProject.class)) {
             for (FreeStyleBuild b : p.getBuilds()) {
                 LOGGER.info(() -> "Stopping " + b + "…");
@@ -128,7 +127,7 @@ public class Security2180Test {
                 job.scheduleBuild2(0, new Cause.UserIdCause("admin")).waitForStart(); // schedule one build now
         QueueTaskFuture<FreeStyleBuild> future =
                 job.scheduleBuild2(0, new Cause.UserIdCause("admin")); // schedule an additional queue item
-        Assert.assertEquals(1, Jenkins.get().getQueue().getItems().length); // expect there to be one queue item
+        assertEquals(1, Jenkins.get().getQueue().getItems().length); // expect there to be one queue item
 
         final JenkinsRule.WebClient webClient = j.createWebClient().withThrowExceptionOnFailingStatusCode(false);
 
@@ -221,12 +220,12 @@ public class Security2180Test {
     }
 
     @Test
-    public void testQueuePath() throws Exception {
+    void testQueuePath() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
         FreeStyleProject job = prepareNestedProject(null, new AuthorizationMatrixProperty(ANONYMOUS_CAN_ITEM_READ));
 
         job.scheduleBuild2(1000, new Cause.UserIdCause("admin"));
-        Assert.assertEquals(1, Jenkins.get().getQueue().getItems().length);
+        assertEquals(1, Jenkins.get().getQueue().getItems().length);
 
         final JenkinsRule.WebClient webClient = j.createWebClient().withThrowExceptionOnFailingStatusCode(false);
         final HtmlPage htmlPage = webClient.goTo("queue/items/0/task/");
@@ -235,12 +234,12 @@ public class Security2180Test {
     }
 
     @Test
-    public void testQueueContent() throws Exception {
+    void testQueueContent() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
         FreeStyleProject job = prepareNestedProject(null, new AuthorizationMatrixProperty(ANONYMOUS_CAN_ITEM_READ));
 
         job.scheduleBuild2(1000, new Cause.UserIdCause("admin"));
-        Assert.assertEquals(1, Jenkins.get().getQueue().getItems().length);
+        assertEquals(1, Jenkins.get().getQueue().getItems().length);
 
         final JenkinsRule.WebClient webClient = j.createWebClient();
         final Page page = webClient.goTo("queue/api/xml/", "application/xml");
@@ -249,14 +248,14 @@ public class Security2180Test {
     }
 
     @Test
-    public void testExecutorsPath() throws Exception {
+    void testExecutorsPath() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
         FreeStyleProject job = prepareNestedProject(null, new AuthorizationMatrixProperty(ANONYMOUS_CAN_ITEM_READ));
 
         final FreeStyleBuild build =
                 job.scheduleBuild2(0, new Cause.UserIdCause("admin")).waitForStart();
         final Executor executor = build.getExecutor();
-        assertNotNull("null executor", executor);
+        assertNotNull(executor, "null executor");
         final int number = executor.getNumber();
 
         final JenkinsRule.WebClient webClient = j.createWebClient().withThrowExceptionOnFailingStatusCode(false);
@@ -266,7 +265,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testExecutorsContent() throws Exception {
+    void testExecutorsContent() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
         Folder folder = j.jenkins.createProject(Folder.class, "folder");
         FreeStyleProject job = createFreeStyleProjectWithReadPermissionForAnonymousInFolder(folder);
@@ -280,13 +279,13 @@ public class Security2180Test {
     }
 
     @Test
-    public void testWidgets() throws Exception {
+    void testWidgets() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
         FreeStyleProject job = prepareNestedProject(null, createJobPropertyForAnonymousItemRead());
 
         job.scheduleBuild2(0, new Cause.UserIdCause("admin")).waitForStart(); // schedule one build now
         job.scheduleBuild2(0, new Cause.UserIdCause("admin")); // schedule an additional queue item
-        Assert.assertEquals(1, Jenkins.get().getQueue().getItems().length); // expect there to be one queue item
+        assertEquals(1, Jenkins.get().getQueue().getItems().length); // expect there to be one queue item
 
         final JenkinsRule.WebClient webClient = j.createWebClient().withThrowExceptionOnFailingStatusCode(false);
 
@@ -300,7 +299,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testTwoNestedFolderWithSecondGrantingAccess() throws Exception {
+    void testTwoNestedFolderWithSecondGrantingAccess() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
         FreeStyleProject job = prepareNestedProject(
                 null,
@@ -310,7 +309,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testThreeNestedFolderWithSecondGrantingAccess() throws Exception {
+    void testThreeNestedFolderWithSecondGrantingAccess() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
         FreeStyleProject job = prepareNestedProject(
                 null, // folder does not allow Item/Read for anon
@@ -322,7 +321,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testGlobalItemReadBlockedByNonInheritingStrategyOnJob() throws Exception {
+    void testGlobalItemReadBlockedByNonInheritingStrategyOnJob() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job =
                 prepareNestedProject(null, createJobProperty(Collections.emptyMap(), new NonInheritingStrategy()));
@@ -330,7 +329,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testGlobalItemReadBlockedByNonInheritingStrategyOnMiddleFolder() throws Exception {
+    void testGlobalItemReadBlockedByNonInheritingStrategyOnMiddleFolder() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job = prepareNestedProject(
                 null,
@@ -341,7 +340,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testInheritGlobalMiddleFolderInheritParentInnerFolder() throws Exception {
+    void testInheritGlobalMiddleFolderInheritParentInnerFolder() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         // Global( Item/Read ) -> folder (no prop) -> folder2 (prop inherits global) -> folder3 (prop inherits parent,
         // grants Read) -> job (grants Read)
@@ -354,7 +353,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testNonInheritingOuterFolderBlocksInheritGlobalInnerFolder() throws Exception {
+    void testNonInheritingOuterFolderBlocksInheritGlobalInnerFolder() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         // Global( Item/Read ) -> folder (do not inherit) -> folder2 (prop inherits global) -> folder3 (prop inherits
         // parent, grants Read) -> job (grants Read)
@@ -367,7 +366,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testInheritGlobalInFolderInheritParentAndExplicitGrantInItem() throws Exception {
+    void testInheritGlobalInFolderInheritParentAndExplicitGrantInItem() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job = prepareNestedProject(
                 createFolderProperty(Collections.emptyMap(), new InheritGlobalStrategy()),
@@ -376,7 +375,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testInheritGlobalInFolderInheritParentWithoutExplicitGrantInItem_visible() throws Exception {
+    void testInheritGlobalInFolderInheritParentWithoutExplicitGrantInItem_visible() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job = prepareNestedProject(
                 createFolderProperty(Collections.emptyMap(), new InheritGlobalStrategy()),
@@ -385,7 +384,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testExplicitNonInheritingThenInheritGlobalReadThenParent_visible() throws Exception {
+    void testExplicitNonInheritingThenInheritGlobalReadThenParent_visible() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job = prepareNestedProject(
                 createFolderProperty(ANONYMOUS_CAN_ITEM_READ, new NonInheritingStrategy()),
@@ -395,7 +394,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testNonInheritingThenInheritGlobalReadThenParent_not_visible() throws Exception {
+    void testNonInheritingThenInheritGlobalReadThenParent_not_visible() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job = prepareNestedProject(
                 createFolderProperty(Collections.emptyMap(), new NonInheritingStrategy()),
@@ -405,7 +404,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testExplicitNonInheritingThenInheritGlobalNonReadThenParent_not_visible() throws Exception {
+    void testExplicitNonInheritingThenInheritGlobalNonReadThenParent_not_visible() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
         FreeStyleProject job = prepareNestedProject(
                 createFolderProperty(ANONYMOUS_CAN_ITEM_READ, new NonInheritingStrategy()),
@@ -415,7 +414,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testExplicitNonInheritingThenInheritGlobalReadThenNonInheriting_not_visible() throws Exception {
+    void testExplicitNonInheritingThenInheritGlobalReadThenNonInheriting_not_visible() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job = prepareNestedProject(
                 createFolderProperty(ANONYMOUS_CAN_ITEM_READ, new NonInheritingStrategy()),
@@ -425,7 +424,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testInheritGlobalInFolderInheritParentWithoutExplicitGrantInItem2_visible() throws Exception {
+    void testInheritGlobalInFolderInheritParentWithoutExplicitGrantInItem2_visible() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job = prepareNestedProject(
                 createFolderProperty(Collections.emptyMap(), new InheritGlobalStrategy()),
@@ -434,7 +433,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testInheritGlobalInFolderAndItem_visible() throws Exception {
+    void testInheritGlobalInFolderAndItem_visible() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous(Item.READ);
         FreeStyleProject job = prepareNestedProject(
                 createFolderProperty(Collections.emptyMap(), new InheritGlobalStrategy()),
@@ -443,7 +442,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testNonInheritingItemWithExplicitGrantInsideNonGrantingFolder() throws Exception {
+    void testNonInheritingItemWithExplicitGrantInsideNonGrantingFolder() throws Exception {
         prepareJenkinsDefaultSetupWithOverallReadForAnonymous();
 
         FreeStyleProject job =
@@ -452,7 +451,7 @@ public class Security2180Test {
     }
 
     @Test
-    public void testEscapeHatch() throws Exception {
+    void testEscapeHatch() throws Exception {
         final String propertyName =
                 hudson.security.AuthorizationMatrixProperty.class.getName() + ".checkParentPermissions";
         try {
@@ -463,7 +462,7 @@ public class Security2180Test {
             FreeStyleProject job = createFreeStyleProjectWithReadPermissionForAnonymousInFolder(folder);
 
             job.scheduleBuild2(1000, new Cause.UserIdCause("admin"));
-            Assert.assertEquals(1, Jenkins.get().getQueue().getItems().length);
+            assertEquals(1, Jenkins.get().getQueue().getItems().length);
 
             final JenkinsRule.WebClient webClient = j.createWebClient().withThrowExceptionOnFailingStatusCode(false);
 
@@ -480,9 +479,9 @@ public class Security2180Test {
             final FreeStyleBuild build =
                     job.scheduleBuild2(0, new Cause.UserIdCause("admin")).waitForStart();
             final Executor executor = build.getExecutor();
-            assertNotNull("null executor", executor);
+            assertNotNull(executor, "null executor");
             final int number = executor.getNumber();
-            Assert.assertEquals(0, Jenkins.get().getQueue().getItems().length); // collapsed queue items
+            assertEquals(0, Jenkins.get().getQueue().getItems().length); // collapsed queue items
 
             { // executor related assertions
                 final HtmlPage htmlPage =

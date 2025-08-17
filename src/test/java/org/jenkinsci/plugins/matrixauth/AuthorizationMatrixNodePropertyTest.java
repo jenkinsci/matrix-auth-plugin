@@ -24,6 +24,8 @@
 
 package org.jenkinsci.plugins.matrixauth;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.User;
@@ -34,42 +36,47 @@ import hudson.security.ProjectMatrixAuthorizationStrategy;
 import java.util.Collections;
 import java.util.Objects;
 import jenkins.model.Jenkins;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class AuthorizationMatrixNodePropertyTest {
+@WithJenkins
+class AuthorizationMatrixNodePropertyTest {
 
-    @Rule
-    public JenkinsRule r = new JenkinsRule();
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
-    public void ensureCreatorHasPermissions() throws Exception {
+    void ensureCreatorHasPermissions() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice", "alice");
         realm.createAccount("bob", "bob");
-        r.jenkins.setSecurityRealm(realm);
+        j.jenkins.setSecurityRealm(realm);
 
         ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
         authorizationStrategy.add(Computer.CREATE, PermissionEntry.user("alice"));
         authorizationStrategy.add(Jenkins.READ, PermissionEntry.user("alice"));
 
         addRunScriptsPermission(authorizationStrategy);
-        r.jenkins.setAuthorizationStrategy(authorizationStrategy);
+        j.jenkins.setAuthorizationStrategy(authorizationStrategy);
 
         Node node;
         try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
-            node = r.createSlave();
+            node = j.createSlave();
         }
 
-        Assert.assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
-        Assert.assertTrue(node.getACL()
+        assertNotNull(node.getNodeProperty(AuthorizationMatrixNodeProperty.class));
+        assertTrue(node.getACL()
                 .hasPermission2(
                         Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
                                 .impersonate2(),
                         Computer.CONFIGURE));
-        Assert.assertFalse(node.getACL()
+        assertFalse(node.getACL()
                 .hasPermission2(
                         Objects.requireNonNull(User.get("bob", false, Collections.emptyMap()))
                                 .impersonate2(),
