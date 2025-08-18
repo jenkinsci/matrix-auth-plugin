@@ -31,6 +31,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Functions;
 import hudson.Util;
 import hudson.model.User;
+import hudson.security.GroupDetails;
 import hudson.security.SecurityRealm;
 import hudson.security.UserMayOrMayNotExistException2;
 import hudson.util.FormValidation;
@@ -115,18 +116,38 @@ class ValidationUtil {
     static FormValidation validateGroup(String groupName, SecurityRealm sr, boolean ambiguous) {
         String escapedSid = Functions.escape(groupName);
         try {
-            sr.loadGroupByGroupname2(groupName, false);
+            final GroupDetails groupDetails = sr.loadGroupByGroupname2(groupName, false);
+            if (groupDetails.getName().equals(groupDetails.getDisplayName())) {
+                // Name and display name are identical, no need for tooltip
+                if (ambiguous) {
+                    return FormValidation.respond(
+                            FormValidation.Kind.WARNING,
+                            formatUserGroupValidationResponse(
+                                    GROUP,
+                                    escapedSid,
+                                    "Group found; but permissions would also be granted to a user of this name",
+                                    true));
+                } else {
+                    return FormValidation.respond(
+                            FormValidation.Kind.OK, formatUserGroupValidationResponse(GROUP, escapedSid, "Group"));
+                }
+            }
             if (ambiguous) {
                 return FormValidation.respond(
                         FormValidation.Kind.WARNING,
                         formatUserGroupValidationResponse(
                                 GROUP,
-                                escapedSid,
-                                "Group found; but permissions would also be granted to a user of this name",
+                                Util.escape(StringUtils.abbreviate(groupDetails.getDisplayName(), 50)),
+                                "Group " + escapedSid
+                                        + " found; but permissions would also be granted to a user of this name",
                                 true));
             } else {
                 return FormValidation.respond(
-                        FormValidation.Kind.OK, formatUserGroupValidationResponse(GROUP, escapedSid, "Group"));
+                        FormValidation.Kind.OK,
+                        formatUserGroupValidationResponse(
+                                GROUP,
+                                Util.escape(StringUtils.abbreviate(groupDetails.getDisplayName(), 50)),
+                                "Group " + escapedSid));
             }
         } catch (UserMayOrMayNotExistException2 e) {
             // undecidable, meaning the group may exist
