@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -93,7 +92,7 @@ public interface AuthorizationContainerDescriptor {
             p = p.impliedBy;
             impliedBys.add(p);
         }
-        return StringUtils.join(impliedBys.stream().map(Permission::getId).collect(Collectors.toList()), " ");
+        return impliedBys.stream().map(Permission::getId).collect(Collectors.joining(" "));
     }
 
     @Restricted(DoNotUse.class) // Called from Jelly view
