@@ -35,7 +35,6 @@ import hudson.security.GroupDetails;
 import hudson.security.SecurityRealm;
 import hudson.security.UserMayOrMayNotExistException2;
 import hudson.util.FormValidation;
-import org.apache.commons.lang3.StringUtils;
 import org.jenkins.ui.symbol.Symbol;
 import org.jenkins.ui.symbol.SymbolRequest;
 import org.kohsuke.accmod.Restricted;
@@ -137,7 +136,7 @@ class ValidationUtil {
                         FormValidation.Kind.WARNING,
                         formatUserGroupValidationResponse(
                                 GROUP,
-                                Util.escape(StringUtils.abbreviate(groupDetails.getDisplayName(), 50)),
+                                Util.escape(abbreviate(groupDetails.getDisplayName())),
                                 "Group " + escapedSid
                                         + " found; but permissions would also be granted to a user of this name",
                                 true));
@@ -145,9 +144,7 @@ class ValidationUtil {
                 return FormValidation.respond(
                         FormValidation.Kind.OK,
                         formatUserGroupValidationResponse(
-                                GROUP,
-                                Util.escape(StringUtils.abbreviate(groupDetails.getDisplayName(), 50)),
-                                "Group " + escapedSid));
+                                GROUP, Util.escape(abbreviate(groupDetails.getDisplayName())), "Group " + escapedSid));
             }
         } catch (UserMayOrMayNotExistException2 e) {
             // undecidable, meaning the group may exist
@@ -196,7 +193,7 @@ class ValidationUtil {
                         FormValidation.Kind.WARNING,
                         formatUserGroupValidationResponse(
                                 USER,
-                                Util.escape(StringUtils.abbreviate(u.getFullName(), 50)),
+                                Util.escape(abbreviate(u.getFullName())),
                                 "User " + escapedSid
                                         + " found; but permissions would also be granted to a group of this name",
                                 true));
@@ -204,7 +201,7 @@ class ValidationUtil {
                 return FormValidation.respond(
                         FormValidation.Kind.OK,
                         formatUserGroupValidationResponse(
-                                USER, Util.escape(StringUtils.abbreviate(u.getFullName(), 50)), "User " + escapedSid));
+                                USER, Util.escape(abbreviate(u.getFullName())), "User " + escapedSid));
             }
         } catch (UserMayOrMayNotExistException2 e) {
             // undecidable, meaning the user may exist
@@ -226,5 +223,16 @@ class ValidationUtil {
             return FormValidation.error(e, "Failed to test the validity of the user ID " + userName);
         }
         return null;
+    }
+
+    private static String abbreviate(String str) {
+        if (str == null) {
+            return null;
+        }
+        final int length = str.length();
+        if (length <= 50) {
+            return str;
+        }
+        return str.substring(0, 47) + "...";
     }
 }
