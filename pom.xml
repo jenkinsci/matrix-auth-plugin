@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>matrix-auth</artifactId>
-  <version>3.2.8</version>
+  <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>Matrix Authorization Strategy Plugin</name>
@@ -25,12 +25,12 @@
   <scm>
     <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
     <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
-    <tag>matrix-auth-3.2.8</tag>
+    <tag>${scmTag}</tag>
     <url>https://github.com/${gitHubRepo}</url>
   </scm>
 
   <properties>
-    <revision>3.2.8</revision>
+    <revision>3.2.9</revision>
     <changelist>-SNAPSHOT</changelist>
 
     <jenkins.baseline>2.479</jenkins.baseline>
