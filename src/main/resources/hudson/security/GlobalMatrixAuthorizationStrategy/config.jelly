@@ -93,23 +93,23 @@ THE SOFTWARE.
         <local:isEditable sid="${attrs.sid}" type="${attrs.type}">
           <td class="stop">
             <div class="mas-table__cell">
-              <a href="#" class="selectall" tooltip="${%selectall(h.escape(attrs.sid))}" data-html-tooltip="${%selectall(h.escape(attrs.sid))}">
+              <a href="#" class="selectall" data-html-tooltip="${%selectall(h.escape(attrs.sid))}">
                 <l:icon alt="${%Select all}" src="symbol-select-all plugin-matrix-auth" class="icon-sm"/>
               </a>
-              <a href="#" class="unselectall" tooltip="${%unselectall(h.escape(attrs.sid))}" data-html-tooltip="${%unselectall(h.escape(attrs.sid))}">
+              <a href="#" class="unselectall" data-html-tooltip="${%unselectall(h.escape(attrs.sid))}">
                 <l:icon alt="${%Unselect all}" src="symbol-unselect-all plugin-matrix-auth" class="icon-sm"/>
               </a>
               <j:if test="${(attrs.sid != 'authenticated' or attrs.type != 'GROUP') and (attrs.sid != 'anonymous' or attrs.type != 'USER')}">
-                <a href="#" class="remove" tooltip="${%remove(h.escape(attrs.sid))}" data-html-tooltip="${%remove(h.escape(attrs.sid))}">
+                <a href="#" class="remove" data-html-tooltip="${%remove(h.escape(attrs.sid))}">
                   <l:icon alt="${%Remove user/group}" src="symbol-trash-outline plugin-ionicons-api" class="icon-sm icon-red" />
                 </a>
               </j:if>
               <j:if test="${attrs.type == 'EITHER'}">
                 <!-- migration options -->
-                <a href="#" class="migrate migrate_user" tooltip="${%migrate_user(h.escape(attrs.sid))}" data-html-tooltip="${%migrate_user(h.escape(attrs.sid))}">
+                <a href="#" class="migrate migrate_user" data-html-tooltip="${%migrate_user(h.escape(attrs.sid))}">
                   <l:icon alt="${%Migrate entry to user}" src="symbol-person-outline plugin-ionicons-api" class="icon-sm" />
                 </a>
-                <a href="#" class="migrate migrate_group" tooltip="${%migrate_group(h.escape(attrs.sid))}" data-html-tooltip="${%migrate_group(h.escape(attrs.sid))}">
+                <a href="#" class="migrate migrate_group" data-html-tooltip="${%migrate_group(h.escape(attrs.sid))}">
                   <l:icon alt="${%Migrate entry to group}" src="symbol-people-outline plugin-ionicons-api" class="icon-sm" />
                 </a>
               </j:if>
@@ -120,80 +120,81 @@ THE SOFTWARE.
     </d:taglib>
     <j:set var="strategyid" value="${descriptor.jsonSafeClassName}" />
     <j:set var="tableid" value="${h.generateId()}"/>
-    <table id="${strategyid}" data-table-id="${tableid}" class="center-align global-matrix-authorization-strategy-table ${readOnlyMode ? 'read-only' : ''}" name="data">
+    <table id="${strategyid}" data-table-id="${tableid}" class="jenkins-table jenkins-table--auto-width global-matrix-authorization-strategy-table ${readOnlyMode ? 'read-only' : ''}" name="data">
 
       <!-- The first row will show grouping -->
-      <tr class="group-row">
-        <td rowspan="2" class="pane-header blank">
-          ${%User/group}
-        </td>
-        <j:forEach var="g" items="${groups}">
-          <j:set var="cnt" value="${0}" />
-          <j:forEach var="p" items="${g.permissions}">
-            <j:if test="${descriptor.showPermission(p)}">
-              <j:set var="cnt" value="${cnt+1}"/>
-            </j:if>
+      <thead>
+        <tr>
+          <th rowspan="2" class="mas-table__header">
+            ${%User/group}
+          </th>
+          <j:forEach var="g" items="${groups}" varStatus="s">
+            <j:set var="cnt" value="${0}" />
+            <j:forEach var="p" items="${g.permissions}">
+              <j:if test="${descriptor.showPermission(p)}">
+                <j:set var="cnt" value="${cnt+1}"/>
+              </j:if>
+            </j:forEach>
+
+            <th class="mas-table__header-th ${s.first ? 'first' : ''} ${s.last ? 'last' : ''}" colspan="${cnt}">
+              ${g.title}
+            </th>
           </j:forEach>
-
-          <td class="pane-header" colspan="${cnt}">
-            ${g.title}
-          </td>
-        </j:forEach>
-        <local:isEditable>
-          <td rowspan="2" class="stop" />
-        </local:isEditable>
-      </tr>
-      <!-- The second row for individual permission -->
-      <tr class="caption-row">
-        <j:forEach var="g" items="${groups}">
-          <j:forEach var="p" items="${g.permissions}">
-            <j:if test="${descriptor.showPermission(p)}">
-              <th class="pane" data-html-tooltip="${descriptor.getDescription(p)}" tooltip="${descriptor.getDescription(p)}">
-                <!--
-                  Tooltip needs to be HTML for GlobalMatrixAuthorizationStrategy.PermissionNotImpliedBy formatting.
-                  So set 'data-html-tooltip' for Tippy and 'tooltip' for YUI.
-                 -->
-                <span>
-                  ${p.name}
-                </span>
-              </th>
-            </j:if>
+          <local:isEditable>
+            <td rowspan="2" class="stop" />
+          </local:isEditable>
+        </tr>
+        <!-- The second row for individual permission -->
+        <tr class="caption-row">
+          <j:forEach var="g" items="${groups}">
+            <j:forEach var="p" items="${g.permissions}">
+              <j:if test="${descriptor.showPermission(p)}">
+                <th class="mas-table__permission" data-html-tooltip="${descriptor.getDescription(p)}">
+                  <span>
+                    ${p.name}
+                  </span>
+                </th>
+              </j:if>
+            </j:forEach>
           </j:forEach>
+        </tr>
+      </thead>
+      <tbody>
+        <tr name="[USER:anonymous]">
+          <local:row type="USER" sid="anonymous" />
+        </tr>
+        <tr name="[GROUP:authenticated]">
+          <local:row type="GROUP" sid="authenticated" />
+        </tr>
+        <j:forEach var="entry" items="${instance.allPermissionEntries}">
+          <j:if test="${entry.sid != 'authenticated' or entry.type.toString() != 'GROUP'}">
+            <tr name="[${entry.type}:${entry.sid}]" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}">
+              <local:row title="${entry.sid}" sid="${entry.sid}" type="${entry.type.toString()}" />
+            </tr>
+          </j:if>
         </j:forEach>
-      </tr>
-
-      <tr name="[USER:anonymous]">
-        <local:row type="USER" sid="anonymous" />
-      </tr>
-      <tr name="[GROUP:authenticated]">
-        <local:row type="GROUP" sid="authenticated" />
-      </tr>
-      <j:forEach var="entry" items="${instance.allPermissionEntries}">
-        <j:if test="${entry.sid != 'authenticated' or entry.type.toString() != 'GROUP'}">
-          <tr name="[${entry.type}:${entry.sid}]" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}">
-            <local:row title="${entry.sid}" sid="${entry.sid}" type="${entry.type.toString()}" />
-          </tr>
-        </j:if>
-      </j:forEach>
-
-
-      <!-- template row to be used for adding a new row -->
-      <j:set var="id" value="${h.generateId()}"/>
-      <tr id="${id}" style="display:none" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}" name="__unused__">
+      </tbody>
+    </table>
+    <!-- template row to be used for adding a new row -->
+    <j:set var="id" value="${h.generateId()}"/>
+    <template id="${id}">
+      <tr style="display:none" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}" name="__unused__">
         <local:row sid="__SID__" />
       </tr>
-    </table>
+    </template>
     <local:isEditable>
       <div class="jenkins-!-margin-top-2 jenkins-buttons-row jenkins-buttons-row--equal-width">
         <button type="button" class="jenkins-button matrix-auth-add-button" id="${id}UserButton"
-              data-table-id="${id}"
+              data-template-id="${id}"
+              data-table-id="${strategyid}"
               data-type="USER"
               data-type-label="${%user}"
               data-message-prompt="${%userPrompt}"
               data-message-title="${%Add user}"
               data-message-error="${%userError}">${%Add user…}</button>
         <button type="button" class="jenkins-button matrix-auth-add-button" value="" id="${id}GroupButton"
-              data-table-id="${id}"
+              data-template-id="${id}"
+              data-table-id="${strategyid}"
               data-type="GROUP"
               data-type-label="${%group}"
               data-message-prompt="${%groupPrompt}"

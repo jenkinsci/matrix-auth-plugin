@@ -10,8 +10,9 @@ function matrixAuthEscapeHtml(html) {
 Behaviour.specify(".matrix-auth-add-button", "GlobalMatrixAuthorizationStrategy", 0, function (e) {
   e.onclick = function (e) {
     const dataReference = e.target;
-    const master = document.getElementById(dataReference.getAttribute("data-table-id"));
-    const table = master.parentNode;
+    const master = document.getElementById(dataReference.getAttribute("data-template-id")).content.firstElementChild.cloneNode(true);
+    const table = document.getElementById(dataReference.getAttribute("data-table-id"));
+    const tBody = table.tBodies[0];
     const type = dataReference.getAttribute("data-type");
     const typeLabel = dataReference.getAttribute("data-type-label");
 
@@ -22,7 +23,7 @@ Behaviour.specify(".matrix-auth-add-button", "GlobalMatrixAuthorizationStrategy"
       .then(
         (name) => {
           if (
-            findElementsBySelector(table, "TR").find(function (n) {
+            findElementsBySelector(tBody, "TR").find(function (n) {
               return n.getAttribute("name") === "[" + type + ":" + name + "]";
             }) != null
           ) {
@@ -46,11 +47,6 @@ Behaviour.specify(".matrix-auth-add-button", "GlobalMatrixAuthorizationStrategy"
           const tooltipAttributeName = "data-html-tooltip";
 
           findElementsBySelector(copy, ".stop a").forEach(function (item) {
-            // TODO Clean this up, `title` should be long obsolete.
-            let oldTitle = item.getAttribute("title");
-            if (oldTitle !== null) {
-              item.setAttribute("title", oldTitle.replace("__SID__", name).replace("__TYPE__", typeLabel));
-            }
             item.setAttribute(tooltipAttributeName, item.getAttribute(tooltipAttributeName).replace("__SID__", name).replace("__TYPE__", typeLabel));
           });
 
@@ -58,13 +54,10 @@ Behaviour.specify(".matrix-auth-add-button", "GlobalMatrixAuthorizationStrategy"
             const tooltip = item.nextSibling.getAttribute(tooltipAttributeName);
             if (tooltip) {
               item.nextSibling.setAttribute(tooltipAttributeName, tooltip.replace("__SID__", name).replace("__TYPE__", typeLabel));
-            } else {
-              // TODO Clean this up, `title` should be long obsolete.
-              item.nextSibling.setAttribute("title", item.getAttribute("title").replace("__SID__", name).replace("__TYPE__", typeLabel));
             }
           });
-          table.appendChild(copy);
-          Behaviour.applySubtree(table.closest("TABLE"), true);
+          tBody.appendChild(copy);
+          Behaviour.applySubtree(table, true);
         },
         () => {},
       );
