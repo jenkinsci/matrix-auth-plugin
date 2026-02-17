@@ -11,6 +11,7 @@ import hudson.model.Item;
 import hudson.model.Node;
 import hudson.model.View;
 import hudson.security.AuthorizationMatrixProperty;
+import hudson.security.FullControlOnceLoggedInAuthorizationStrategy;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.Permission;
 import hudson.security.ProjectMatrixAuthorizationStrategy;
@@ -19,21 +20,22 @@ import java.util.Collections;
 import java.util.Objects;
 import jenkins.model.Jenkins;
 import org.htmlunit.FailingHttpStatusCodeException;
+import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlFormUtil;
+import org.htmlunit.html.HtmlInput;
 import org.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlRadioButtonInput;
 import org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.LogRecorder;
 import org.jvnet.hudson.test.MockAuthorizationStrategy;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.recipes.LocalData;
 
 @WithJenkins
 class AmbiguityTest {
-
-    private final LogRecorder l = new LogRecorder();
 
     private JenkinsRule j;
 
@@ -122,6 +124,72 @@ class AmbiguityTest {
         j.jenkins.setAuthorizationStrategy(eitherStrategy);
 
         wc.goTo(""); // no error
+    }
+
+    @Test
+    void jobCreateWithoutConfigureIsAmbiguous() throws Exception {
+        j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
+
+        ProjectMatrixAuthorizationStrategy strategy = new ProjectMatrixAuthorizationStrategy();
+
+        strategy.add(Jenkins.READ, PermissionEntry.user("alice"));
+        strategy.add(Item.CREATE, PermissionEntry.user("alice"));
+
+        j.jenkins.setAuthorizationStrategy(strategy);
+
+        JenkinsRule.WebClient wc = j.createWebClient();
+        wc.login("alice");
+
+        HtmlPage newJobPage = wc.goTo("view/all/newJob");
+
+        HtmlInput nameInput = (HtmlInput) newJobPage.getElementByName("name");
+        nameInput.setValueAttribute("ambiguous-job");
+
+        HtmlRadioButtonInput mode =
+                (HtmlRadioButtonInput) newJobPage.getElementsByName("mode").get(0);
+        mode.click();
+
+        HtmlForm form = newJobPage.getFormByName("createItem");
+        HtmlFormUtil.submit(form);
+
+        assertThrows(FailingHttpStatusCodeException.class, () -> wc.goTo("job/ambiguous-job/configure"));
+    }
+
+    @AfterEach
+    void resetAuth() {
+        if (j == null) {
+            return;
+        }
+        j.jenkins.setAuthorizationStrategy(new FullControlOnceLoggedInAuthorizationStrategy());
+    }
+
+    @AfterEach
+    void restoreAdminAccess() {
+        if (j == null) {
+            return;
+        }
+        ProjectMatrixAuthorizationStrategy strategy = new ProjectMatrixAuthorizationStrategy();
+
+        strategy.add(Jenkins.ADMINISTER, PermissionEntry.user("admin"));
+
+        j.jenkins.setAuthorizationStrategy(strategy);
+    }
+
+    @AfterEach
+    void resetSecurity() {
+        if (j == null) {
+            return;
+        }
+        j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
+        j.jenkins.setAuthorizationStrategy(new FullControlOnceLoggedInAuthorizationStrategy());
+    }
+
+    @AfterEach
+    void resetAuthorization() {
+        if (j == null) {
+            return;
+        }
+        j.jenkins.setAuthorizationStrategy(new ProjectMatrixAuthorizationStrategy());
     }
 
     @Test
