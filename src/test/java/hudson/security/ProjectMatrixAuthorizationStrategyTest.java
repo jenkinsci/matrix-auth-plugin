@@ -142,7 +142,7 @@ class ProjectMatrixAuthorizationStrategyTest {
 
         // Verify the job has the authorization matrix property automatically added
         assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
-        
+
         // Alice (creator) should have full permissions on her job
         assertTrue(job.getACL()
                 .hasPermission2(
