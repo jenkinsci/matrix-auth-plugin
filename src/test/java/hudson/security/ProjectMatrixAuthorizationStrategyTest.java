@@ -120,6 +120,55 @@ class ProjectMatrixAuthorizationStrategyTest {
     }
 
     @Test
+    void nonCreatorCannotConfigureJob() throws Exception {
+        // Create security realm with two users
+        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
+        realm.createAccount("alice", "alice");
+        realm.createAccount("bob", "bob");
+        j.jenkins.setSecurityRealm(realm);
+
+        // Set up authorization: Alice can create jobs, both can read Jenkins
+        ProjectMatrixAuthorizationStrategy authorizationStrategy = new ProjectMatrixAuthorizationStrategy();
+        authorizationStrategy.add(Item.CREATE, "alice");
+        authorizationStrategy.add(Jenkins.READ, "alice");
+        authorizationStrategy.add(Jenkins.READ, "bob");
+        j.jenkins.setAuthorizationStrategy(authorizationStrategy);
+
+        // Alice creates a job
+        Job<?, ?> job;
+        try (ACLContext ignored = ACL.as(User.get("alice", false, Collections.emptyMap()))) {
+            job = j.createFreeStyleProject();
+        }
+
+        // Verify the job has the authorization matrix property automatically added
+        assertNotNull(job.getProperty(AuthorizationMatrixProperty.class));
+        
+        // Alice (creator) should have full permissions on her job
+        assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.READ));
+        assertTrue(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("alice", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.CONFIGURE));
+
+        // Bob (non-creator) should NOT have any permissions on Alice's job
+        assertFalse(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("bob", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.READ));
+        assertFalse(job.getACL()
+                .hasPermission2(
+                        Objects.requireNonNull(User.get("bob", false, Collections.emptyMap()))
+                                .impersonate2(),
+                        Item.CONFIGURE));
+    }
+
+    @Test
     void submitEmptyPropertyEnsuresPermissionsForSubmitter() throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false, false, null);
         realm.createAccount("alice", "alice");
