@@ -228,8 +228,9 @@ class AmbiguityTest {
 
             // we migrated everything to "user", which is weird for 'authenticated' but whatever
             assertTrue(nodeProperty.hasExplicitPermission(PermissionEntry.user("authenticated"), Computer.CONFIGURE));
-            assertTrue(nodeProperty.hasExplicitPermission(PermissionEntry.user("authenticated"), Computer.CONNECT));
             assertTrue(nodeProperty.hasExplicitPermission(PermissionEntry.user("authenticated"), Computer.DISCONNECT));
+            // Connect is implied no need to have it explicitly
+            assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.user("authenticated"), Computer.CONNECT));
             assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.CONFIGURE));
             assertFalse(nodeProperty.hasExplicitPermission(PermissionEntry.group("authenticated"), Computer.CONNECT));
             assertFalse(

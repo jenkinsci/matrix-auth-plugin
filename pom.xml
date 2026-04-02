@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>5.22</version>
+    <version>6.2138.v03274d462c13</version>
   </parent>
 
   <artifactId>matrix-auth</artifactId>
@@ -33,7 +33,7 @@
     <revision>3.2.10</revision>
     <changelist>-SNAPSHOT</changelist>
 
-    <jenkins.baseline>2.479</jenkins.baseline>
+    <jenkins.baseline>2.528</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
 
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
@@ -48,7 +48,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>5054.v620b_5d2b_d5e6</version>
+        <version>6210.v69ea_fd8a_f010</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

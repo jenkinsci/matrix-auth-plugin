@@ -26,7 +26,6 @@ THE SOFTWARE.
   <f:block xmlns:local="local">
     <j:set var="groups" value="${descriptor.allGroups}"/>
     <d:taglib uri="local">
-      <!-- generate one row for the sid name @sid -->
       <d:tag name="isEditable">
         <j:choose>
           <j:when test="${readOnlyMode == null}">
@@ -55,160 +54,195 @@ THE SOFTWARE.
           </j:when>
         </j:choose>
       </d:tag>
-      <d:tag name="row">
-        <j:set var="permissionEntry" value="${descriptor.entryFor(attrs.type, attrs.sid)}"/>
-        <j:choose>
-          <j:when test="${attrs.sid == 'authenticated' and attrs.type == 'GROUP'}">
-            <td class="left-most">
-              <div tooltip="${%Internal group authenticated}" class="mas-table__cell">
-                <l:icon src="symbol-people-outline plugin-ionicons-api" class="icon-sm"/>${%Authenticated Users}
-              </div>
-            </td>
-          </j:when>
-          <j:when test="${attrs.sid == 'anonymous' and attrs.type == 'USER'}">
-            <td class="left-most">
-              <div tooltip="${%Internal user anonymous}" class="mas-table__cell">
-                <l:icon src="symbol-person-outline plugin-ionicons-api" class="icon-sm"/>${%Anonymous}
-              </div>
-            </td>
-          </j:when>
-          <j:otherwise>
-            <td class="left-most">${title}</td>
-          </j:otherwise>
-        </j:choose>
-        <j:set var="typeName" value="${descriptor.getTypeLabel(attrs.type.toLowerCase())}"/>
-        <j:forEach var="g" items="${groups}">
-          <j:forEach var="p" items="${g.permissions}">
-            <j:if test="${descriptor.showPermission(p)}">
-              <td
-                  data-implied-by-list="${descriptor.impliedByList(p)}"
-                  data-permission-id="${p.id}"
-                  data-tooltip-enabled="${%tooltip_enabled(p.group.title, p.name, typeName, attrs.sid)}"
-                  data-tooltip-disabled="${%tooltip_disabled(p.group.title, p.name, typeName, attrs.sid)}">
-                <f:checkbox name="[${p.id}]" checked="${permissionEntry != null and instance.hasExplicitPermission(permissionEntry,p)}"/>
-              </td>
-            </j:if>
-          </j:forEach>
-        </j:forEach>
-        <local:isEditable sid="${attrs.sid}" type="${attrs.type}">
-          <td class="stop">
-            <div class="mas-table__cell">
-              <a href="#" class="selectall" data-html-tooltip="${%selectall(h.escape(attrs.sid))}">
-                <l:icon alt="${%Select all}" src="symbol-select-all plugin-matrix-auth" class="icon-sm"/>
-              </a>
-              <a href="#" class="unselectall" data-html-tooltip="${%unselectall(h.escape(attrs.sid))}">
-                <l:icon alt="${%Unselect all}" src="symbol-unselect-all plugin-matrix-auth" class="icon-sm"/>
-              </a>
-              <j:if test="${(attrs.sid != 'authenticated' or attrs.type != 'GROUP') and (attrs.sid != 'anonymous' or attrs.type != 'USER')}">
-                <a href="#" class="remove" data-html-tooltip="${%remove(h.escape(attrs.sid))}">
-                  <l:icon alt="${%Remove user/group}" src="symbol-trash-outline plugin-ionicons-api" class="icon-sm icon-red" />
-                </a>
-              </j:if>
-              <j:if test="${attrs.type == 'EITHER'}">
-                <!-- migration options -->
-                <a href="#" class="migrate migrate_user" data-html-tooltip="${%migrate_user(h.escape(attrs.sid))}">
-                  <l:icon alt="${%Migrate entry to user}" src="symbol-person-outline plugin-ionicons-api" class="icon-sm" />
-                </a>
-                <a href="#" class="migrate migrate_group" data-html-tooltip="${%migrate_group(h.escape(attrs.sid))}">
-                  <l:icon alt="${%Migrate entry to group}" src="symbol-people-outline plugin-ionicons-api" class="icon-sm" />
-                </a>
+
+      <!-- Render a single permission card for a user/group -->
+      <d:tag name="permissionCard">
+        <j:set var="cardSid" value="${attrs.sid}"/>
+        <j:set var="cardType" value="${attrs.type}"/>
+        <j:set var="permissionEntry" value="${descriptor.entryFor(cardType, cardSid)}"/>
+        <j:set var="isBuiltIn" value="${(cardSid == 'anonymous' and cardType == 'USER') or (cardSid == 'authenticated' and cardType == 'GROUP')}"/>
+        <j:set var="isAmbiguous" value="${cardType == 'EITHER'}"/>
+        <j:set var="typeName" value="${descriptor.getTypeLabel(cardType.toLowerCase())}"/>
+
+        <div class="mas-card permission-row ${isAmbiguous ? 'mas-card--ambiguous' : ''} ${readOnlyMode ? 'read-only' : ''}"
+             name="[${cardType}:${cardSid}]"
+             data-descriptor-url="${descriptor.descriptorFullUrl}"
+             data-sid="${cardSid}"
+             data-type="${cardType}"
+             data-built-in="${isBuiltIn}">
+
+          <!-- Hidden validation target for FormChecker -->
+          <div class="mas-card__validation-target" style="display:none" />
+
+          <!-- Card header -->
+          <div class="mas-card__header" role="button" tabindex="0"
+               aria-expanded="false">
+            <div class="mas-card__identity">
+              <j:choose>
+                <j:when test="${cardType == 'GROUP' or (cardSid == 'authenticated' and cardType == 'GROUP')}">
+                  <l:icon src="symbol-people-outline plugin-ionicons-api" class="icon-sm"/>
+                </j:when>
+                <j:otherwise>
+                  <l:icon src="symbol-person-outline plugin-ionicons-api" class="icon-sm"/>
+                </j:otherwise>
+              </j:choose>
+              <span class="mas-card__name">
+                <j:choose>
+                  <j:when test="${cardSid == 'authenticated' and cardType == 'GROUP'}">${%Authenticated Users}</j:when>
+                  <j:when test="${cardSid == 'anonymous' and cardType == 'USER'}">${%Anonymous}</j:when>
+                  <j:otherwise>${cardSid}</j:otherwise>
+                </j:choose>
+              </span>
+              <j:if test="${isAmbiguous}">
+                <span class="mas-card__badge mas-card__badge--warning">${%ambiguousLabel}</span>
               </j:if>
             </div>
-          </td>
-        </local:isEditable>
+            <div class="mas-card__summary" data-empty-text="${%noPermissions}">
+              <!-- Populated by JS -->
+            </div>
+            <div class="mas-card__actions">
+              <local:isEditable>
+                <button type="button" class="jenkins-button jenkins-button--tertiary mas-card__action selectall"
+                        tooltip="${%selectall(cardSid)}">
+                  <l:icon src="symbol-select-all plugin-matrix-auth" class="icon-sm"/>
+                </button>
+                <button type="button" class="jenkins-button jenkins-button--tertiary mas-card__action unselectall"
+                        tooltip="${%unselectall(cardSid)}">
+                  <l:icon src="symbol-unselect-all plugin-matrix-auth" class="icon-sm"/>
+                </button>
+                <j:if test="${not isBuiltIn}">
+                  <button type="button" class="jenkins-button jenkins-button--tertiary jenkins-!-destructive-color mas-card__action remove"
+                          tooltip="${%remove(cardSid)}">
+                    <l:icon src="symbol-trash-outline plugin-ionicons-api" class="icon-sm"/>
+                  </button>
+                </j:if>
+                <j:if test="${isAmbiguous}">
+                  <button type="button" class="jenkins-button jenkins-button--tertiary mas-card__action migrate migrate_user"
+                          tooltip="${%migrate_user(cardSid)}">
+                    <l:icon src="symbol-person-outline plugin-ionicons-api" class="icon-sm"/>
+                  </button>
+                  <button type="button" class="jenkins-button jenkins-button--tertiary mas-card__action migrate migrate_group"
+                          tooltip="${%migrate_group(cardSid)}">
+                    <l:icon src="symbol-people-outline plugin-ionicons-api" class="icon-sm"/>
+                  </button>
+                </j:if>
+              </local:isEditable>
+              <div class="mas-card__toggle">
+                <l:icon src="symbol-chevron-down-outline plugin-ionicons-api" class="icon-sm"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="mas-card__body mas-card__body--collapsed">
+            <j:forEach var="g" items="${groups}">
+              <j:set var="hasVisiblePermissions" value="${false}"/>
+              <j:forEach var="p" items="${g.permissions}">
+                <j:if test="${descriptor.showPermission(p)}">
+                  <j:set var="hasVisiblePermissions" value="${true}"/>
+                </j:if>
+              </j:forEach>
+              <j:if test="${hasVisiblePermissions}">
+                <fieldset class="mas-card__permission-group">
+                  <legend class="mas-card__group-title">${g.title}</legend>
+                  <div class="mas-card__permissions">
+                    <j:forEach var="p" items="${g.permissions}">
+                      <j:if test="${descriptor.showPermission(p)}">
+                        <j:set var="isChecked" value="${permissionEntry != null and instance.hasExplicitPermission(permissionEntry,p)}"/>
+                        <label class="mas-card__permission jenkins-checkbox"
+                               data-implied-by-list="${descriptor.impliedByList(p)}"
+                               data-permission-id="${p.id}">
+                          <j:choose>
+                            <j:when test="${isChecked}">
+                              <input type="checkbox" name="[${p.id}]" checked="checked"/>
+                            </j:when>
+                            <j:otherwise>
+                              <input type="checkbox" name="[${p.id}]"/>
+                            </j:otherwise>
+                          </j:choose>
+                          <span class="mas-card__permission-name">${p.name}</span>
+                          <span class="mas-card__permission-implied" hidden="true">(${%implied})</span>
+                          <j:set var="permDescription" value="${descriptor.getDescription(p)}"/>
+                          <j:if test="${permDescription != null and permDescription.length() > 0}">
+                            <span class="mas-card__permission-info" data-html-tooltip="${permDescription}">
+                              <l:icon src="symbol-help-circle" class="icon-sm"/>
+                            </span>
+                          </j:if>
+                        </label>
+                      </j:if>
+                    </j:forEach>
+                  </div>
+                </fieldset>
+              </j:if>
+            </j:forEach>
+          </div>
+        </div>
       </d:tag>
     </d:taglib>
+
     <j:set var="strategyid" value="${descriptor.jsonSafeClassName}" />
-    <j:set var="tableid" value="${h.generateId()}"/>
-    <table id="${strategyid}" data-table-id="${tableid}" class="jenkins-table jenkins-table--auto-width global-matrix-authorization-strategy-table ${readOnlyMode ? 'read-only' : ''}" name="data">
 
-      <!-- The first row will show grouping -->
-      <thead>
-        <tr>
-          <th rowspan="2" class="mas-table__header">
-            ${%User/group}
-          </th>
-          <j:forEach var="g" items="${groups}" varStatus="s">
-            <j:set var="cnt" value="${0}" />
-            <j:forEach var="p" items="${g.permissions}">
-              <j:if test="${descriptor.showPermission(p)}">
-                <j:set var="cnt" value="${cnt+1}"/>
-              </j:if>
-            </j:forEach>
+    <!-- Search / filter -->
+    <div class="mas-container" id="${strategyid}" name="data">
+      <local:isEditable>
+        <div class="mas-app-bar">
+          <l:search-bar placeholder="${%searchPlaceholder}"
+                        clazz="mas-search"
+                        hasKeyboardShortcut="false" />
+          <button type="button" class="jenkins-button matrix-auth-add-button"
+                  data-type="USER"
+                  data-type-label="${%user}"
+                  data-message-prompt="${%userPrompt}"
+                  data-message-title="${%Add user}"
+                  data-message-error="${%userError}">${%Add user}</button>
+          <button type="button" class="jenkins-button matrix-auth-add-button"
+                  data-type="GROUP"
+                  data-type-label="${%group}"
+                  data-message-prompt="${%groupPrompt}"
+                  data-message-title="${%Add group}"
+                  data-message-error="${%groupError}">${%Add group}</button>
+        </div>
+      </local:isEditable>
 
-            <th class="mas-table__header-th ${s.first ? 'first' : ''} ${s.last ? 'last' : ''}" colspan="${cnt}">
-              ${g.title}
-            </th>
-          </j:forEach>
-          <local:isEditable>
-            <td rowspan="2" class="stop" />
-          </local:isEditable>
-        </tr>
-        <!-- The second row for individual permission -->
-        <tr class="caption-row">
-          <j:forEach var="g" items="${groups}">
-            <j:forEach var="p" items="${g.permissions}">
-              <j:if test="${descriptor.showPermission(p)}">
-                <th class="mas-table__permission" data-html-tooltip="${descriptor.getDescription(p)}">
-                  <span>
-                    ${p.name}
-                  </span>
-                </th>
-              </j:if>
-            </j:forEach>
-          </j:forEach>
-        </tr>
-      </thead>
-      <tbody>
-        <tr name="[USER:anonymous]">
-          <local:row type="USER" sid="anonymous" />
-        </tr>
-        <tr name="[GROUP:authenticated]">
-          <local:row type="GROUP" sid="authenticated" />
-        </tr>
-        <j:forEach var="entry" items="${instance.allPermissionEntries}">
-          <j:if test="${entry.sid != 'authenticated' or entry.type.toString() != 'GROUP'}">
-            <tr name="[${entry.type}:${entry.sid}]" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}">
-              <local:row title="${entry.sid}" sid="${entry.sid}" type="${entry.type.toString()}" />
-            </tr>
-          </j:if>
-        </j:forEach>
-      </tbody>
-    </table>
-    <!-- template row to be used for adding a new row -->
-    <j:set var="id" value="${h.generateId()}"/>
-    <template id="${id}">
-      <tr style="display:none" class="permission-row" data-descriptor-url="${descriptor.descriptorFullUrl}" name="__unused__">
-        <local:row sid="__SID__" />
-      </tr>
-    </template>
-    <local:isEditable>
-      <div class="jenkins-!-margin-top-2 jenkins-buttons-row jenkins-buttons-row--equal-width">
-        <button type="button" class="jenkins-button matrix-auth-add-button" id="${id}UserButton"
-              data-template-id="${id}"
-              data-table-id="${strategyid}"
-              data-type="USER"
-              data-type-label="${%user}"
-              data-message-prompt="${%userPrompt}"
-              data-message-title="${%Add user}"
-              data-message-error="${%userError}">${%Add user…}</button>
-        <button type="button" class="jenkins-button matrix-auth-add-button" value="" id="${id}GroupButton"
-              data-template-id="${id}"
-              data-table-id="${strategyid}"
-              data-type="GROUP"
-              data-type-label="${%group}"
-              data-message-prompt="${%groupPrompt}"
-              data-message-title="${%Add group}"
-              data-message-error="${%groupError}">${%Add group…}</button>
-        <f:helpLink featureName="${%Permissions matrix}" url="${descriptor.find('hudson.security.GlobalMatrixAuthorizationStrategy$DescriptorImpl').getHelpFile('user-group')}"/>
-      </div>
-      <f:helpArea />
+      <!-- Ambiguity warning -->
       <j:if test="${descriptor.hasAmbiguousEntries(instance)}">
-        <div class="alert alert-warning jenkins-!-margin-top-2" data-table-id="${tableid}">
+        <div class="jenkins-alert jenkins-alert--warning mas-ambiguity-warning">
           ${%ambiguous}
         </div>
       </j:if>
-    </local:isEditable>
+
+      <!-- Permission cards -->
+      <div class="mas-cards">
+        <!-- Built-in entries -->
+        <local:permissionCard type="USER" sid="anonymous" />
+        <local:permissionCard type="GROUP" sid="authenticated" />
+
+        <!-- Custom entries -->
+        <j:forEach var="entry" items="${instance.allPermissionEntries}">
+          <j:if test="${entry.sid != 'authenticated' or entry.type.toString() != 'GROUP'}">
+            <local:permissionCard sid="${entry.sid}" type="${entry.type.toString()}" />
+          </j:if>
+        </j:forEach>
+      </div>
+
+      <!-- Empty state when search filters everything -->
+      <div class="jenkins-notice mas-empty-state" hidden="true">
+        <l:icon src="symbol-search" />
+        ${%noResults}
+      </div>
+    </div>
+
+    <!-- Template card for dynamically added users/groups -->
+    <j:set var="templateId" value="${h.generateId()}"/>
+    <template id="${templateId}" data-strategy-id="${strategyid}">
+      <local:permissionCard sid="__SID__" type="USER" />
+    </template>
+
+    <!-- Pre-rendered icons for JS to clone when swapping user/group icons -->
+    <div id="${strategyid}-icons" hidden="true">
+      <span data-icon-type="USER"><l:icon src="symbol-person-outline plugin-ionicons-api" class="icon-sm"/></span>
+      <span data-icon-type="GROUP"><l:icon src="symbol-people-outline plugin-ionicons-api" class="icon-sm"/></span>
+    </div>
+
     <st:adjunct includes="hudson.security.table"/>
   </f:block>
 </j:jelly>
