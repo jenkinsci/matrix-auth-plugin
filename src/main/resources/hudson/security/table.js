@@ -236,6 +236,10 @@ Behaviour.specify(".mas-card__header", "MatrixAuthCards", 0, function (header) {
  * Adding new users/groups
  */
 Behaviour.specify(".matrix-auth-add-button", "MatrixAuthCards", 0, function (e) {
+  if (e.dataset.addInitialized === "true") {
+    return;
+  }
+  e.dataset.addInitialized = "true";
   e.addEventListener('click', function() {
     const container = e.closest(".mas-container");
     const type = e.getAttribute("data-type");
@@ -490,32 +494,204 @@ Behaviour.specify(".mas-card", "MatrixAuthCards", 100, function (card) {
   }
 });
 
+/**
+ * Apply combined text search + permission filters to show/hide cards.
+ */
+function matrixAuthApplyFilters(container) {
+  const searchInput = container.querySelector(".mas-search input");
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
+
+  // Collect active permission filters
+  const activePermissions = [];
+  container.querySelectorAll(".mas-filter__item--active").forEach((item) => {
+    activePermissions.push(item.getAttribute("data-filter-permission"));
+  });
+
+  const cards = container.querySelectorAll(".mas-card");
+  let visibleCount = 0;
+
+  cards.forEach((card) => {
+    // Text filter
+    const sid = (card.getAttribute("data-sid") || "").toLowerCase();
+    const nameEl = card.querySelector(".mas-card__name");
+    const displayName = nameEl ? nameEl.textContent.toLowerCase() : "";
+    const matchesText = query === "" || sid.includes(query) || displayName.includes(query);
+
+    // Permission filter (OR logic — matches if card has ANY selected permission, including implied)
+    let matchesPermission = activePermissions.length === 0;
+    if (!matchesPermission) {
+      for (const permId of activePermissions) {
+        const cb = card.querySelector(`input[name='[${permId}]']`);
+        // Match if checked explicitly OR implied (disabled means implied by another checked permission)
+        if (cb && (cb.checked || cb.disabled)) {
+          matchesPermission = true;
+          break;
+        }
+      }
+    }
+
+    if (matchesText && matchesPermission) {
+      card.classList.remove("mas-card--hidden");
+      visibleCount++;
+    } else {
+      card.classList.add("mas-card--hidden");
+    }
+  });
+
+  // Update empty state
+  const emptyState = container.querySelector(".mas-empty-state");
+  if (emptyState) {
+    emptyState.hidden = visibleCount > 0 || (query === "" && activePermissions.length === 0);
+  }
+
+  // Update filter button active state and reset link visibility
+  const hasActiveFilters = activePermissions.length > 0;
+  const filterBtn = container.querySelector(".mas-filter__button");
+  if (filterBtn) {
+    filterBtn.classList.toggle("mas-filter__button--active", hasActiveFilters);
+  }
+  const resetBtn = container.querySelector(".mas-filter__reset-button");
+  if (resetBtn) {
+    resetBtn.hidden = !hasActiveFilters;
+  }
+}
+
 /*
  * Search / filter
  */
-Behaviour.specify(".mas-search input", "MatrixAuthCards", 0, function (input) {
-  input.addEventListener('input', function () {
-    const query = input.value.toLowerCase().trim();
+Behaviour.specify(".mas-search input", "MatrixAuthCards", 0, (input) => {
+  if (input.dataset.searchInitialized === "true") {
+    return;
+  }
+  input.dataset.searchInitialized = "true";
+  input.addEventListener("input", () => {
     const container = input.closest(".mas-container");
-    const cards = container.querySelectorAll(".mas-card");
-    let visibleCount = 0;
+    if (container) {
+      matrixAuthApplyFilters(container);
+    }
+  });
+});
 
-    cards.forEach(function (card) {
-      const sid = (card.getAttribute("data-sid") || "").toLowerCase();
-      const nameEl = card.querySelector(".mas-card__name");
-      const displayName = nameEl ? nameEl.textContent.toLowerCase() : "";
+/*
+ * Permission filter button toggle + dropdown handlers
+ */
+Behaviour.specify(".mas-filter__button", "MatrixAuthCards", 0, (btn) => {
+  // Guard against re-initialization from Behaviour.applySubtree
+  if (btn.dataset.filterInitialized === "true") {
+    return;
+  }
+  btn.dataset.filterInitialized = "true";
 
-      if (query === "" || sid.indexOf(query) !== -1 || displayName.indexOf(query) !== -1) {
-        card.classList.remove("mas-card--hidden");
-        visibleCount++;
-      } else {
-        card.classList.add("mas-card--hidden");
+  const filterEl = btn.parentElement;
+  const dropdown = filterEl.querySelector(".mas-filter__dropdown");
+  if (!dropdown) {
+    return;
+  }
+  const container = filterEl.closest(".mas-container");
+
+  // Bind filter item click handlers — toggle active state
+  dropdown.querySelectorAll(".mas-filter__item").forEach((item) => {
+    item.addEventListener("click", () => {
+      item.classList.toggle("mas-filter__item--active");
+      if (container) {
+        matrixAuthApplyFilters(container);
       }
     });
+  });
 
-    const emptyState = container.querySelector(".mas-empty-state");
-    if (emptyState) {
-      emptyState.hidden = visibleCount > 0 || query === "";
+  // Bind permission search within the dropdown
+  const filterSearchInput = dropdown.querySelector(".mas-filter__search-input");
+  const filterSearchClear = dropdown.querySelector(".mas-filter__search-clear");
+
+  const applyFilterSearch = () => {
+    const q = filterSearchInput ? filterSearchInput.value.toLowerCase().trim() : "";
+    const groupTitles = dropdown.querySelectorAll(".mas-filter__group-title");
+    dropdown.querySelectorAll(".mas-filter__item").forEach((item) => {
+      const label = (item.getAttribute("data-filter-label") || "").toLowerCase();
+      item.classList.toggle("mas-filter__item--filter-hidden", q !== "" && !label.includes(q));
+    });
+    groupTitles.forEach((title) => {
+      let next = title.nextElementSibling;
+      let hasVisible = false;
+      while (next && !next.classList.contains("mas-filter__group-title")) {
+        if (next.classList.contains("mas-filter__item") && !next.classList.contains("mas-filter__item--filter-hidden")) {
+          hasVisible = true;
+        }
+        next = next.nextElementSibling;
+      }
+      title.classList.toggle("mas-filter__group-title--filter-hidden", !hasVisible);
+    });
+    if (filterSearchClear) {
+      filterSearchClear.classList.toggle("mas-filter__search-clear--visible", q !== "");
+    }
+    const noResults = dropdown.querySelector(".mas-filter__no-results");
+    if (noResults) {
+      const hasAnyVisible = dropdown.querySelector(".mas-filter__item:not(.mas-filter__item--filter-hidden)");
+      noResults.hidden = !!hasAnyVisible;
+    }
+  };
+
+  if (filterSearchInput) {
+    filterSearchInput.addEventListener("input", applyFilterSearch);
+    filterSearchInput.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  if (filterSearchClear) {
+    filterSearchClear.addEventListener("click", (e) => {
+      e.stopPropagation();
+      filterSearchInput.value = "";
+      applyFilterSearch();
+      filterSearchInput.focus();
+    });
+  }
+
+  // Bind reset button
+  const resetBtn = dropdown.querySelector(".mas-filter__reset-button");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      dropdown.querySelectorAll(".mas-filter__item--active").forEach((item) => {
+        item.classList.remove("mas-filter__item--active");
+      });
+      if (filterSearchInput) {
+        filterSearchInput.value = "";
+      }
+      applyFilterSearch();
+      if (container) {
+        matrixAuthApplyFilters(container);
+      }
+    });
+  }
+
+  // Toggle dropdown on button click
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = !dropdown.hidden;
+    dropdown.hidden = isOpen;
+    btn.setAttribute("aria-expanded", String(!isOpen));
+
+    if (!isOpen) {
+      const closeDropdown = () => {
+        dropdown.hidden = true;
+        btn.setAttribute("aria-expanded", "false");
+        document.removeEventListener("click", clickHandler);
+        document.removeEventListener("keydown", escHandler);
+      };
+      const clickHandler = (evt) => {
+        if (!dropdown.contains(evt.target) && evt.target !== btn) {
+          closeDropdown();
+        }
+      };
+      const escHandler = (evt) => {
+        if (evt.key === "Escape") {
+          closeDropdown();
+          btn.focus();
+        }
+      };
+      setTimeout(() => {
+        document.addEventListener("click", clickHandler);
+        document.addEventListener("keydown", escHandler);
+      }, 0);
     }
   });
 });

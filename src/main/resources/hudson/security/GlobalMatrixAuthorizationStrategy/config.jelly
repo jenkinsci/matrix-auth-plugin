@@ -185,9 +185,50 @@ THE SOFTWARE.
     <div class="mas-container" id="${strategyid}" name="data">
       <local:isEditable>
         <div class="mas-app-bar">
-          <l:search-bar placeholder="${%searchPlaceholder}"
-                        clazz="mas-search"
-                        hasKeyboardShortcut="false" />
+          <div class="mas-search-wrapper">
+            <l:search-bar placeholder="${%searchPlaceholder}"
+                          clazz="mas-search"
+                          hasKeyboardShortcut="false" />
+            <div class="mas-filter">
+              <button type="button" class="jenkins-button jenkins-button--tertiary mas-filter__button"
+                      aria-expanded="false" aria-haspopup="true"
+                      tooltip="${%filterLabel}">
+                <l:icon src="symbol-funnel-outline plugin-ionicons-api" class="icon-sm"/>
+              </button>
+              <div class="mas-filter__dropdown" hidden="true">
+                <div class="mas-filter__header">
+                  <span class="mas-filter__header-label">${%filterLabel}</span>
+                  <button type="button" class="mas-filter__reset-button" hidden="true">${%resetFilters}</button>
+                </div>
+                <div class="mas-filter__search">
+                  <input type="text" class="jenkins-input mas-filter__search-input" placeholder="${%filterSearchPlaceholder}" />
+                  <button type="button" class="mas-filter__search-clear" aria-label="Clear">&#xd7;</button>
+                </div>
+                <div class="mas-filter__list">
+                  <j:forEach var="g" items="${groups}">
+                    <j:set var="hasFilterPerms" value="${false}"/>
+                    <j:forEach var="p" items="${g.permissions}">
+                      <j:if test="${descriptor.showPermission(p)}">
+                        <j:set var="hasFilterPerms" value="${true}"/>
+                      </j:if>
+                    </j:forEach>
+                    <j:if test="${hasFilterPerms}">
+                      <div class="mas-filter__group-title">${g.title}</div>
+                      <j:forEach var="p" items="${g.permissions}">
+                        <j:if test="${descriptor.showPermission(p)}">
+                          <button type="button" class="mas-filter__item" data-filter-permission="${p.id}" data-filter-label="${g.title} ${p.name}">
+                            <span class="mas-filter__item-indicator"></span>
+                            <span class="mas-filter__item-name">${p.name}</span>
+                          </button>
+                        </j:if>
+                      </j:forEach>
+                    </j:if>
+                  </j:forEach>
+                  <div class="mas-filter__no-results" hidden="true">${%filterNoResults}</div>
+                </div>
+              </div>
+            </div>
+          </div>
           <button type="button" class="jenkins-button matrix-auth-add-button"
                   data-type="USER"
                   data-type-label="${%user}"
