@@ -46,6 +46,18 @@
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
     }
+
+    /* When filtering, JS adds these classes to override the static :first/:last rules */
+    &.mas-card--first-visible {
+      border-top-left-radius: var(--form-input-border-radius);
+      border-top-right-radius: var(--form-input-border-radius);
+      border-top: var(--jenkins-border);
+    }
+
+    &.mas-card--last-visible {
+      border-bottom-left-radius: var(--form-input-border-radius);
+      border-bottom-right-radius: var(--form-input-border-radius);
+    }
   }
 }
 

@@ -538,6 +538,26 @@ function matrixAuthApplyFilters(container) {
     }
   });
 
+  // Update first/last visible classes for correct border-radius
+  const allCards = container.querySelectorAll(".mas-card");
+  let firstVisible = null;
+  let lastVisible = null;
+  allCards.forEach((c) => {
+    c.classList.remove("mas-card--first-visible", "mas-card--last-visible");
+    if (!c.classList.contains("mas-card--hidden")) {
+      if (!firstVisible) {
+        firstVisible = c;
+      }
+      lastVisible = c;
+    }
+  });
+  if (firstVisible) {
+    firstVisible.classList.add("mas-card--first-visible");
+  }
+  if (lastVisible) {
+    lastVisible.classList.add("mas-card--last-visible");
+  }
+
   // Update empty state
   const emptyState = container.querySelector(".mas-empty-state");
   if (emptyState) {
