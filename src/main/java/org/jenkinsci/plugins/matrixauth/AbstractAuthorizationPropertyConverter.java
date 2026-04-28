@@ -76,14 +76,36 @@ public abstract class AbstractAuthorizationPropertyConverter<T extends Authoriza
 
         if ("inheritanceStrategy".equals(prop)) {
             reader.moveDown();
-            String clazz = reader.getAttribute("class");
             try {
-                container.setInheritanceStrategy(
-                        (InheritanceStrategy) Class.forName(clazz).newInstance());
+                String className = reader.getAttribute("class");
+                final Class<?> clazz = Class.forName(className);
+                if (InheritanceStrategy.class.isAssignableFrom(clazz)) {
+                    InheritanceStrategy inheritanceStrategy = null;
+                    try {
+                        inheritanceStrategy =
+                                (InheritanceStrategy) clazz.getConstructor().newInstance();
+                    } catch (NoSuchMethodException nsme) {
+                        LOGGER.log(
+                                Level.WARNING,
+                                "Failed to parse inheritanceStrategy: Class " + className
+                                        + " does not have a parameterless constructor",
+                                nsme);
+                    }
+
+                    if (inheritanceStrategy != null) {
+                        container.setInheritanceStrategy(inheritanceStrategy);
+                    }
+                } else {
+                    LOGGER.log(
+                            Level.WARNING,
+                            "Failed to parse inheritanceStrategy: Class " + className
+                                    + " does not extend InheritanceStrategy");
+                }
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Failed to restore inheritance strategy", e);
+                LOGGER.log(Level.WARNING, "Failed to set inheritance strategy", e);
+            } finally {
+                reader.moveUp();
             }
-            reader.moveUp();
         }
 
         // let the super handle the permissions that are always towards the end
