@@ -186,7 +186,7 @@ THE SOFTWARE.
               <button type="button" class="jenkins-button jenkins-button--tertiary mas-filter__button"
                       aria-expanded="false" aria-haspopup="true"
                       tooltip="${%filterLabel}">
-                <l:icon src="symbol-funnel-outline plugin-ionicons-api" class="icon-sm"/>
+                <l:icon src="symbol-filter-outline plugin-ionicons-api" class="icon-sm"/>
               </button>
               <div class="mas-filter__dropdown" hidden="true">
                 <div class="mas-filter__header">
