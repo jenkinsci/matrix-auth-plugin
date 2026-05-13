@@ -151,14 +151,7 @@ THE SOFTWARE.
                         <label class="mas-card__permission jenkins-checkbox"
                                data-implied-by-list="${descriptor.impliedByList(p)}"
                                data-permission-id="${p.id}">
-                          <j:choose>
-                            <j:when test="${isChecked}">
-                              <input type="checkbox" name="[${p.id}]" checked="checked"/>
-                            </j:when>
-                            <j:otherwise>
-                              <input type="checkbox" name="[${p.id}]"/>
-                            </j:otherwise>
-                          </j:choose>
+                          <input type="checkbox" name="[${p.id}]" checked="${isChecked?'checked':null}"/>
                           <span class="mas-card__permission-name">${p.name}</span>
                           <span class="mas-card__permission-implied" hidden="true">(${%implied})</span>
                           <j:set var="permDescription" value="${descriptor.getDescription(p)}"/>
