@@ -239,23 +239,23 @@ THE SOFTWARE.
 
       <!-- Ambiguity warning -->
       <j:if test="${descriptor.hasAmbiguousEntries(instance)}">
-        <div class="jenkins-alert jenkins-alert--warning mas-ambiguity-warning">
+        <div class="jenkins-alert jenkins-alert-warning mas-ambiguity-warning">
           ${%ambiguous}
         </div>
       </j:if>
 
       <!-- Permission cards -->
       <div class="mas-cards">
-        <!-- Built-in entries -->
-        <local:permissionCard type="USER" sid="anonymous" />
-        <local:permissionCard type="GROUP" sid="authenticated" />
-
         <!-- Custom entries -->
         <j:forEach var="entry" items="${instance.allPermissionEntries}">
           <j:if test="${entry.sid != 'authenticated' or entry.type.toString() != 'GROUP'}">
             <local:permissionCard sid="${entry.sid}" type="${entry.type.toString()}" />
           </j:if>
         </j:forEach>
+
+        <!-- Built-in entries -->
+        <local:permissionCard type="USER" sid="anonymous" />
+        <local:permissionCard type="GROUP" sid="authenticated" />
       </div>
 
       <!-- Empty state when search filters everything -->

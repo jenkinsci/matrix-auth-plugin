@@ -306,7 +306,7 @@ Behaviour.specify(".matrix-auth-add-button", "MatrixAuthCards", 0, function (e) 
               }
             });
 
-            cardsContainer.appendChild(copy);
+            cardsContainer.insertBefore(copy, cardsContainer.firstElementChild);
 
             // Update icon based on type (template defaults to USER)
             if (type === "GROUP") {
@@ -315,9 +315,11 @@ Behaviour.specify(".matrix-auth-add-button", "MatrixAuthCards", 0, function (e) 
 
             Behaviour.applySubtree(container, true);
             matrixAuthUpdateSummary(copy);
+            matrixAuthApplyFilters(container);
 
             // Expand the new card
             matrixAuthToggleCard(copy);
+            copy.scrollIntoView({ behavior: "smooth", block: "nearest" });
           }
         },
         function () {},
@@ -433,11 +435,43 @@ Behaviour.specify(".mas-card .mas-card__action.migrate", "MatrixAuthCards", 0, f
 
       // Update icon to match new type
       matrixAuthUpdateIcon(card, newType);
+
+      // Clear ambiguous validation state and re-validate with new type so the
+      // tooltip and warning color reflect the migrated, unambiguous entry.
+      card.classList.remove("mas-card__cell-warning", "mas-card__cell--not-found");
+      const identityEl = card.querySelector(".mas-card__identity");
+      if (identityEl) {
+        identityEl.removeAttribute("tooltip");
+        identityEl.removeAttribute("title");
+      }
+      const validationTarget = card.querySelector(".mas-card__validation-target");
+      if (validationTarget && card.getAttribute("data-descriptor-url") && card.getAttribute("data-built-in") !== "true") {
+        validationTarget.replaceChildren();
+        FormChecker.delayedCheck(
+          card.getAttribute("data-descriptor-url") + "/checkName?value=" + encodeURIComponent(newName),
+          "GET",
+          validationTarget
+        );
+        const observer = new MutationObserver(function () {
+          matrixAuthProcessValidation(card);
+          observer.disconnect();
+        });
+        observer.observe(validationTarget, { childList: true, subtree: true });
+      }
     }
 
     const masContainer = cardsContainer.closest(".mas-container");
     if (masContainer) {
       matrixAuthUpdateAmbiguityWarning(masContainer);
+      // Ensure the resulting card stays visible after migration, even if
+      // active filters would otherwise hide it (e.g., merging into the
+      // built-in 'authenticated' group while a permission filter is active).
+      // Temporarily mark the card sticky-visible, then run applyFilters so
+      // first/last-visible border-radius classes are recomputed correctly.
+      const resultCard = existingCard && existingCard !== card ? existingCard : card;
+      resultCard.dataset.forceVisible = "true";
+      matrixAuthApplyFilters(masContainer);
+      resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   });
 });
@@ -495,6 +529,16 @@ Behaviour.specify(".mas-card", "MatrixAuthCards", 100, function (card) {
 });
 
 /**
+ * Clear the post-migration force-visible flag from all cards so the next
+ * filter pass evaluates them normally.
+ */
+function matrixAuthClearForceVisible(container) {
+  container.querySelectorAll(".mas-card[data-force-visible='true']").forEach((card) => {
+    delete card.dataset.forceVisible;
+  });
+}
+
+/**
  * Apply combined text search + permission filters to show/hide cards.
  */
 function matrixAuthApplyFilters(container) {
@@ -530,7 +574,12 @@ function matrixAuthApplyFilters(container) {
       }
     }
 
-    if (matchesText && matchesPermission) {
+    // Cards may be force-visible after a migration so the user can see the
+    // result regardless of active filters; the flag is cleared on the next
+    // filter interaction (see input/click handlers).
+    const forceVisible = card.dataset.forceVisible === "true";
+
+    if (forceVisible || (matchesText && matchesPermission)) {
       card.classList.remove("mas-card--hidden");
       visibleCount++;
     } else {
@@ -587,6 +636,7 @@ Behaviour.specify(".mas-search input", "MatrixAuthCards", 0, (input) => {
   input.addEventListener("input", () => {
     const container = input.closest(".mas-container");
     if (container) {
+      matrixAuthClearForceVisible(container);
       matrixAuthApplyFilters(container);
     }
   });
@@ -614,6 +664,7 @@ Behaviour.specify(".mas-filter__button", "MatrixAuthCards", 0, (btn) => {
     item.addEventListener("click", () => {
       item.classList.toggle("mas-filter__item--active");
       if (container) {
+        matrixAuthClearForceVisible(container);
         matrixAuthApplyFilters(container);
       }
     });
@@ -678,6 +729,7 @@ Behaviour.specify(".mas-filter__button", "MatrixAuthCards", 0, (btn) => {
       }
       applyFilterSearch();
       if (container) {
+        matrixAuthClearForceVisible(container);
         matrixAuthApplyFilters(container);
       }
     });
