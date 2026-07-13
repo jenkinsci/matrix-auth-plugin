@@ -335,8 +335,9 @@ class ImportTest {
         }
 
         assertTrue(
-                Jenkins.logRecords.stream().anyMatch(l -> l.getLoggerName()
-                        .equals(MatrixAuthorizationStrategyConfigurator.class.getName())),
+                Jenkins.logRecords.stream()
+                        .anyMatch(
+                                l -> l.getLoggerName().equals(MatrixAuthorizationStrategyConfigurator.class.getName())),
                 "at least one warning");
         assertTrue(
                 Jenkins.logRecords.stream()
