@@ -36,6 +36,9 @@
     <jenkins.baseline>2.528</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
 
+    <!-- https://github.com/jenkinsci/plugin-pom/issues/1417 -->
+    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <hpi.compatibleSinceVersion>3.2</hpi.compatibleSinceVersion>
