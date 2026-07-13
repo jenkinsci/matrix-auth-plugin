@@ -65,9 +65,7 @@ class ReadOnlyTest {
     private HtmlPage initAndAssertPresent(String configurationUrl) throws IOException, SAXException {
         JenkinsRule.WebClient wc = j.createWebClient();
         final HtmlPage page = wc.goTo(configurationUrl);
-        assertTrue(
-                hasTagWithClassInPage(page, "table", "global-matrix-authorization-strategy-table"),
-                "contains permission container");
+        assertTrue(hasTagWithClassInPage(page, "div", "mas-container"), "contains permission container");
         return page;
     }
 
