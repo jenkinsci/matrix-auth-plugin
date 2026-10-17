@@ -27,6 +27,7 @@ import static org.jenkinsci.plugins.matrixauth.AuthorizationType.EITHER;
 import static org.jenkinsci.plugins.matrixauth.AuthorizationType.GROUP;
 import static org.jenkinsci.plugins.matrixauth.AuthorizationType.USER;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Functions;
 import hudson.Util;
@@ -35,6 +36,9 @@ import hudson.security.GroupDetails;
 import hudson.security.SecurityRealm;
 import hudson.security.UserMayOrMayNotExistException2;
 import hudson.util.FormValidation;
+import io.jenkins.plugins.authcommons.Principal;
+import io.jenkins.plugins.authcommons.PrincipalSearch;
+import io.jenkins.plugins.authcommons.PrincipalType;
 import org.jenkins.ui.symbol.Symbol;
 import org.jenkins.ui.symbol.SymbolRequest;
 import org.kohsuke.accmod.Restricted;
@@ -116,7 +120,8 @@ class ValidationUtil {
         String escapedSid = Functions.escape(groupName);
         try {
             final GroupDetails groupDetails = sr.loadGroupByGroupname2(groupName, false);
-            if (groupDetails.getName().equals(groupDetails.getDisplayName())) {
+            final String displayName = friendlyName(groupName, groupDetails.getDisplayName(), PrincipalType.GROUP);
+            if (groupDetails.getName().equals(displayName)) {
                 // Name and display name are identical, no need for tooltip
                 if (ambiguous) {
                     return FormValidation.respond(
@@ -136,7 +141,7 @@ class ValidationUtil {
                         FormValidation.Kind.WARNING,
                         formatUserGroupValidationResponse(
                                 GROUP,
-                                Util.escape(abbreviate(groupDetails.getDisplayName())),
+                                Util.escape(abbreviate(displayName)),
                                 "Group " + escapedSid
                                         + " found; but permissions would also be granted to a user of this name",
                                 true));
@@ -144,7 +149,7 @@ class ValidationUtil {
                 return FormValidation.respond(
                         FormValidation.Kind.OK,
                         formatUserGroupValidationResponse(
-                                GROUP, Util.escape(abbreviate(groupDetails.getDisplayName())), "Group " + escapedSid));
+                                GROUP, Util.escape(abbreviate(displayName)), "Group " + escapedSid));
             }
         } catch (UserMayOrMayNotExistException2 e) {
             // undecidable, meaning the group may exist
@@ -157,10 +162,13 @@ class ValidationUtil {
                                 "Permissions would also be granted to a user or group of this name",
                                 true));
             } else {
-                return FormValidation.ok(escapedSid);
+                FormValidation known = knownToDirectory(groupName, PrincipalType.GROUP);
+                return known != null ? known : FormValidation.ok(escapedSid);
             }
         } catch (UsernameNotFoundException e) {
-            // fall through next
+            if (!ambiguous) {
+                return knownToDirectory(groupName, PrincipalType.GROUP);
+            }
         } catch (AuthenticationException e) {
             // other seemingly unexpected error.
             return FormValidation.error(e, "Failed to test the validity of the group name " + groupName);
@@ -173,7 +181,8 @@ class ValidationUtil {
         try {
             sr.loadUserByUsername2(userName);
             User u = User.getById(userName, true);
-            if (userName.equals(u.getFullName())) {
+            final String fullName = friendlyName(userName, u.getFullName(), PrincipalType.USER);
+            if (userName.equals(fullName)) {
                 // Sid and full name are identical, no need for tooltip
                 if (ambiguous) {
                     return FormValidation.respond(
@@ -193,7 +202,7 @@ class ValidationUtil {
                         FormValidation.Kind.WARNING,
                         formatUserGroupValidationResponse(
                                 USER,
-                                Util.escape(abbreviate(u.getFullName())),
+                                Util.escape(abbreviate(fullName)),
                                 "User " + escapedSid
                                         + " found; but permissions would also be granted to a group of this name",
                                 true));
@@ -201,7 +210,7 @@ class ValidationUtil {
                 return FormValidation.respond(
                         FormValidation.Kind.OK,
                         formatUserGroupValidationResponse(
-                                USER, Util.escape(abbreviate(u.getFullName())), "User " + escapedSid));
+                                USER, Util.escape(abbreviate(fullName)), "User " + escapedSid));
             }
         } catch (UserMayOrMayNotExistException2 e) {
             // undecidable, meaning the user may exist
@@ -214,15 +223,62 @@ class ValidationUtil {
                                 "Permissions would also be granted to a user or group of this name",
                                 true));
             } else {
-                return FormValidation.ok(userName);
+                FormValidation known = knownToDirectory(userName, PrincipalType.USER);
+                return known != null ? known : FormValidation.ok(userName);
             }
         } catch (UsernameNotFoundException e) {
-            // fall through next
+            if (!ambiguous) {
+                return knownToDirectory(userName, PrincipalType.USER);
+            }
         } catch (AuthenticationException e) {
             // other seemingly unexpected error.
             return FormValidation.error(e, "Failed to test the validity of the username " + userName);
         }
         return null;
+    }
+
+    /**
+     * Returns the name provided by the security realm, unless it is just the sid, in which case a
+     * {@link PrincipalSearch} provider is asked for a more helpful display name.
+     */
+    private static String friendlyName(String sid, String realmName, PrincipalType type) {
+        if (realmName != null && !realmName.equals(sid)) {
+            return realmName;
+        }
+        Principal principal = PrincipalSearch.lookup(sid, type);
+        if (principal != null) {
+            return principal.displayName();
+        }
+        return realmName == null ? sid : realmName;
+    }
+
+    /**
+     * For sids the security realm cannot resolve, e.g. directory users who never logged in to Jenkins,
+     * asks a {@link PrincipalSearch} provider whether the directory knows them.
+     *
+     * @return a response with the directory's display name, or {@code null} if the directory does not know the sid
+     */
+    @CheckForNull
+    private static FormValidation knownToDirectory(String sid, PrincipalType type) {
+        Principal principal = PrincipalSearch.lookup(sid, type);
+        if (principal == null) {
+            return null;
+        }
+        String escapedSid = Functions.escape(sid);
+        String label = type == PrincipalType.GROUP ? "Group " : "User ";
+        String displayName = principal.displayName();
+        if (displayName == null || displayName.equals(sid)) {
+            return FormValidation.respond(
+                    FormValidation.Kind.OK,
+                    formatUserGroupValidationResponse(
+                            type == PrincipalType.GROUP ? GROUP : USER, escapedSid, label.trim()));
+        }
+        return FormValidation.respond(
+                FormValidation.Kind.OK,
+                formatUserGroupValidationResponse(
+                        type == PrincipalType.GROUP ? GROUP : USER,
+                        Util.escape(abbreviate(displayName)),
+                        label + escapedSid));
     }
 
     private static String abbreviate(String str) {

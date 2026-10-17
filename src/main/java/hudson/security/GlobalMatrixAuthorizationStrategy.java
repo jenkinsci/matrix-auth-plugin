@@ -54,8 +54,10 @@ import org.jenkinsci.plugins.matrixauth.PermissionEntry;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.verb.GET;
 
 /**
  * Role-based authorization via a matrix.
@@ -224,6 +226,13 @@ public class GlobalMatrixAuthorizationStrategy extends AuthorizationStrategy
         @Restricted(NoExternalUse.class)
         public FormValidation doCheckName(@QueryParameter String value) {
             return doCheckName_(value, Jenkins.get(), Jenkins.ADMINISTER);
+        }
+
+        @GET
+        @Restricted(NoExternalUse.class)
+        public HttpResponse doSearchPrincipals(
+                @QueryParameter String q, @QueryParameter String type, @QueryParameter Integer limit) {
+            return doSearchPrincipals_(q, type, limit, Jenkins.get(), Jenkins.ADMINISTER);
         }
     }
 

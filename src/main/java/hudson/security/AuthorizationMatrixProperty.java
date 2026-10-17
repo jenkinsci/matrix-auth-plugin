@@ -66,6 +66,7 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.verb.GET;
@@ -217,6 +218,16 @@ public class AuthorizationMatrixProperty extends JobProperty<Job<?, ?>>
         @GET
         public FormValidation doCheckName(@AncestorInPath Job<?, ?> project, @QueryParameter String value) {
             return doCheckName_(value, project, Item.CONFIGURE);
+        }
+
+        @GET
+        @Restricted(NoExternalUse.class)
+        public HttpResponse doSearchPrincipals(
+                @AncestorInPath Job<?, ?> project,
+                @QueryParameter String q,
+                @QueryParameter String type,
+                @QueryParameter Integer limit) {
+            return doSearchPrincipals_(q, type, limit, project, Item.CONFIGURE);
         }
     }
 
