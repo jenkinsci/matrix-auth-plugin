@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:l="/lib/layout">
+<j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:l="/lib/layout" xmlns:ac="/lib/auth-commons">
   <f:block xmlns:local="local">
     <j:set var="groups" value="${descriptor.allGroups}"/>
     <d:taglib uri="local">
@@ -173,6 +173,8 @@ THE SOFTWARE.
     </d:taglib>
 
     <j:set var="strategyid" value="${descriptor.jsonSafeClassName}" />
+    <j:set var="principalSearchAvailable" value="${descriptor.principalSearchAvailable}" />
+    <j:set var="principalSearchUrl" value="${descriptor.descriptorFullUrl}/searchPrincipals" />
 
     <!-- Search / filter -->
     <div class="mas-container" id="${strategyid}" name="data">
@@ -226,14 +228,22 @@ THE SOFTWARE.
                   data-type="USER"
                   data-type-label="${%user}"
                   data-message-prompt="${%userPrompt}"
+                  data-message-search-prompt="${%usersPrompt}"
+                  data-message-placeholder="${%usersPlaceholder}"
                   data-message-title="${%Add user}"
-                  data-message-error="${%userError}">${%Add user}</button>
+                  data-message-ok="${%add}"
+                  data-message-error="${%userError}"
+                  data-search-url="${principalSearchAvailable ? principalSearchUrl : null}">${%Add user}</button>
           <button type="button" class="jenkins-button matrix-auth-add-button"
                   data-type="GROUP"
                   data-type-label="${%group}"
                   data-message-prompt="${%groupPrompt}"
+                  data-message-search-prompt="${%groupsPrompt}"
+                  data-message-placeholder="${%groupsPlaceholder}"
                   data-message-title="${%Add group}"
-                  data-message-error="${%groupError}">${%Add group}</button>
+                  data-message-ok="${%add}"
+                  data-message-error="${%groupError}"
+                  data-search-url="${principalSearchAvailable ? principalSearchUrl : null}">${%Add group}</button>
         </div>
       </local:isEditable>
 
@@ -270,6 +280,17 @@ THE SOFTWARE.
     <template id="${templateId}" data-strategy-id="${strategyid}">
       <local:permissionCard sid="__SID__" type="USER" />
     </template>
+
+    <!-- Autocompleting input for the add user/group dialog -->
+    <j:if test="${principalSearchAvailable}">
+      <st:adjunct includes="io.jenkins.plugins.authcommons.principal-search"/>
+      <template class="mas-principal-search-template" data-strategy-id="${strategyid}">
+        <div class="jenkins-form-item">
+          <div class="jenkins-form-label" />
+          <ac:principalSearch searchUrl="${principalSearchUrl}" name="name" multiple="true" />
+        </div>
+      </template>
+    </j:if>
 
     <!-- Pre-rendered icons for JS to clone when swapping user/group icons -->
     <div id="${strategyid}-icons" hidden="true">

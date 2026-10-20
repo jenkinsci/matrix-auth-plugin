@@ -235,6 +235,143 @@ Behaviour.specify(".mas-card__header", "MatrixAuthCards", 0, function (header) {
 /*
  * Adding new users/groups
  */
+function matrixAuthAddEntry(button, container, templateEl, type, name, displayName) {
+  if (!name || name.trim() === "") {
+    return null;
+  }
+  name = name.trim();
+  const typeLabel = button.getAttribute("data-type-label");
+
+  // Check for duplicates
+  const cardsContainer = container.querySelector(".mas-cards");
+  if (matrixAuthHasEntry(container, type, name)) {
+    dialog.alert(button.getAttribute("data-message-error"));
+    return null;
+  }
+
+  if (!templateEl) {
+    return null;
+  }
+  const copy = templateEl.content.firstElementChild.cloneNode(true);
+  copy.setAttribute("name", "[" + type + ":" + name + "]");
+  copy.setAttribute("data-sid", name);
+  copy.setAttribute("data-type", type);
+  copy.classList.remove("mas-card--ambiguous");
+
+  // Update the displayed name; validation replaces it with the realm's name later
+  const nameEl = copy.querySelector(".mas-card__name");
+  if (nameEl) {
+    nameEl.textContent = displayName || name;
+  }
+
+  // Remove ambiguous badge if present
+  const badge = copy.querySelector(".mas-card__badge--warning");
+  if (badge) {
+    badge.remove();
+  }
+
+  // Remove migration buttons
+  copy.querySelectorAll(".migrate").forEach(function (btn) {
+    btn.remove();
+  });
+
+  // Update tooltips
+  copy.querySelectorAll(".mas-card__action[tooltip]").forEach(function (btn) {
+    const t = btn.getAttribute("tooltip");
+    if (t) {
+      btn.setAttribute("tooltip", t.replace("__SID__", name).replace("__TYPE__", typeLabel));
+    }
+  });
+
+  cardsContainer.insertBefore(copy, cardsContainer.firstElementChild);
+
+  // Update icon based on type (template defaults to USER)
+  if (type === "GROUP") {
+    matrixAuthUpdateIcon(copy, "GROUP");
+  }
+  return copy;
+}
+
+function matrixAuthHasEntry(container, type, name) {
+  return container.querySelector(".mas-cards .mas-card[name='[" + type + ":" + CSS.escape(name) + "]']") !== null;
+}
+
+function matrixAuthEntriesAdded(container, cards) {
+  if (cards.length === 0) {
+    return;
+  }
+  Behaviour.applySubtree(container, true);
+  cards.forEach(function (card) {
+    matrixAuthUpdateSummary(card);
+  });
+  matrixAuthApplyFilters(container);
+
+  // Expand the new card, or the first of several
+  matrixAuthToggleCard(cards[0]);
+  cards[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function matrixAuthFindTemplate(selector, container) {
+  const templates = document.querySelectorAll(selector);
+  for (let i = 0; i < templates.length; i++) {
+    if (templates[i].getAttribute("data-strategy-id") === container.id) {
+      return templates[i];
+    }
+  }
+  return null;
+}
+
+/*
+ * Pick users or groups (one type, as chosen by the button), autocompleted from the security realm.
+ * Resolves with the chosen principals ({sid, type, displayName}), or rejects when cancelled.
+ */
+function matrixAuthPickPrincipals(button, container, searchTemplate, type) {
+  const form = document.createElement("form");
+  form.appendChild(searchTemplate.content.firstElementChild.cloneNode(true));
+  form.querySelector(".jenkins-form-label").textContent = button.getAttribute("data-message-search-prompt");
+  const search = form.querySelector("auth-commons-principal-search");
+  search.setAttribute("type", type);
+  search.setAttribute("placeholder", button.getAttribute("data-message-placeholder") || "");
+
+  const options = {
+    title: button.getAttribute("data-message-title"),
+    submitButton: false,
+    minWidth: "450px",
+    maxWidth: "550px",
+  };
+  const okText = button.getAttribute("data-message-ok");
+  if (okText) {
+    options.okText = okText;
+  }
+  const result = dialog.form(form, options);
+  const dialogEl = form.closest("dialog");
+  const ok = dialogEl ? dialogEl.querySelector("[data-id=ok]") : null;
+
+  // Users and groups already listed can't be added again
+  search.exclude = function (principal) {
+    return matrixAuthHasEntry(container, principal.type, principal.sid);
+  };
+  function updateOk() {
+    if (ok) {
+      ok.disabled = search.selectedPrincipals.length === 0;
+    }
+  }
+  search.addEventListener("change", updateOk);
+  updateOk();
+
+  // Pressing Enter would otherwise submit the form natively and navigate away
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    if (ok && !ok.disabled) {
+      ok.click();
+    }
+  });
+  search.focus();
+  return result.then(function () {
+    return search.selectedPrincipals;
+  });
+}
+
 Behaviour.specify(".matrix-auth-add-button", "MatrixAuthCards", 0, function (e) {
   if (e.dataset.addInitialized === "true") {
     return;
@@ -243,87 +380,39 @@ Behaviour.specify(".matrix-auth-add-button", "MatrixAuthCards", 0, function (e) 
   e.addEventListener('click', function() {
     const container = e.closest(".mas-container");
     const type = e.getAttribute("data-type");
-    const typeLabel = e.getAttribute("data-type-label");
 
     // Find the template element associated with this container
-    const templates = document.querySelectorAll("template[data-strategy-id]");
-    let templateEl = null;
-    for (let i = 0; i < templates.length; i++) {
-      if (templates[i].getAttribute("data-strategy-id") === container.id) {
-        templateEl = templates[i];
-        break;
-      }
-    }
+    const templateEl = matrixAuthFindTemplate("template[data-strategy-id]:not(.mas-principal-search-template)", container);
+    const searchTemplate = e.hasAttribute("data-search-url")
+      ? matrixAuthFindTemplate("template.mas-principal-search-template", container)
+      : null;
 
-    dialog
-      .prompt(e.getAttribute("data-message-title"), {
-        message: e.getAttribute("data-message-prompt"),
-      })
-      .then(
-        function (name) {
-          if (!name || name.trim() === "") {
-            return;
-          }
-          name = name.trim();
-
-          // Check for duplicates
-          const cardsContainer = container.querySelector(".mas-cards");
-          const existing = cardsContainer.querySelector(".mas-card[name='[" + type + ":" + name + "]']");
-          if (existing) {
-            dialog.alert(e.getAttribute("data-message-error"));
-            return;
-          }
-
-          if (templateEl) {
-            const copy = templateEl.content.firstElementChild.cloneNode(true);
-            copy.setAttribute("name", "[" + type + ":" + name + "]");
-            copy.setAttribute("data-sid", name);
-            copy.setAttribute("data-type", type);
-            copy.classList.remove("mas-card--ambiguous");
-
-            // Update the displayed name
-            const nameEl = copy.querySelector(".mas-card__name");
-            if (nameEl) {
-              nameEl.textContent = name;
+    if (searchTemplate) {
+      matrixAuthPickPrincipals(e, container, searchTemplate, type).then(
+        function (principals) {
+          const cards = [];
+          principals.forEach(function (principal) {
+            const card = matrixAuthAddEntry(e, container, templateEl, principal.type, principal.sid, principal.displayName);
+            if (card) {
+              cards.push(card);
             }
-
-            // Remove ambiguous badge if present
-            const badge = copy.querySelector(".mas-card__badge--warning");
-            if (badge) {
-              badge.remove();
-            }
-
-            // Remove migration buttons
-            copy.querySelectorAll(".migrate").forEach(function (btn) {
-              btn.remove();
-            });
-
-            // Update tooltips
-            copy.querySelectorAll(".mas-card__action[tooltip]").forEach(function (btn) {
-              const t = btn.getAttribute("tooltip");
-              if (t) {
-                btn.setAttribute("tooltip", t.replace("__SID__", name).replace("__TYPE__", typeLabel));
-              }
-            });
-
-            cardsContainer.insertBefore(copy, cardsContainer.firstElementChild);
-
-            // Update icon based on type (template defaults to USER)
-            if (type === "GROUP") {
-              matrixAuthUpdateIcon(copy, "GROUP");
-            }
-
-            Behaviour.applySubtree(container, true);
-            matrixAuthUpdateSummary(copy);
-            matrixAuthApplyFilters(container);
-
-            // Expand the new card
-            matrixAuthToggleCard(copy);
-            copy.scrollIntoView({ behavior: "smooth", block: "nearest" });
-          }
+          });
+          matrixAuthEntriesAdded(container, cards);
         },
         function () {},
       );
+      return;
+    }
+
+    dialog.prompt(e.getAttribute("data-message-title"), {
+      message: e.getAttribute("data-message-prompt"),
+    }).then(
+      function (name) {
+        const card = matrixAuthAddEntry(e, container, templateEl, type, name);
+        matrixAuthEntriesAdded(container, card ? [card] : []);
+      },
+      function () {},
+    );
   });
 });
 

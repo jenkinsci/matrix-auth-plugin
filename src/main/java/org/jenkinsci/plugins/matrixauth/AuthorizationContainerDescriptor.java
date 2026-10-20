@@ -13,6 +13,7 @@ import hudson.security.PermissionGroup;
 import hudson.security.PermissionScope;
 import hudson.security.SecurityRealm;
 import hudson.util.FormValidation;
+import io.jenkins.plugins.authcommons.PrincipalSearch;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ import jenkins.model.Jenkins;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.HttpResponse;
 
 /**
  * Interface methods common to descriptors of authorization strategy and the various properties.
@@ -134,6 +136,33 @@ public interface AuthorizationContainerDescriptor {
             return "__TYPE__"; // placeholder
         }
         return Messages.class.getMethod("TypeLabel_" + type).invoke(null).toString();
+    }
+
+    @Restricted(DoNotUse.class) // Jelly only
+    default boolean isPrincipalSearchAvailable() {
+        return PrincipalSearch.isAvailable();
+    }
+
+    /**
+     * Searches the security realm for users and groups, for autocompletion when adding entries.
+     *
+     * @param subject the object whose permissions are being configured, or {@code null} to require {@link Jenkins#ADMINISTER}
+     * @param permission the permission required on {@code subject} to configure its permissions
+     */
+    // Not used directly by Stapler due to the trailing _
+    @Restricted(NoExternalUse.class)
+    default HttpResponse doSearchPrincipals_(
+            @CheckForNull String query,
+            @CheckForNull String type,
+            @CheckForNull Integer limit,
+            @CheckForNull AccessControlled subject,
+            @NonNull Permission permission) {
+        if (subject == null) {
+            Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+        } else {
+            subject.checkPermission(permission);
+        }
+        return PrincipalSearch.searchResponse(query, type, limit);
     }
 
     // Not used directly by Stapler due to the trailing _ (this prevented method confusion around 1.415).

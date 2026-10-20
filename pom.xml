@@ -33,7 +33,8 @@
     <revision>3.4</revision>
     <changelist>-SNAPSHOT</changelist>
 
-    <jenkins.baseline>2.528</jenkins.baseline>
+    <jenkins.baseline>2.555</jenkins.baseline>
+    <auth-commons.version>4.v3a_81b_3693e3d</auth-commons.version>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
 
     <!-- https://github.com/jenkinsci/plugin-pom/issues/1417 -->
@@ -63,6 +64,11 @@
       <groupId>io.jenkins</groupId>
       <artifactId>configuration-as-code</artifactId>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>auth-commons</artifactId>
+      <version>${auth-commons.version}</version>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>

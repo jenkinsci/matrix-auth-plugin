@@ -55,8 +55,10 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.verb.GET;
 
 public class AuthorizationMatrixNodeProperty extends NodeProperty<Node>
         implements AuthorizationProperty<NodeProperty<?>> {
@@ -185,6 +187,16 @@ public class AuthorizationMatrixNodeProperty extends NodeProperty<Node>
                     value,
                     computer == null ? Jenkins.get() : computer,
                     computer == null ? Jenkins.ADMINISTER : Computer.CONFIGURE);
+        }
+
+        @GET
+        @Restricted(NoExternalUse.class)
+        public HttpResponse doSearchPrincipals(
+                @AncestorInPath Computer computer,
+                @QueryParameter String q,
+                @QueryParameter String type,
+                @QueryParameter Integer limit) {
+            return doSearchPrincipals_(q, type, limit, computer, Computer.CONFIGURE);
         }
     }
 
